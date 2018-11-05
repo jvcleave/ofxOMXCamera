@@ -25,13 +25,11 @@ void ofxOMXPhotoGrabber::setup(ofxOMXCameraSettings settings_)
     if(settings.enableTexture)
     {
         displayController.generateEGLImage(settings.stillPreviewWidth, settings.stillPreviewHeight);
-        engine.setup(&settings, this, &displayController);  
-
-    }else
-    {
-        engine.setup(&settings, this, NULL);  
 
     }
+    
+    engine.setup(&settings, this, &displayController);  
+
 
 }
 

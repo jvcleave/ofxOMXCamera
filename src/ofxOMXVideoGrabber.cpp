@@ -28,16 +28,14 @@ void ofxOMXVideoGrabber::setup(ofxOMXCameraSettings& settings_)
     if(settings.enableTexture)
     {
         displayController.generateEGLImage(settings.width, settings.height);
-        engine.setup(settings, this, &displayController);
         if(settings.enablePixels)
         {
             pixelsRequested = true;
         }
-    }else
-    {
-        engine.setup(settings, this);
-
     }
+    
+    engine.setup(settings, this, &displayController);
+
     
 }
 

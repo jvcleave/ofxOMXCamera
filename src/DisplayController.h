@@ -99,7 +99,7 @@ public:
         renderComponent = renderComponent_;
         drawRectangle.set(x, y, width, height);
         cropRectangle.set(x, y, width, height);
-        
+        TRACE_LINE
         applyConfig();
     }
     
