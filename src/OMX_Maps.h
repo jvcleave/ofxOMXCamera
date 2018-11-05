@@ -1000,6 +1000,8 @@ string omxErrorToString(OMX_ERRORTYPE error)
 #define OMX_LOG_LEVEL OMX_LOG_LEVEL_ERROR_ONLY
 #endif
 
+#define TRACE_LINE ofLogNotice(__func__) << __LINE__;
+
 static  
 void logOMXError(OMX_ERRORTYPE error, string comments="", string functionName="", int lineNumber=0)
 {
