@@ -24,8 +24,8 @@ void ofxOMXPhotoGrabber::setup(ofxOMXCameraSettings settings_)
    
     if(settings.enableTexture)
     {
-        eglImageController.generateEGLImage(settings.stillPreviewWidth, settings.stillPreviewHeight);
-        engine.setup(&settings, this, &eglImageController);  
+        displayController.generateEGLImage(settings.stillPreviewWidth, settings.stillPreviewHeight);
+        engine.setup(&settings, this, &displayController);  
 
     }else
     {
@@ -115,50 +115,49 @@ int ofxOMXPhotoGrabber::getHeight()
 
 void ofxOMXPhotoGrabber::draw(ofRectangle& rectangle)
 {
-    draw(rectangle.x, rectangle.y, rectangle.width, rectangle.height);
+    displayController.draw(rectangle);
 }
 
+void ofxOMXPhotoGrabber::draw(int x, int y)
+{
+    displayController.draw(x, y);
+
+}
 void ofxOMXPhotoGrabber::draw(int x, int y, int width, int height)
 {
-    if(settings.enableTexture)
-    {
-        eglImageController.texture.draw(x, y, width, height);
-        
-    }else
-    {
-        setDisplayDrawRectangle(ofRectangle(x, y, width, height));
-
-    }
+    
+    displayController.draw(x, y, width, height);
 }
+
 
 void ofxOMXPhotoGrabber::setDisplayAlpha(int alpha)
 {
-    engine.directDisplay.setDisplayAlpha(alpha);
+    displayController.setDisplayAlpha(alpha);
 }
 
 void ofxOMXPhotoGrabber::setDisplayLayer(int layer)
 {
-    engine.directDisplay.setDisplayAlpha(layer);
+    displayController.setDisplayAlpha(layer);
 }
 
 void ofxOMXPhotoGrabber::setDisplayRotation(int rotationDegrees)
 {
-    engine.directDisplay.setDisplayRotation(rotationDegrees);
+    displayController.setDisplayRotation(rotationDegrees);
 }
 
 void ofxOMXPhotoGrabber::setDisplayDrawRectangle(ofRectangle drawRectangle)
 {
-    engine.directDisplay.setDisplayDrawRectangle(drawRectangle);
+    displayController.setDisplayDrawRectangle(drawRectangle);
 }
 
 void ofxOMXPhotoGrabber::setDisplayCropRectangle(ofRectangle cropRectangle)
 {
-    engine.directDisplay.setDisplayCropRectangle(cropRectangle);
+    displayController.setDisplayCropRectangle(cropRectangle);
 }
 
 void ofxOMXPhotoGrabber::setDisplayMirror(bool doMirror)
 {
-    engine.directDisplay.setDisplayMirror(doMirror);
+    displayController.setDisplayMirror(doMirror);
 }
 
 

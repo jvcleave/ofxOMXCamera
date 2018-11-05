@@ -27,8 +27,8 @@ void ofxOMXVideoGrabber::setup(ofxOMXCameraSettings& settings_)
     
     if(settings.enableTexture)
     {
-        eglImageController.generateEGLImage(settings.width, settings.height);
-        engine.setup(settings, this, &eglImageController);
+        displayController.generateEGLImage(settings.width, settings.height);
+        engine.setup(settings, this, &displayController);
         if(settings.enablePixels)
         {
             pixelsRequested = true;
@@ -98,19 +98,8 @@ void ofxOMXVideoGrabber::onUpdate(ofEventArgs & args)
 	{
 		if (settings.enableTexture) 
 		{
-            eglImageController.fbo.begin();
-            ofClear(0, 0, 0, 0);
-            eglImageController.texture.draw(0, 0);
-			if (pixelsRequested) 
-			{
-                glReadPixels(0, 0,
-                             eglImageController.texture.getWidth(),
-                             eglImageController.texture.getHeight(),
-                             GL_RGBA,
-                             GL_UNSIGNED_BYTE,
-                             eglImageController.pixels);    
-			}
-            eglImageController.fbo.end();
+            displayController.updateTexture(pixelsRequested);
+            
 		}
 	}
    
@@ -149,7 +138,7 @@ int ofxOMXVideoGrabber::getFrameRate()
 #pragma mark PIXELS/TEXTURE
 GLuint ofxOMXVideoGrabber::getTextureID()
 {
-	return eglImageController.textureID;
+	return displayController.textureID;
 }
 
 void ofxOMXVideoGrabber::enablePixels()
@@ -170,12 +159,12 @@ void ofxOMXVideoGrabber::disablePixels()
 
 unsigned char * ofxOMXVideoGrabber::getPixels()
 {
-    return eglImageController.pixels;
+    return displayController.pixels;
 }
 
 ofTexture& ofxOMXVideoGrabber::getTextureReference()
 {
-	return eglImageController.texture;
+	return displayController.texture;
 }
 
 #pragma mark RECORDING
@@ -199,74 +188,56 @@ void ofxOMXVideoGrabber::stopRecording()
 #pragma mark DRAW
 void ofxOMXVideoGrabber::setDisplayAlpha(int alpha)
 {
-    engine.directDisplay.setDisplayAlpha(alpha);
+    displayController.setDisplayAlpha(alpha);
 }
 
 void ofxOMXVideoGrabber::setDisplayLayer(int layer)
 {
-    engine.directDisplay.setDisplayLayer(layer);
+    displayController.setDisplayLayer(layer);
 }
 
 void ofxOMXVideoGrabber::setDisplayRotation(int rotationDegrees)
 {
-    engine.directDisplay.setDisplayRotation(rotationDegrees);
+    displayController.setDisplayRotation(rotationDegrees);
 }
 
 void ofxOMXVideoGrabber::setDisplayDrawRectangle(ofRectangle drawRectangle)
 {
-    engine.directDisplay.setDisplayDrawRectangle(drawRectangle);
+    displayController.setDisplayDrawRectangle(drawRectangle);
 
 }
 
 void ofxOMXVideoGrabber::setDisplayCropRectangle(ofRectangle cropRectangle)
 {
-    engine.directDisplay.setDisplayCropRectangle(cropRectangle);
+    displayController.setDisplayCropRectangle(cropRectangle);
 
 }
 
 void ofxOMXVideoGrabber::setDisplayMirror(bool doMirror)
 {
-    engine.directDisplay.setDisplayMirror(doMirror);
+    displayController.setDisplayMirror(doMirror);
 }
 
-void ofxOMXVideoGrabber::draw()
-{
-	if (settings.enableTexture)
-	{
-		draw(0, 0);
-        
-	}else
-    {
-        engine.directDisplay.setDisplayDrawRectangle(ofRectangle(0, 0, getWidth(), getHeight()));
-    }    
-}
+
+
 void ofxOMXVideoGrabber::draw(ofRectangle& rectangle)
 {
-    draw(rectangle.x, rectangle.y, rectangle.width, rectangle.height);
+    displayController.draw(rectangle.x, rectangle.y, rectangle.width, rectangle.height);
 }
 
 void ofxOMXVideoGrabber::draw(int x, int y)
 {
-    if (settings.enableTexture)
-    {
-        eglImageController.fbo.draw(x, y);
-    }else
-    {
-        setDisplayDrawRectangle(ofRectangle(x, y, getWidth(), getHeight()));
-
-    }
+    displayController.draw(x, y);  
 }
-
 
 void ofxOMXVideoGrabber::draw(int x, int y, int width, int height)
 {
-    if (settings.enableTexture)
-    {
-        eglImageController.fbo.draw(x, y, width, height);
-    }else
-    {
-        setDisplayDrawRectangle(ofRectangle(x, y, width, height));
-    }
+    displayController.draw(x, y, width, height);
+}
+
+void ofxOMXVideoGrabber::draw()
+{
+    displayController.draw();  
 }
 
 
