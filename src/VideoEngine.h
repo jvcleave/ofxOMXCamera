@@ -12,9 +12,8 @@
 #include "ofAppEGLWindow.h"
 #include "OMX_Maps.h"
 #include "ofxOMXCameraSettings.h"
-#include "DirectDisplay.h"
+#include "DisplayController.h"
 
-#include "EGLImageController.h"
 class VideoEngineListener
 {
 public:
@@ -31,7 +30,7 @@ public:
 	VideoEngine();
     ~VideoEngine();
 
-	void setup(ofxOMXCameraSettings&, VideoEngineListener*, EGLImageController* eglImageController_=NULL);
+	void setup(ofxOMXCameraSettings&, VideoEngineListener*, DisplayController* displayController_=NULL);
     int getFrameCounter();
 	ofxOMXCameraSettings& getSettings();
     
@@ -41,16 +40,14 @@ public:
 	bool isOpen;
     bool isRecording;
     VideoEngineListener* listener;
-    DirectDisplay directDisplay;
 
     int frameCounter;
     void close();
     OMX_ERRORTYPE onCameraEventParamOrConfigChanged();
     bool isClosing;
-    
+    DisplayController* displayController;
 protected:
 	
-    EGLImageController* eglImageController;
     OMX_BUFFERHEADERTYPE* eglBuffer;
 
     ofxOMXCameraSettings settings;

@@ -15,7 +15,7 @@ PhotoEngine::PhotoEngine()
     previewPortConfig.nPortIndex = CAMERA_PREVIEW_PORT;
     saveFolderAbsolutePath.clear();
     renderInputPort = VIDEO_RENDER_INPUT_PORT;
-    eglImageController = NULL;
+    displayController = NULL;
 }   
 
 
@@ -30,11 +30,11 @@ OMX_ERRORTYPE PhotoEngine::textureRenderFillBufferDone(OMX_IN OMX_HANDLETYPE ren
 }
 
 
-void PhotoEngine::setup(ofxOMXCameraSettings* settings_, PhotoEngineListener* listener_, EGLImageController* eglImageController_)
+void PhotoEngine::setup(ofxOMXCameraSettings* settings_, PhotoEngineListener* listener_, DisplayController* displayController_)
 {
     settings = settings_;
     listener = listener_;
-    eglImageController = eglImageController_;
+    displayController = displayController_;
     //settings->width = omxcam_round(settings->width, 32);
     //settings->height = omxcam_round(settings->height, 16);
 
@@ -368,7 +368,7 @@ OMX_ERRORTYPE PhotoEngine::onCameraEventParamOrConfigChanged()
         if(settings->enableTexture)
         {
             //Set renderer to use texture
-            error = OMX_UseEGLImage(render, &eglBuffer, EGL_RENDER_OUTPUT_PORT, this, eglImageController->eglImage);
+            error = OMX_UseEGLImage(render, &eglBuffer, EGL_RENDER_OUTPUT_PORT, this, displayController->eglImage);
             OMX_TRACE(error);
         }
         
@@ -436,9 +436,11 @@ OMX_ERRORTYPE PhotoEngine::onCameraEventParamOrConfigChanged()
             error = OMX_FillThisBuffer(render, eglBuffer);
             OMX_TRACE(error);
             ofLogNotice(__func__) << "TRIED OMX_FillThisBuffer";
+            displayController->setupTextureMode(0, 0, settings->stillPreviewWidth, settings->stillPreviewHeight);
+
         }else
         {
-            directDisplay.setup(render, 0, 0, settings->stillPreviewWidth, settings->stillPreviewHeight);
+            displayController->setupDirectMode(render, 0, 0, settings->stillPreviewWidth, settings->stillPreviewHeight);
         }
     }
     
@@ -603,7 +605,7 @@ void PhotoEngine::writeFile()
     }
     
     close();
-    setup(settings, listener, eglImageController);
+    setup(settings, listener, displayController);
 }
 
 
@@ -624,8 +626,7 @@ void PhotoEngine::close()
     
 
     OMX_ERRORTYPE error;
-    directDisplay.close();
-    
+   
 
     if(camera)
     {

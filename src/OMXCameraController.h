@@ -1,7 +1,6 @@
 #pragma once
 #include "ofMain.h"
 #include "OMX_Maps.h"
-#include "DirectDisplay.h"
 #include "ofxOMXCameraSettings.h"
 
 

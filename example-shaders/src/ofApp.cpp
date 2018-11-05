@@ -5,7 +5,7 @@ void ofApp::setup()
 {
 	ofSetLogLevel(OF_LOG_VERBOSE);
 	ofSetLogLevel("ofThread", OF_LOG_ERROR);
-	ofSetVerticalSync(false);
+	//ofSetVerticalSync(false);
 	ofEnableAlphaBlending();
 	
 	doDrawInfo	= true;
