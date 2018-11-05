@@ -33,8 +33,11 @@ public:
     PhotoEngine engine;
     
     
-    void draw(ofRectangle& rectangle);
+    void draw();
+    void draw(int x, int y);
     void draw(int x, int y, int width, int height);
+    void draw(ofRectangle&);
+    
     void setDisplayAlpha(int);
     void setDisplayLayer(int);
     void setDisplayRotation(int);
@@ -48,5 +51,5 @@ public:
     void onPhotoEngineStart(OMX_HANDLETYPE camera_) override;
     vector<string> photosTaken;
 
-    EGLImageController eglImageController;
+    DisplayController displayController;
 };

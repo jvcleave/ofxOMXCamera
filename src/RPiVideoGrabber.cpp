@@ -75,17 +75,17 @@ float RPiVideoGrabber::getWidth() const
 
 void RPiVideoGrabber::draw(int x, int y)
 {
-    videoGrabber.getTextureReference().draw(x, y);
+    videoGrabber.draw(x, y);
 }
 
 void RPiVideoGrabber::draw(int x, int y, int width, int height)
 {
-    videoGrabber.getTextureReference().draw(x, y, width, height);
+    videoGrabber.draw(x, y, width, height);
 }
 
 ofTexture* RPiVideoGrabber::getTexturePtr()
 {
-    return &videoGrabber.eglImageController.fbo.getTexture(); 
+    return &videoGrabber.displayController.fbo.getTexture(); 
 }
 
 bool RPiVideoGrabber::isInitialized() const

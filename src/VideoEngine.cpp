@@ -13,7 +13,7 @@ VideoEngine::VideoEngine()
     listener = NULL;
     frameCounter = 0;
     isClosing = false;
-    eglImageController = NULL;
+    displayController = NULL;
 }
 
 int VideoEngine::getFrameCounter()
@@ -71,12 +71,12 @@ OMX_ERRORTYPE VideoEngine::textureRenderFillBufferDone(OMX_IN OMX_HANDLETYPE ren
     return error;
 }
 
-void VideoEngine::setup(ofxOMXCameraSettings& settings_, VideoEngineListener* listener_, EGLImageController* eglImageController_)
+void VideoEngine::setup(ofxOMXCameraSettings& settings_, VideoEngineListener* listener_, DisplayController* displayController_)
 {
     isClosing = false;
     settings = settings_;
     listener = listener_;
-    eglImageController = eglImageController_;
+    displayController = displayController_;
     
     ofLogVerbose(__func__) << "settings: " << settings.toString();
     
@@ -515,10 +515,10 @@ OMX_ERRORTYPE VideoEngine::onCameraEventParamOrConfigChanged()
         ofLogError(__func__) << "UNABLE TO RECORD - MAY REQUIRE MORE GPU MEMORY";
     }
     
-    if(settings.enableTexture && eglImageController)
+    if(settings.enableTexture && displayController)
     {
         //Set renderer to use texture
-        error = OMX_UseEGLImage(render, &eglBuffer, EGL_RENDER_OUTPUT_PORT, this, eglImageController->eglImage);
+        error = OMX_UseEGLImage(render, &eglBuffer, EGL_RENDER_OUTPUT_PORT, this, displayController->eglImage);
         OMX_TRACE(error);
     }
     
@@ -537,15 +537,17 @@ OMX_ERRORTYPE VideoEngine::onCameraEventParamOrConfigChanged()
     error = SetComponentState(render, OMX_StateExecuting);
     OMX_TRACE(error);
     
-    if(settings.enableTexture && eglImageController)
+    if(settings.enableTexture)
     {
+        displayController->setupTextureMode(0, 0, settings.width, settings.height);
+
         //start the buffer filling loop
         //once completed the callback will trigger and refill
         error = OMX_FillThisBuffer(render, eglBuffer);
         OMX_TRACE(error);
     }else
     {
-        directDisplay.setup(render, 0, 0, settings.width, settings.height);
+        displayController->setupDirectMode(render, 0, 0, settings.width, settings.height);
     }
     
     
@@ -580,7 +582,6 @@ void VideoEngine::close()
         writeFile();
     }
     */
-    directDisplay.close();
     
     OMX_ERRORTYPE error = OMX_ErrorNone;
 

@@ -10,7 +10,7 @@
 #include "OMXCameraController.h"
 #include "ofAppEGLWindow.h"
 #include "VideoEngine.h"
-
+#include "DisplayController.h"
 
 using namespace std;
 
@@ -64,7 +64,7 @@ public:
     void onVideoEngineClose() override;
     
     VideoEngine engine;
-    EGLImageController eglImageController;
+    DisplayController displayController;
 
 private:
     bool hasNewFrame;
