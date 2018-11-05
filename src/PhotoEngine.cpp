@@ -621,11 +621,11 @@ PhotoEngine::~PhotoEngine()
 
 void PhotoEngine::close()
 {
-    ofLogNotice(__func__) << __LINE__;
+    
 
     OMX_ERRORTYPE error;
     directDisplay.close();
-    ofLogNotice(__func__) << __LINE__;
+    
 
     if(camera)
     {
@@ -639,14 +639,14 @@ void PhotoEngine::close()
         
         error = DisableAllPortsForComponent(&camera);
     }
-    ofLogNotice(__func__) << __LINE__;
+    
 
     if(encoder)
     {
         error = DisableAllPortsForComponent(&encoder);
 
     }
-    ofLogNotice(__func__) << __LINE__;
+    
 
     if(render)
     {
@@ -661,11 +661,11 @@ void PhotoEngine::close()
             
         }
     }
-    ofLogNotice(__func__) << __LINE__;
+    
 
   
     
-    ofLogNotice(__func__) << __LINE__;
+    
 
     
     if(encoder)
@@ -678,21 +678,21 @@ void PhotoEngine::close()
         }
   
     }
-    ofLogNotice(__func__) << __LINE__;
+    
 
     if(camera)
     {
         error = OMX_SetupTunnel(camera, CAMERA_STILL_OUTPUT_PORT, NULL, 0);
         OMX_TRACE(error);
     }
-    ofLogNotice(__func__) << __LINE__;
+    
 
     if(encoder)
     {
         error = OMX_SetupTunnel(encoder, IMAGE_ENCODER_INPUT_PORT, NULL, 0);
         OMX_TRACE(error);
     }
-    ofLogNotice(__func__) << __LINE__;
+    
     if(settings->enableStillPreview) 
     {    
         if(camera)
@@ -700,7 +700,7 @@ void PhotoEngine::close()
             error = OMX_SetupTunnel(camera, CAMERA_PREVIEW_PORT, NULL, 0);
             OMX_TRACE(error);
         }
-        ofLogNotice(__func__) << __LINE__;
+        
      
         if(render)
         {
@@ -711,7 +711,7 @@ void PhotoEngine::close()
             OMX_TRACE(error);
             render = NULL;
         }
-        ofLogNotice(__func__) << __LINE__;
+        
 
     }
     
@@ -721,21 +721,21 @@ void PhotoEngine::close()
         OMX_TRACE(error);
         camera = NULL;
     }
-    ofLogNotice(__func__) << __LINE__;
+    
 
     if(encoder)
     {
         error = OMX_FreeHandle(encoder);
         OMX_TRACE(error); 
     }
-    ofLogNotice(__func__) << __LINE__;
+    
 
     if(nullSink)
     {
         error = OMX_FreeHandle(nullSink);
         OMX_TRACE(error); 
     }
-    ofLogNotice(__func__) << __LINE__;
+    
 
     didOpen = false;
 
