@@ -1,42 +1,39 @@
-#### STATUS: PERPETUAL DEVELOPMENT    
-Master may be unstable, features untested. See [Releases](https://github.com/jvcleave/ofxOMXVideoGrabber/releases) for tested versions
+#### STATUS   
+Master may be unstable, features untested. See [Releases](https://github.com/jvcleave/ofxOMXCamera/releases) for tested versions
 
 #### DESCRIPTION:   
-openFrameworks addon to control the Raspberry Pi Camera Module. This does _not_ provide still camera functionality.
+openFrameworks addon to control the Raspberry Pi Camera Module. Formerly [ofxRPiCameraVideoGrabber](https://github.com/jvcleave/ofxRPiCameraVideoGrabber) that only provided video functionality. This addon also provides still capture functionality as well as the abilty to save settings as JSON based files.
 
 
 #### REQUIREMENTS:
-openFrameworks .9 or higher [Setup Guide](http://openframeworks.cc/setup/raspberrypi/)   
+openFrameworks 0.10.0 or higher [Setup Guide](http://openframeworks.cc/setup/raspberrypi/)   
 Developed with GPU memory set at 256, overclock to medium but 128/default should work as well   
 Desktop Mode (X11 enabled) may work but untested
-
-#### USAGE:   
-Clone into your openFrameworks/addons folder
-Either copy one of the examples into /myApps or add ofxOMXVideoGrabber to the addons.make file in your project
 
 LED Toggling requires gpio program provided via wiringPi   
 `$sudo apt-get install wiringpi`
 
+#### USAGE:   
+Clone into your openFrameworks/addons folder
 
-The addon works in a few different modes:
-
-##### TEXTURE MODE:   
-Allows the use of:
+#### Primary classes
+##### ofxOMXVideoGrabber:
+Used for video capture and recording. Video is hardware accelerated and written to a texture (texture mode) or directly to the screen. Texture Mode allows:
  - Shaders
  - Pixel access
  - Overlays, etc
- 
- 
-##### NON-TEXTURE MODE (or direct-to screen)   
-In non-texture mode the camera is rendered directly to the screen. It typically looks a bit faster/cleaner but no other drawing operations can happen.
+
+##### ofxOMXPhotoGrabber
+Used for controlling still functionality of the camera. Only hardware accelerated features are enabled (e.g. JPG compression). Similar to video mode, a preview can be rendered to a texture or directly to the screen.
 
 
-RECORDING:   
+##### RECORDING:   
 Recording is available in both texture and non-texture modes
 
 
-#### EXAMPLES:   
+### EXAMPLES:   
 
+#### VIDEO
 ##### example-demo-mode    
 Shows different settings available to tweak the camera exposure, metering, cropping, zooming, filters, mirroring, white balance
 
@@ -66,14 +63,12 @@ Recording of video in texture or direct mode
 ##### example-wrapper:   
 Drop-in replacement for ofVideoGrabber (texture-mode only)
 
+#### STILL
+##### example-still:   
+Still camera functionality
 
 
-### THANKS:
-Thanks to @tjormola for sharing his demos and exploration - especially in regards to recording
-https://github.com/tjormola/rpi-openmax-demos
 
-and thanks to @linuxstb for helping get started with the camera and OpenMax
-https://github.com/linuxstb/pidvbip
 
 
 
