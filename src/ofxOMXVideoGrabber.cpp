@@ -34,7 +34,7 @@ void ofxOMXVideoGrabber::setup(ofxOMXCameraSettings& settings_)
         }
     }
     
-    engine.setup(settings, this, &displayController);
+    engine.setup(&settings, this, &displayController);
 
     
 }
@@ -155,9 +155,14 @@ void ofxOMXVideoGrabber::disablePixels()
     }
 }
 
-unsigned char * ofxOMXVideoGrabber::getPixels()
+unsigned char * ofxOMXVideoGrabber::getRawPixels()
 {
     return displayController.pixels;
+}
+
+ofPixels& ofxOMXVideoGrabber::getPixels()
+{
+    return displayController.of_pixels;
 }
 
 ofTexture& ofxOMXVideoGrabber::getTextureReference()
@@ -246,7 +251,7 @@ void ofxOMXVideoGrabber::close()
     
     cout << "ofxOMXVideoGrabber::close" << endl;
     ofRemoveListener(ofEvents().update, this, &ofxOMXVideoGrabber::onUpdate);
-    engine.close();    
+    engine.close(); 
     cout << "~ofxOMXVideoGrabber::close END" << endl;
 }
 

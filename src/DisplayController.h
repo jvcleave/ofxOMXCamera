@@ -25,8 +25,7 @@ public:
     OMX_CONFIG_DISPLAYREGIONTYPE displayConfigDefaults;
     OMX_HANDLETYPE renderComponent;
     bool doHDMISync;    
-    ofRectangle drawRectangle;
-    ofRectangle cropRectangle;
+
     bool doFullScreen;
     bool noAspectRatio;
     bool doMirror;
@@ -35,11 +34,14 @@ public:
     int alpha;
     bool doForceFill;
     int layer;
-    
+    bool textureMode;
     bool isTextureEnabled()
     {
-        return eglImage != NULL;
+        return textureMode;
     }
+    
+    ofxOMXCameraSettings* settings;
+    ofPixels of_pixels;
     DisplayController()
     {
         doFullScreen=false;
@@ -66,6 +68,8 @@ public:
         appEGLWindow = NULL;
         pixels = NULL;
         textureID = 0;
+        textureMode = false;
+        settings = NULL;
         
     };
     
@@ -83,24 +87,28 @@ public:
         display = NULL;
         context = NULL;
         appEGLWindow = NULL;
+        settings = NULL;
         if(pixels)
         {
             delete[] pixels;
             pixels = NULL;
         }
     }
-    void setupTextureMode(int x, int y, int width, int height)
-    {
-        drawRectangle.set(x, y, width, height);
-    }
+
     
-    void setupDirectMode(OMX_HANDLETYPE renderComponent_, int x, int y, int width, int height)
+    void setup(ofxOMXCameraSettings* settings_, OMX_HANDLETYPE renderComponent_=NULL)
     {
-        renderComponent = renderComponent_;
-        drawRectangle.set(x, y, width, height);
-        cropRectangle.set(x, y, width, height);
-        TRACE_LINE
-        applyConfig();
+        settings = settings_;
+        if(settings->enableTexture)
+        {
+            textureMode = true;
+        }else
+        {
+            textureMode = false;
+            destroyEGLImage();
+            renderComponent = renderComponent_;
+            applyConfig();
+        }
     }
     
     
@@ -122,55 +130,76 @@ public:
     }
     void draw()
     {
-        draw(drawRectangle);
+        draw(0, 0);
     }
     
     
     void draw(int x, int y)
     {
-        draw(x, y, drawRectangle.width, drawRectangle.height);
+        
+        if(!settings)return;
+        ofRectangle rect(x, y, settings->drawRectangle.width, settings->drawRectangle.height);
+        draw(rect);
     }
     
     
     void draw(int x, int y, int width, int height)
     {
+        
         draw(ofRectangle(x, y, width, height));
     }
-    void draw(ofRectangle rectangle)
+    
+    void draw(const ofRectangle& rectangle)
     {
-        bool didChange = false;
-        if(drawRectangle.x != rectangle.x &&
-           drawRectangle.y != rectangle.y &&
-           drawRectangle.width != rectangle.width &&
-           drawRectangle.height != rectangle.height )
+        
+        if(!settings)
         {
-            drawRectangle = rectangle;
-            didChange = true;
+            ofLogError(__func__ ) << "NO SETTINGS";
+            return;
         }
-        if(isTextureEnabled())
+        bool didChange = false;
+        if(settings->drawRectangle.x != rectangle.x ||
+           settings->drawRectangle.y != rectangle.y ||
+           settings->drawRectangle.width != rectangle.width ||
+           settings->drawRectangle.height != rectangle.height )
         {
-            fbo.draw(drawRectangle.x, drawRectangle.y, drawRectangle.width, drawRectangle.height);
-            
+            settings->drawRectangle.set(rectangle.x, rectangle.y, rectangle.width, rectangle.height);
+            didChange = true;
+            //ofLogNotice(__func__) << "DID CHANGE drawRectangle: " << settings->drawRectangle;
         }else
         {
-            setDisplayDrawRectangle(drawRectangle);
+            //ofLogNotice(__func__) << "drawRectangle: " << drawRectangle;
+        }
+        //
+
+        if(isTextureEnabled())
+        {
+            fbo.draw(settings->drawRectangle.x, settings->drawRectangle.y, settings->drawRectangle.width, settings->drawRectangle.height);
+        }else
+        {
+            if(didChange)
+            {
+                applyConfig();
+            }
         }
     }
     void applyConfig()
     {
+        if(isTextureEnabled()) return;
         if(!renderComponent) return;
+        if(!settings)return;
         
-        displayConfig.set = (OMX_DISPLAYSETTYPE)(OMX_DISPLAY_SET_DEST_RECT| OMX_DISPLAY_SET_SRC_RECT | OMX_DISPLAY_SET_FULLSCREEN | OMX_DISPLAY_SET_NOASPECT | OMX_DISPLAY_SET_TRANSFORM | OMX_DISPLAY_SET_ALPHA | OMX_DISPLAY_SET_LAYER | OMX_DISPLAY_SET_MODE);
+        displayConfig.set = (OMX_DISPLAYSETTYPE)(OMX_DISPLAY_SET_DEST_RECT /*| OMX_DISPLAY_SET_SRC_RECT */ | OMX_DISPLAY_SET_FULLSCREEN | OMX_DISPLAY_SET_NOASPECT | OMX_DISPLAY_SET_TRANSFORM | OMX_DISPLAY_SET_ALPHA | OMX_DISPLAY_SET_LAYER | OMX_DISPLAY_SET_MODE);
         
-        displayConfig.dest_rect.x_offset  = drawRectangle.x;
-        displayConfig.dest_rect.y_offset  = drawRectangle.y;
-        displayConfig.dest_rect.width     = drawRectangle.getWidth();
-        displayConfig.dest_rect.height    = drawRectangle.getHeight();
+        displayConfig.dest_rect.x_offset  = settings->drawRectangle.x;
+        displayConfig.dest_rect.y_offset  = settings->drawRectangle.y;
+        displayConfig.dest_rect.width     = settings->drawRectangle.width;
+        displayConfig.dest_rect.height    = settings->drawRectangle.height;
         //ofLog() << "drawRectangle: " << drawRectangle;
-        displayConfig.src_rect.x_offset  = cropRectangle.x;
-        displayConfig.src_rect.y_offset  = cropRectangle.y;
-        displayConfig.src_rect.width     = cropRectangle.getWidth();
-        displayConfig.src_rect.height    = cropRectangle.getHeight();
+        /*displayConfig.src_rect.x_offset  = settings->cropRectangle.x;
+        displayConfig.src_rect.y_offset  = settings->cropRectangle.y;
+        displayConfig.src_rect.width     = settings->cropRectangle.width;
+        displayConfig.src_rect.height    = settings->cropRectangle.height;*/
         
         displayConfig.fullscreen = (OMX_BOOL)doFullScreen;
         displayConfig.noaspect   = (OMX_BOOL)noAspectRatio;    
@@ -192,7 +221,6 @@ public:
         
         OMX_ERRORTYPE error  = OMX_SetParameter(renderComponent, OMX_IndexConfigDisplayRegion, &displayConfig);
         OMX_TRACE(error);
-        
     }
 
  
@@ -270,16 +298,28 @@ public:
         applyConfig();
     }
     
-    void setDisplayDrawRectangle(ofRectangle drawRectangle_)
+    void setDisplayDrawRectangle(ofRectangle rect)
     {
-        drawRectangle = drawRectangle_;
+        if(!settings) return;
+        
+        settings->drawRectangle.set(rect.x, rect.y, rect.width, rect.height);
         applyConfig();
     }
     
     void setDisplayCropRectangle(ofRectangle cropRectangle_)
     {
-        cropRectangle = cropRectangle_;
-        applyConfig();
+        if(!settings) return;
+        settings->cropRectangle = cropRectangle_;
+        OMX_CONFIG_DISPLAYREGIONTYPE cropConfig;
+        OMX_INIT_STRUCTURE(cropConfig);
+        cropConfig.nPortIndex = VIDEO_RENDER_INPUT_PORT;        
+        cropConfig.set = (OMX_DISPLAYSETTYPE)(OMX_DISPLAY_SET_SRC_RECT);
+        cropConfig.src_rect.x_offset  = settings->cropRectangle.x;
+        cropConfig.src_rect.y_offset  = settings->cropRectangle.y;
+        cropConfig.src_rect.width     = settings->cropRectangle.width;
+        cropConfig.src_rect.height    = settings->cropRectangle.height;
+        OMX_ERRORTYPE error  = OMX_SetParameter(renderComponent, OMX_IndexConfigDisplayRegion, &cropConfig);
+        OMX_TRACE(error);
     }
     
     void setDisplayMirror(bool doMirror_)
@@ -292,34 +332,35 @@ public:
     string toString()
     {
         stringstream info;
-        info << "fullscreen: " << displayConfig.fullscreen << endl; 
-        info << "noaspect: " << displayConfig.noaspect << endl;
-        info << "src_rect x: " << displayConfig.src_rect.x_offset << endl;  
-        info << "src_rect y: " << displayConfig.src_rect.y_offset << endl;  
-        info << "src_rect width: " << displayConfig.src_rect.width << endl;    
-        info << "src_rect height: " << displayConfig.src_rect.height << endl;    
-        
-        info << "dest_rect x: " << displayConfig.dest_rect.x_offset << endl; 
-        info << "dest_rect y: " << displayConfig.dest_rect.y_offset << endl; 
-        info << "dest_rect width: " << displayConfig.dest_rect.width << endl;    
-        info << "dest_rect height: " << displayConfig.dest_rect.height << endl;
-        
-        info << "transform: " << displayConfig.transform << endl;
-        
-        
-        info << "transform: " << displayConfig.transform << endl;
-        
-        info << "mode: " << displayConfig.mode << endl;
-        
-        info << "layer: " << displayConfig.layer << endl;
-        info << "alpha: " << displayConfig.alpha << endl;
-        
-        
-        
-        
-        info << "drawRectangle: " << drawRectangle << endl;
-        info << "drawRectangle.getArea(): " << drawRectangle.getArea() << endl;
-        
+        info << "isTextureEnabled: " << isTextureEnabled() << endl;
+        info << "drawRectangle: " << settings->drawRectangle << endl;
+
+        if(isTextureEnabled())
+        {
+            info << "fullscreen: " << displayConfig.fullscreen << endl; 
+            info << "noaspect: " << displayConfig.noaspect << endl;
+            info << "src_rect x: " << displayConfig.src_rect.x_offset << endl;  
+            info << "src_rect y: " << displayConfig.src_rect.y_offset << endl;  
+            info << "src_rect width: " << displayConfig.src_rect.width << endl;    
+            info << "src_rect height: " << displayConfig.src_rect.height << endl;    
+            
+            info << "dest_rect x: " << displayConfig.dest_rect.x_offset << endl; 
+            info << "dest_rect y: " << displayConfig.dest_rect.y_offset << endl; 
+            info << "dest_rect width: " << displayConfig.dest_rect.width << endl;    
+            info << "dest_rect height: " << displayConfig.dest_rect.height << endl;
+            
+            info << "transform: " << displayConfig.transform << endl;
+            
+            
+            info << "transform: " << displayConfig.transform << endl;
+            
+            info << "mode: " << displayConfig.mode << endl;
+            
+            info << "layer: " << displayConfig.layer << endl;
+            info << "alpha: " << displayConfig.alpha << endl;
+        }
+
+
         return info.str();
     }
     
@@ -442,6 +483,7 @@ public:
         {
             success = true;
             ofLog()  << "Create EGLImage PASS <---------------- :)";
+            of_pixels.setFromExternalPixels(pixels, videoWidth, videoHeight, 4);
         }
         return success;
         

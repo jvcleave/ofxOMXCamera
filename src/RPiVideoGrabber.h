@@ -33,7 +33,6 @@ public:
     float cameraWidth;
     float cameraHeight;
     bool didInit;
-    ofPixels pixels;
     
     bool hasNewFrame;
     

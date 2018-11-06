@@ -39,9 +39,10 @@ public:
     void stopRecording();
     void enablePixels();
     void disablePixels();
-    unsigned char * getPixels();
+    unsigned char * getRawPixels();
     
-    
+    ofPixels& getPixels();
+
     bool isReady();
     
     void draw();

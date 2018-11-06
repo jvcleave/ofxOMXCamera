@@ -230,9 +230,9 @@ OMX_ERRORTYPE PhotoEngine::encoderEventHandlerCallback(OMX_HANDLETYPE encoder,
     
     OMX_ERRORTYPE error = OMX_ErrorNone;
     
-    PhotoEngine* engine = static_cast<PhotoEngine*>(photoEngine);
+    //PhotoEngine* engine = static_cast<PhotoEngine*>(photoEngine);
     
-    ofLogNotice(__func__) << GetEventString(event);
+    //ofLogNotice(__func__) << GetEventString(event);
     return error;
     
     
@@ -429,6 +429,13 @@ OMX_ERRORTYPE PhotoEngine::onCameraEventParamOrConfigChanged()
         error = SetComponentState(render, OMX_StateExecuting);
         OMX_TRACE(error);
         
+        
+        if(settings->drawRectangle.isZero())
+        {
+            settings->drawRectangle.set(0, 0, settings->stillPreviewWidth, settings->stillPreviewHeight);
+        }
+        
+        
         if(settings->enableTexture)
         {
             //start the buffer filling loop
@@ -436,11 +443,11 @@ OMX_ERRORTYPE PhotoEngine::onCameraEventParamOrConfigChanged()
             error = OMX_FillThisBuffer(render, eglBuffer);
             OMX_TRACE(error);
             ofLogNotice(__func__) << "TRIED OMX_FillThisBuffer";
-            displayController->setupTextureMode(0, 0, settings->stillPreviewWidth, settings->stillPreviewHeight);
+            displayController->setup(settings);
 
         }else
         {
-            displayController->setupDirectMode(render, 0, 0, settings->stillPreviewWidth, settings->stillPreviewHeight);
+            displayController->setup(settings, render);
         }
     }
     
@@ -627,7 +634,9 @@ void PhotoEngine::close()
 
     OMX_ERRORTYPE error;
    
-
+    displayController->close();
+    displayController = NULL;
+    
     if(camera)
     {
         OMX_CONFIG_PORTBOOLEANTYPE cameraStillOutputPortConfig;
@@ -645,9 +654,7 @@ void PhotoEngine::close()
     if(encoder)
     {
         error = DisableAllPortsForComponent(&encoder);
-
     }
-    
 
     if(render)
     {
@@ -662,12 +669,6 @@ void PhotoEngine::close()
             
         }
     }
-    
-
-  
-    
-    
-
     
     if(encoder)
     {

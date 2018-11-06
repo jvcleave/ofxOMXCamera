@@ -36,8 +36,6 @@ bool RPiVideoGrabber::initGrabber(int w, int h)
     settings.enableTexture = true; //default true
     videoGrabber.setup(settings);
     videoGrabber.enablePixels();
-    
-    pixels.setFromExternalPixels((unsigned char *)videoGrabber.getPixels(), cameraWidth, cameraHeight, OF_PIXELS_RGBA);
 
     didInit = true;
     return didInit;
@@ -110,12 +108,12 @@ ofPixelFormat RPiVideoGrabber::getPixelFormat() const
 
 const ofPixels& RPiVideoGrabber::getPixels() const
 {
-    return pixels;
+    return videoGrabber.displayController.of_pixels;
 }
 
 ofPixels& RPiVideoGrabber::getPixels()
 {
-    return pixels;
+    return videoGrabber.displayController.of_pixels;
 }
 
 void RPiVideoGrabber::close()

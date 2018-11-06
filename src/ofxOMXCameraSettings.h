@@ -30,7 +30,7 @@ public:
 	bool enableTexture;
 	bool enablePixels;
 	string recordingFilePath;
-    
+    float recordingBitrateMB;
     bool LED;
     string LED_PIN;
     string meteringType;
@@ -44,6 +44,8 @@ public:
     int saturation;  // -100 to 100 
     int dreLevel;    //   -4 to 4
     ofRectangle cropRectangle;
+    ofRectangle drawRectangle;
+
     
     int zoomLevel;
     string mirror; 
@@ -84,6 +86,7 @@ public:
         enableTexture = true;
         enablePixels = false;
         recordingFilePath = "";
+        recordingBitrateMB = 2.0;
         exposurePreset = "Auto";
         meteringType = "Average";
         autoISO = true;
@@ -139,6 +142,7 @@ public:
         info << "flickerCancellation " << flickerCancellation << endl;
         info << "dreLevel " << dreLevel << endl;
         info << "cropRectangle " << cropRectangle << endl;
+        info << "drawRectangle " << drawRectangle << endl;
         info << "zoomLevel " << zoomLevel << endl;
         info << "rotation " << rotation << endl;
         info << "mirror " << mirror << endl;
@@ -152,8 +156,9 @@ public:
         info << "enableStillPreview " << enableStillPreview << endl;
         info << "burstModeEnabled " << burstModeEnabled << endl;
         info << "savedPhotosFolderName " << savedPhotosFolderName << endl;
+        info << "recordingBitrateMB " << recordingBitrateMB << endl;
 
-        
+            
         return info.str();
     }
     
@@ -204,6 +209,16 @@ public:
                               json["cropRectangle"]["height"].get<int>());
 
         }
+        if(exists(json, "drawRectangle"))
+        {
+            drawRectangle.set(json["drawRectangle"]["x"].get<int>(),
+                              json["drawRectangle"]["y"].get<int>(),
+                              json["drawRectangle"]["width"].get<int>(),
+                              json["drawRectangle"]["height"].get<int>());
+            
+        }
+        
+        
         if(exists(json, "zoomLevel")) zoomLevel = json["zoomLevel"].get<float>();
         if(exists(json, "rotation")) rotation = json["rotation"].get<int>();
         if(exists(json, "mirror")) mirror = json["mirror"].get<string>();
@@ -217,6 +232,7 @@ public:
         if(exists(json, "enableStillPreview")) enableStillPreview = json["enableStillPreview"].get<bool>();
         if(exists(json, "burstModeEnabled")) burstModeEnabled = json["burstModeEnabled"].get<bool>();
         if(exists(json, "savedPhotosFolderName")) savedPhotosFolderName = json["savedPhotosFolderName"].get<string>();
+        if(exists(json, "recordingBitrateMB")) recordingBitrateMB = json["recordingBitrateMB"].get<float>();
 
         
         
@@ -251,6 +267,13 @@ public:
         result["cropRectangle"]["y"]= cropRectangle.y;
         result["cropRectangle"]["width"]= cropRectangle.width;
         result["cropRectangle"]["height"]= cropRectangle.height;
+        
+        result["drawRectangle"]["x"]= drawRectangle.x;
+        result["drawRectangle"]["y"]= drawRectangle.y;
+        result["drawRectangle"]["width"]= drawRectangle.width;
+        result["drawRectangle"]["height"]= drawRectangle.height;
+        
+        
         result["zoomLevel"]=zoomLevel;
         result["rotation"]=rotation;
         result["mirror"]=mirror;
@@ -264,6 +287,7 @@ public:
         result["enableStillPreview"]=enableStillPreview;
         result["burstModeEnabled"]=burstModeEnabled;
         result["savedPhotosFolderName"]=savedPhotosFolderName;
+        result["recordingBitrateMB"]=recordingBitrateMB;
 
         
         

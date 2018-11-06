@@ -30,9 +30,8 @@ public:
 	VideoEngine();
     ~VideoEngine();
 
-	void setup(ofxOMXCameraSettings&, VideoEngineListener*, DisplayController* displayController_=NULL);
+	void setup(ofxOMXCameraSettings*, VideoEngineListener*, DisplayController* displayController_=NULL);
     int getFrameCounter();
-	ofxOMXCameraSettings& getSettings();
     
     void startRecording();
     void stopRecording();
@@ -50,9 +49,7 @@ protected:
 	
     OMX_BUFFERHEADERTYPE* eglBuffer;
 
-    ofxOMXCameraSettings settings;
-	void configureCameraResolution();
-	void configureEncoder();
+    ofxOMXCameraSettings* settings;
 	
 	OMX_HANDLETYPE splitter;
 	OMX_HANDLETYPE encoder;
@@ -62,7 +59,6 @@ protected:
 	bool didWriteFile;
 	
 	int recordingBitRate;
-	float numMBps;
 	
 	bool stopRequested;
 	bool isStopping;
