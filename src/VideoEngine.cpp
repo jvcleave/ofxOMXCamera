@@ -47,8 +47,8 @@ int VideoEngine::getFrameCounter()
             //ofLogVerbose(__func__) << "nFrameCount: " << stats.nFrameCount;
             frameCounter = stats.nFrameCount;
         }else
-        {        
-            ofLog(OF_LOG_ERROR, "error OMX_CONFIG_BRCMPORTSTATSTYPE FAIL error: 0x%08x", error);
+        {      
+            ofLogError(__func__) << GetOMXErrorString(error);
             //frameCounter = 0;
         }
     }
@@ -535,7 +535,7 @@ void VideoEngine::startRecording()
 
 void VideoEngine::close()
 {
-    
+    isOpen = false;
     if(isClosing) return;
     
     isClosing = true;

@@ -66,6 +66,8 @@ void ofApp::draw(){
 	videoGrabber.draw();
 	
 	stringstream info;
+    info << "PRESS 1 TO SWITCH CONFIG " << endl;
+
 	info << "App FPS: " << ofGetFrameRate() << endl;
     info << "Camera Resolution: " << videoGrabber.getWidth();
     info << "x" << videoGrabber.getHeight();
@@ -85,11 +87,7 @@ void ofApp::keyPressed  (int key)
 {
 	ofLog(OF_LOG_VERBOSE, "%c keyPressed", key);
 	
-	if (key == 'g')
-	{
-		doDrawInfo = !doDrawInfo;
-	}
-    if (key == 's')
+    if (key == '1')
     {
         doSwitchConfig = true;
     }
