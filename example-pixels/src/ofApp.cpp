@@ -50,7 +50,7 @@ void ofApp::update()
 	{
         if (videoGrabber.isFrameNew()) 
         {
-            videoTexture.loadData(videoGrabber.getPixels(), settings.width, settings.height, GL_RGBA);
+            videoTexture.loadData(videoGrabber.getRawPixels(), settings.width, settings.height, GL_RGBA);
         }
 
 	}
