@@ -1,61 +1,91 @@
 #include "ofApp.h"
 
+
+
 //--------------------------------------------------------------
 void ofApp::setup()
 {
+    
+    doEraseBackground = true;
+   
+    alpha = 0.01;
+    threshold = 18;
+    
+    
 	ofSetLogLevel(OF_LOG_VERBOSE);			
 	consoleListener.setup(this);
     
-    settings.width = 640;
-    settings.height = 480;
-    settings.framerate = 30;
+    settings.width = 320;
+    settings.height = 240;
+    settings.framerate = 15;
     settings.enableTexture = true;
     settings.enablePixels = true;
+    //settings.brightness = 50;
+    
     videoGrabber.setup(settings);
     
-    
-    threshold1 = 0;
-    threshold2 = 0;
-    apertureSize = 3;
-    L2gradient = false;
-
-    cameraMat = cv::Mat(cvSize(settings.width,
-                               settings.height),
-                        CV_8UC4,
-                        videoGrabber.getPixels(),
-                        cv::Mat::AUTO_STEP);
-
+  
 }	
 
 //--------------------------------------------------------------
 void ofApp::update()
 {
-    if(videoGrabber.isFrameNew())
-    {
-        cvtColor(cameraMat, grayMat, CV_RGBA2GRAY);
-        cv::Canny(grayMat, edgeMat, threshold1, threshold2, apertureSize, L2gradient);
-    }
+    
 }
 
 
 //--------------------------------------------------------------
 void ofApp::draw(){
 	
-	videoGrabber.draw();
-    ofxCv::drawMat(edgeMat, videoGrabber.getWidth(), 0);
+    
+    if(videoGrabber.isFrameNew())
+    {
+        if(videoGrabber.getPixels().size())
+        {
+            
+            
+            if(frameMat.empty())
+            {
+                frameMat = ofxCv::toCv(videoGrabber.getPixels());
+
+                frameMat.convertTo(accumulatorMat, CV_32F);
+            }else
+            {
+                if(doEraseBackground)
+                {
+                    cv::accumulateWeighted(frameMat, accumulatorMat, alpha);
+                    cv::convertScaleAbs(accumulatorMat, backgroundOutputMat); 
+                    
+                }
+            }            
+            
+        } 
+        
+    }
+    
+    if(!backgroundOutputMat.empty())
+    {
+        ofxCv::toOf(backgroundOutputMat, backgroundOutputImage);
+        backgroundOutputImage.update();
+        backgroundOutputImage.draw(0, 0,
+                                   ofGetWidth(), ofGetHeight());
+    }
+    
+    float xScale = settings.width;
+    float yScale = settings.height;
+    videoGrabber.draw(ofGetWidth()-xScale, ofGetHeight()-yScale, xScale, yScale);
+    
 	stringstream info;
 	info << "APP FPS: " << ofGetFrameRate() << endl;
 	info << "Camera Resolution: " << videoGrabber.getWidth() << "x" << videoGrabber.getHeight()	<< " @ "<< videoGrabber.getFrameRate() <<"FPS"<< endl;
-    
-	info << endl;
-    info << "PRESS 1 TO INCREASE threshold1: " << threshold1 << endl;
-    info << "PRESS 2 TO DECREASE threshold1: " << threshold1 << endl;
-    info << "PRESS 3 TO INCREASE threshold2: " << threshold2 << endl;
-    info << "PRESS 4 TO DECREASE threshold2: " << threshold2 << endl;
-    info << "PRESS 5 TO TOGGLE L2gradient: " << L2gradient << endl;
-    info << "PRESS r TO RESET: " << endl;
+    info << "doEraseBackground: " << doEraseBackground << endl;
+    info << "threshold: " << threshold << endl;
+    info << "alpha: " << alpha << endl;
 
-    ofDrawBitmapStringHighlight(info.str(), 100, 100, ofColor::black, ofColor::yellow);
+	info << endl;
+
+
+    ofDrawBitmapStringHighlight(info.str(), 100, 100, ofColor(ofColor::black, 90), ofColor::yellow);
     
 
 }
@@ -68,50 +98,36 @@ void ofApp::keyPressed  (int key)
     {
         case '1':
         {
-            threshold1++;
+            doEraseBackground = !doEraseBackground;
             break;
         }
         case '2':
         {
-            threshold1--;
             break;
         }  
         case '3':
         {
-            threshold2++;
+            threshold--;
             break;
         } 
+
         case '4':
         {
-            threshold2--;
+            threshold++;
             break;
         }
+
         case '5':
         {
-            L2gradient = !L2gradient;
-            break;
-        }
-        case 'r':
-        {
-            threshold1 = 0;
-            threshold2 = 0;
-            L2gradient = false;
-            break;
-        } 
-#if 0
-        case '5':
-        {
-            //crashes
-            apertureSize++;
+            alpha += 0.01;
             break;
         }
         case '6':
         {
-            //crashes
-            apertureSize--;
+            alpha -= 0.01;
             break;
-        }
-#endif       
+        } 
+ 
         default:
         {
             break;

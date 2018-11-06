@@ -22,16 +22,18 @@ class ofApp : public ofBaseApp, public KeyListener{
 
 	TerminalListener consoleListener;
     
-    ofxOMXCameraSettings settings;
     ofxOMXVideoGrabber videoGrabber;
+    ofxOMXCameraSettings settings;
     
-    int threshold1;
-    int threshold2;
-    int apertureSize;
-    bool L2gradient;
     
-    cv::Mat edgeMat;
-    cv::Mat grayMat;
-    cv::Mat cameraMat;
+    cv::Mat accumulatorMat;
+    cv::Mat frameMat;
+    cv::Mat backgroundOutputMat;
+    ofImage backgroundOutputImage;
+
+
+    bool doEraseBackground;
+    float alpha;
+    float threshold;
 };
 
