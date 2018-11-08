@@ -16,7 +16,7 @@
     "doRecording": false,
     "dreLevel": 0,
     "enablePixels": false,
-    "enableTexture": true,
+    "enableTexture": false,
     "exposurePreset": "Auto",
     "flickerCancellation": false,
     "frameStabilization": false,

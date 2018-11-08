@@ -17,7 +17,7 @@ void ofApp::setup()
     {
         ofLogVerbose(__func__) << configFiles[i].path();
     }
-    currentConfigFileIndex = ofRandom(0, configFiles.size());
+    currentConfigFileIndex = 0;
     
     
     //can save like this

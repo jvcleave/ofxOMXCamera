@@ -11,10 +11,8 @@ VideoEngine::VideoEngine()
     recordedFrameCounter = 0;
     listener = NULL;
     frameCounter = 0;
-    isClosing = false;
-    displayController = NULL;
     settings = NULL;
-    
+    eglBuffer = NULL;
     renderType = OMX_VIDEO_RENDER; 
     renderInputPort = VIDEO_RENDER_INPUT_PORT;
 }
@@ -65,7 +63,7 @@ OMX_ERRORTYPE VideoEngine::textureRenderFillBufferDone(OMX_IN OMX_HANDLETYPE ren
     OMX_ERRORTYPE error = OMX_ErrorNone;
 
     VideoEngine* engine = static_cast<VideoEngine*>(videoEngine);
-    if(!engine->isClosing)
+    if(engine->isOpen)
     {
         engine->frameCounter++;
         error = OMX_FillThisBuffer(render, pBuffer);
@@ -86,13 +84,26 @@ OMX_ERRORTYPE VideoEngine::cameraEventHandlerCallback(OMX_HANDLETYPE camera, OMX
     return OMX_ErrorNone;
 }
 
-void VideoEngine::setup(ofxOMXCameraSettings* settings_, VideoEngineListener* listener_, DisplayController* displayController_)
+bool VideoEngine::setup(ofxOMXCameraSettings* settings_, VideoEngineListener* listener_, EGLImageKHR eglImage_)
 {
-    isClosing = false;
+    bool success = false;
     settings = settings_;
     listener = listener_;
-    displayController = displayController_;
+    eglImage = eglImage_;
     ofLogVerbose(__func__) << "settings: " << settings->toString();
+
+    
+    if(settings->enableTexture)
+    {
+        renderType = OMX_EGL_RENDER; 
+        renderInputPort = EGL_RENDER_INPUT_PORT;
+    }else
+    {
+        renderType = OMX_VIDEO_RENDER; 
+        renderInputPort = VIDEO_RENDER_INPUT_PORT;
+    }
+    
+    ofLogNotice(__func__) << "renderType: " << renderType << " : " << renderInputPort;
 
     OMX_ERRORTYPE error = OMX_ErrorNone;
     
@@ -163,11 +174,7 @@ void VideoEngine::setup(ofxOMXCameraSettings* settings_, VideoEngineListener* li
     
 
     
-    if(settings->enableTexture)
-    {
-        renderType = OMX_EGL_RENDER; 
-        renderInputPort = EGL_RENDER_INPUT_PORT;
-    }
+  
     
     error = OMX_GetHandle(&render, renderType, this , &renderCallbacks);
     OMX_TRACE(error);
@@ -224,14 +231,33 @@ void VideoEngine::setup(ofxOMXCameraSettings* settings_, VideoEngineListener* li
     OMX_TRACE(error);
     
     
-    cameraOutputPortDefinition.format.video.nFrameWidth        = settings->width;
+    cameraOutputPortDefinition.format.video.nFrameWidth     = settings->width;
     cameraOutputPortDefinition.format.video.nFrameHeight    = settings->height;
-    cameraOutputPortDefinition.format.video.xFramerate        = settings->framerate << 16; //currently always 30
-    cameraOutputPortDefinition.format.video.nStride            = settings->width;
+    cameraOutputPortDefinition.format.video.xFramerate      = settings->framerate << 16;
+    cameraOutputPortDefinition.format.video.nStride         = settings->width;
     //cameraOutputPortDefinition.format.video.eColorFormat    = OMX_COLOR_FormatYUV420PackedPlanar;
     
     error =  OMX_SetParameter(camera, OMX_IndexParamPortDefinition, &cameraOutputPortDefinition);
     OMX_TRACE(error);
+    if(error == OMX_ErrorBadParameter)
+    {
+        ofLogError(__func__) << "USING FALLBACK CONFIG";
+        settings->width = 1280;
+        settings->height = 720;
+        settings->framerate = 30;
+        
+        cameraOutputPortDefinition.format.video.nFrameWidth     = settings->width;
+        cameraOutputPortDefinition.format.video.nFrameHeight    = settings->height;
+        cameraOutputPortDefinition.format.video.xFramerate      = settings->framerate << 16;
+        cameraOutputPortDefinition.format.video.nStride         = settings->width;
+        
+        error =  OMX_SetParameter(camera, OMX_IndexParamPortDefinition, &cameraOutputPortDefinition);
+        OMX_TRACE(error);
+        if(error == OMX_ErrorBadParameter)
+        {
+            return false; 
+        }
+    }
     //PrintPortDef(cameraOutputPortDefinition);
     
     //Enable Camera Output Port
@@ -243,6 +269,9 @@ void VideoEngine::setup(ofxOMXCameraSettings* settings_, VideoEngineListener* li
     error =OMX_SetParameter(camera, OMX_IndexConfigPortCapturing, &cameraport);    
     OMX_TRACE(error);
     
+    
+    success = true;
+    return success;
     //camera color spaces
     /*
      OMX_COLOR_Format24bitRGB888
@@ -304,7 +333,8 @@ OMX_ERRORTYPE VideoEngine::onCameraEventParamOrConfigChanged()
     //Create splitter->render Tunnel
     error = OMX_SetupTunnel(splitter, VIDEO_SPLITTER_OUTPUT_PORT1,
                             render, renderInputPort);
-    
+    OMX_TRACE(error);
+
     //Enable camera output port
     error = EnableComponentPort(camera, CAMERA_OUTPUT_PORT);
     OMX_TRACE(error);
@@ -363,48 +393,59 @@ OMX_ERRORTYPE VideoEngine::onCameraEventParamOrConfigChanged()
     
     
     
-    if(settings->enableTexture && displayController)
+    if(settings->enableTexture)
     {
+        if(!eglImage)
+        {
+            ofLogError(__func__) << "displayController->eglImage IS NULL";
+            
+        }
         //Set renderer to use texture
-        error = OMX_UseEGLImage(render, &eglBuffer, EGL_RENDER_OUTPUT_PORT, this, displayController->eglImage);
+        error = OMX_UseEGLImage(render, &eglBuffer, EGL_RENDER_OUTPUT_PORT, this, eglImage);
         OMX_TRACE(error);
+
+        
     }
     
     
     //Start camera
-    error = SetComponentState(camera, OMX_StateExecuting);
+    error = WaitForState(camera, OMX_StateExecuting);
     OMX_TRACE(error);
     
     //Start splitter
-    error = SetComponentState(splitter, OMX_StateExecuting);
+    error = WaitForState(splitter, OMX_StateExecuting);
     OMX_TRACE(error);
     
     //Start renderer
-    error = SetComponentState(render, OMX_StateExecuting);
+    error = WaitForState(render, OMX_StateExecuting);
     OMX_TRACE(error);
     
     
     
-    if(settings->drawRectangle.isZero())
-    {
-        settings->drawRectangle.set(0, 0, settings->width, settings->height);
-    }
+    
     if(settings->enableTexture)
     {
         
-        displayController->setup(settings);
         
         //start the buffer filling loop
         //once completed the callback will trigger and refill
         error = OMX_FillThisBuffer(render, eglBuffer);
         OMX_TRACE(error);
+        if(error == OMX_ErrorIncorrectStateOperation)
+        {
+            
+            OMX_STATETYPE currentState;
+            error = OMX_GetState(render, &currentState);
+            OMX_TRACE(error);  
+            
+            ofLogError() << "render currentState: " << GetOMXStateString(currentState);
+            //ofSleepMillis(5000);
+        }
     }else
     {
-        displayController->setup(settings, render);
     }
     
     
-    isOpen = true;
     listener->onVideoEngineStart();
     return error;
 }
@@ -514,8 +555,6 @@ void VideoEngine::writeFile()
 		ofLogVerbose(__func__) << filePath << " FAIL";
 	}
     
-    
-
     recordingFileBuffer.clear();
     isRecording = false;
     recordedFrameCounter = 0;
@@ -523,11 +562,6 @@ void VideoEngine::writeFile()
     isStopping = false;
     
 }
-
-
-
-
-
 
 void VideoEngine::startRecording()
 {
@@ -544,14 +578,8 @@ void VideoEngine::startRecording()
 
 void VideoEngine::close()
 {
+    if(!isOpen) return;
     isOpen = false;
-    if(isClosing) return;
-    
-    isClosing = true;
-   
-    displayController->close();
-    displayController = NULL;
-    
     
     OMX_ERRORTYPE error = OMX_ErrorNone;
 
@@ -576,6 +604,57 @@ void VideoEngine::close()
     error = DisableAllPortsForComponent(&render);
     OMX_TRACE(error);
     
+        
+    error = OMX_SendCommand(encoder, OMX_CommandFlush, OMX_ALL, NULL);
+    OMX_TRACE(error);
+    
+    error = OMX_FreeBuffer(encoder, VIDEO_ENCODE_OUTPUT_PORT, encoderOutputBuffer);
+    OMX_TRACE(error);
+
+    error = OMX_SendCommand(camera, OMX_CommandFlush, OMX_ALL, NULL);
+    OMX_TRACE(error);
+    
+    error = OMX_SendCommand(encoder, OMX_CommandFlush, OMX_ALL, NULL);
+    OMX_TRACE(error);
+    
+    error = OMX_SendCommand(splitter, OMX_CommandFlush, OMX_ALL, NULL);
+    OMX_TRACE(error);
+    
+    error = OMX_SendCommand(render, OMX_CommandFlush, OMX_ALL, NULL);
+    OMX_TRACE(error);
+    
+    //Create splitter->render Tunnel
+    error = OMX_SetupTunnel(splitter, VIDEO_SPLITTER_OUTPUT_PORT1,
+                            NULL, 0);
+    OMX_TRACE(error);
+    
+    
+    //Create camera->splitter Tunnel
+    error = OMX_SetupTunnel(camera, CAMERA_OUTPUT_PORT,
+                            NULL, 0);
+    OMX_TRACE(error);
+    
+    // Tunnel splitter2 output port and encoder input port
+    error = OMX_SetupTunnel(splitter, VIDEO_SPLITTER_OUTPUT_PORT2,
+                            NULL, 0);
+    OMX_TRACE(error);
+    
+    
+    //Create camera->splitter Tunnel
+    error = OMX_SetupTunnel(splitter, VIDEO_SPLITTER_INPUT_PORT,
+                            NULL, 0);
+    OMX_TRACE(error);
+    
+    // Tunnel splitter2 output port and encoder input port
+    error = OMX_SetupTunnel(encoder, VIDEO_ENCODE_INPUT_PORT,
+                            NULL, 0);
+    OMX_TRACE(error);
+    
+    
+    //Create splitter->render Tunnel
+    error = OMX_SetupTunnel(render, renderInputPort,
+                            NULL, 0);
+    OMX_TRACE(error);
     
     error = OMX_FreeHandle(camera);
     OMX_TRACE(error);
@@ -593,8 +672,17 @@ void VideoEngine::close()
     {
         listener->onVideoEngineClose();
     }
+    camera = NULL;
+    encoder = NULL;
+    splitter = NULL;
+    render = NULL;
     listener = NULL;
     settings = NULL;
+    eglBuffer = NULL;
+    encoderOutputBuffer = NULL;
+    eglImage = NULL;
+    ofLogVerbose(__func__) << " END";
+
 }
 
 VideoEngine::~VideoEngine()

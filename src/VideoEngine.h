@@ -30,7 +30,7 @@ public:
 	VideoEngine();
     ~VideoEngine();
 
-	void setup(ofxOMXCameraSettings*, VideoEngineListener*, DisplayController* displayController_=NULL);
+	bool setup(ofxOMXCameraSettings*, VideoEngineListener*, EGLImageKHR eglImage_=NULL);
     int getFrameCounter();
     
     void startRecording();
@@ -43,8 +43,8 @@ public:
     int frameCounter;
     void close();
     OMX_ERRORTYPE onCameraEventParamOrConfigChanged();
-    bool isClosing;
-    DisplayController* displayController;
+    OMX_HANDLETYPE render;
+
 protected:
 	
     OMX_BUFFERHEADERTYPE* eglBuffer;
@@ -53,9 +53,9 @@ protected:
 	
 	OMX_HANDLETYPE splitter;
 	OMX_HANDLETYPE encoder;
-	OMX_HANDLETYPE render;
 	
-	
+    EGLImageKHR eglImage;
+
 	bool didWriteFile;
 	
 	int recordingBitRate;

@@ -25,6 +25,14 @@ void ofxOMXVideoGrabber::setup(ofxOMXCameraSettings& settings_)
     ofLogNotice(__func__) << settings.toJSON().dump();
     ofLogNotice(__func__) << "settings: " << settings.toString();
     
+    
+    
+    if(settings.drawRectangle.isZero())
+    {
+        settings.drawRectangle.set(0, 0, settings.width, settings.height);
+    }
+    
+    
     if(settings.enableTexture)
     {
         displayController.generateEGLImage(settings.width, settings.height);
@@ -36,9 +44,13 @@ void ofxOMXVideoGrabber::setup(ofxOMXCameraSettings& settings_)
     if(engine.isOpen)
     {
         engine.close();
+        //ofSleepMillis(2000);
     }
-    engine.setup(&settings, this, &displayController);
-
+    bool didOpen = engine.setup(&settings, this, displayController.eglImage);
+    if(!didOpen)
+    {
+        ofLogError(__func__) << "COULD NOT OPEN ENGINE";
+    }
     
 }
 
@@ -57,7 +69,20 @@ void ofxOMXVideoGrabber::onVideoEngineStart()
     //checkFlickerCancellation();
     
     applyAllSettings();
-    ofAddListener(ofEvents().update, this, &ofxOMXVideoGrabber::onUpdate);    
+    
+    if(settings.enableTexture)
+    {
+        displayController.setup(&settings);
+    }else
+    {
+        displayController.setup(&settings, engine.render);
+
+    }
+    
+    ofAddListener(ofEvents().update, this, &ofxOMXVideoGrabber::onUpdate); 
+    engine.isOpen = true;
+    
+    
 }
 
 void ofxOMXVideoGrabber::onVideoEngineClose()
@@ -85,6 +110,11 @@ bool ofxOMXVideoGrabber::isReady()
 void ofxOMXVideoGrabber::onUpdate(ofEventArgs & args)
 {
     
+    if(!engine.isOpen)
+    {
+        //ofLogError() << "ENGINE CLOSED";
+        return;
+    }
     frameCounter = engine.getFrameCounter();
 	if (frameCounter > updateFrameCounter) 
 	{

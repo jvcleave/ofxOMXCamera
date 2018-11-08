@@ -42,6 +42,7 @@ public:
     
     ofxOMXCameraSettings* settings;
     ofPixels of_pixels;
+    bool isOpen;
     DisplayController()
     {
         doFullScreen=false;
@@ -70,42 +71,50 @@ public:
         textureID = 0;
         textureMode = false;
         settings = NULL;
-        
+        isOpen = false;
     };
     
     
     ~DisplayController()
     {
         close();
-    }
-    
-    void close()
-    {
-        renderComponent = NULL;
         destroyEGLImage();
-        eglImage = NULL;
-        display = NULL;
-        context = NULL;
-        appEGLWindow = NULL;
-        settings = NULL;
         if(pixels)
         {
             delete[] pixels;
             pixels = NULL;
         }
     }
+    
+    void close()
+    {
+        isOpen = false;
+        renderComponent = NULL;
+        eglImage = NULL;
+        display = NULL;
+        context = NULL;
+        appEGLWindow = NULL;
+        settings = NULL;
+        
+    }
 
     
     void setup(ofxOMXCameraSettings* settings_, OMX_HANDLETYPE renderComponent_=NULL)
     {
+        if(isOpen)
+        {
+            close();
+        }
         settings = settings_;
         if(settings->enableTexture)
         {
             textureMode = true;
+            isOpen = true;
+
         }else
         {
             textureMode = false;
-            destroyEGLImage();
+            isOpen = true;
             renderComponent = renderComponent_;
             applyConfig();
         }
@@ -114,6 +123,7 @@ public:
     
     void updateTexture(bool pixelsRequested=false)
     {
+        if(!isOpen) return;
         fbo.begin();
         ofClear(0, 0, 0, 0);
         texture.draw(0, 0);
@@ -128,8 +138,10 @@ public:
         }
         fbo.end();
     }
+    
     void draw()
     {
+        if(!isOpen) return;
         draw(0, 0);
     }
     
@@ -137,7 +149,7 @@ public:
     void draw(int x, int y)
     {
         
-        if(!settings)return;
+        if(!isOpen) return;
         ofRectangle rect(x, y, settings->drawRectangle.width, settings->drawRectangle.height);
         draw(rect);
     }
@@ -145,18 +157,15 @@ public:
     
     void draw(int x, int y, int width, int height)
     {
-        
+        if(!isOpen) return;
         draw(ofRectangle(x, y, width, height));
     }
     
     void draw(const ofRectangle& rectangle)
     {
         
-        if(!settings)
-        {
-            ofLogError(__func__ ) << "NO SETTINGS";
-            return;
-        }
+        if(!isOpen) return;
+
         bool didChange = false;
         if(settings->drawRectangle.x != rectangle.x ||
            settings->drawRectangle.y != rectangle.y ||
@@ -187,7 +196,8 @@ public:
     {
         if(isTextureEnabled()) return;
         if(!renderComponent) return;
-        if(!settings)return;
+        if(!isOpen) return;
+
         
         displayConfig.set = (OMX_DISPLAYSETTYPE)(OMX_DISPLAY_SET_DEST_RECT /*| OMX_DISPLAY_SET_SRC_RECT */ | OMX_DISPLAY_SET_FULLSCREEN | OMX_DISPLAY_SET_NOASPECT | OMX_DISPLAY_SET_TRANSFORM | OMX_DISPLAY_SET_ALPHA | OMX_DISPLAY_SET_LAYER | OMX_DISPLAY_SET_MODE);
         
@@ -308,7 +318,7 @@ public:
     
     void setDisplayCropRectangle(ofRectangle cropRectangle_)
     {
-        if(!settings) return;
+        if(!isOpen) return;
         settings->cropRectangle = cropRectangle_;
         OMX_CONFIG_DISPLAYREGIONTYPE cropConfig;
         OMX_INIT_STRUCTURE(cropConfig);
