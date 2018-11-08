@@ -24,6 +24,7 @@ int VideoEngine::getFrameCounter()
     {
         return 0;
     }
+#if 0
     if(!settings->enableTexture)
     {
         OMX_CONFIG_BRCMPORTSTATSTYPE stats;
@@ -53,12 +54,14 @@ int VideoEngine::getFrameCounter()
             //frameCounter = 0;
         }
     }
+#endif
     
     return frameCounter;
 }
 
 
-OMX_ERRORTYPE VideoEngine::textureRenderFillBufferDone(OMX_IN OMX_HANDLETYPE render, OMX_IN OMX_PTR videoEngine, OMX_IN OMX_BUFFERHEADERTYPE* pBuffer)
+
+OMX_ERRORTYPE VideoEngine::textureRenderFillBufferDone(OMX_HANDLETYPE render, OMX_PTR videoEngine, OMX_BUFFERHEADERTYPE* pBuffer)
 {    
     OMX_ERRORTYPE error = OMX_ErrorNone;
 
@@ -108,8 +111,8 @@ bool VideoEngine::setup(ofxOMXCameraSettings* settings_, VideoEngineListener* li
     OMX_ERRORTYPE error = OMX_ErrorNone;
     
     OMX_CALLBACKTYPE encoderCallbacks;
-    encoderCallbacks.EventHandler       = &VideoEngine::encoderEventHandlerCallback;
-    encoderCallbacks.EmptyBufferDone    = &VideoEngine::encoderEmptyBufferDone;
+    encoderCallbacks.EventHandler       = &VideoEngine::nullEventHandler;
+    encoderCallbacks.EmptyBufferDone    = &VideoEngine::nullEmptyBufferDone;
     encoderCallbacks.FillBufferDone     = &VideoEngine::encoderFillBufferDone;
     
     error =OMX_GetHandle(&encoder, OMX_VIDEO_ENCODER, this , &encoderCallbacks);
@@ -160,16 +163,21 @@ bool VideoEngine::setup(ofxOMXCameraSettings* settings_, VideoEngineListener* li
     
     //Set up renderer
     OMX_CALLBACKTYPE renderCallbacks;
-    renderCallbacks.EventHandler    = &VideoEngine::renderEventHandlerCallback;
-    renderCallbacks.EmptyBufferDone = &VideoEngine::renderEmptyBufferDone;
+    renderCallbacks.EventHandler    = &VideoEngine::nullEventHandler;
+    
+    
     
     if(settings->enableTexture)
     {
         //Implementation specific
-        renderCallbacks.FillBufferDone    = &VideoEngine::textureRenderFillBufferDone;
+        renderCallbacks.FillBufferDone  = &VideoEngine::textureRenderFillBufferDone;
+        renderCallbacks.EmptyBufferDone = &VideoEngine::nullEmptyBufferDone;
+
     }else
     {
-        renderCallbacks.FillBufferDone    = &VideoEngine::directRenderFillBufferDone;
+        renderCallbacks.FillBufferDone  = &VideoEngine::nullFillBufferDone;
+        renderCallbacks.EmptyBufferDone = &VideoEngine::nullEmptyBufferDone;
+
     }
     
 
@@ -184,7 +192,7 @@ bool VideoEngine::setup(ofxOMXCameraSettings* settings_, VideoEngineListener* li
     
     //Set up video splitter
     OMX_CALLBACKTYPE splitterCallbacks;
-    splitterCallbacks.EventHandler    = &VideoEngine::splitterEventHandlerCallback;
+    splitterCallbacks.EventHandler    = &VideoEngine::nullEventHandler;
     splitterCallbacks.EmptyBufferDone = &VideoEngine::nullEmptyBufferDone;
     splitterCallbacks.FillBufferDone  = &VideoEngine::nullFillBufferDone;
     
@@ -454,9 +462,10 @@ OMX_ERRORTYPE VideoEngine::onCameraEventParamOrConfigChanged()
 
 
 
-OMX_ERRORTYPE VideoEngine::encoderFillBufferDone(OMX_IN OMX_HANDLETYPE encoder,
-                                                OMX_IN OMX_PTR videoEngine_,
-                                                OMX_IN OMX_BUFFERHEADERTYPE* encoderOutputBuffer)
+
+OMX_ERRORTYPE VideoEngine::encoderFillBufferDone(OMX_HANDLETYPE encoder,
+                                                OMX_PTR videoEngine_,
+                                                OMX_BUFFERHEADERTYPE* encoderOutputBuffer)
 {    
     VideoEngine* engine = static_cast<VideoEngine*>(videoEngine_);
     
