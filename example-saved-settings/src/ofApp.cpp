@@ -91,7 +91,14 @@ void ofApp::keyPressed  (int key)
     {
         doSwitchConfig = true;
     }
-
+    if (key == '2')
+    {
+        videoGrabber.startRecording();
+    }
+    if (key == '3')
+    {
+        videoGrabber.stopRecording();
+    }
 }
 
 void ofApp::onCharacterReceived(KeyListenerEventData& e)
