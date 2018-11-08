@@ -33,7 +33,10 @@ void ofxOMXVideoGrabber::setup(ofxOMXCameraSettings& settings_)
             pixelsRequested = true;
         }
     }
-    
+    if(engine.isOpen)
+    {
+        engine.close();
+    }
     engine.setup(&settings, this, &displayController);
 
     
