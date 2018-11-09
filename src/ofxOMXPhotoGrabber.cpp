@@ -18,7 +18,10 @@ void ofxOMXPhotoGrabber::setup(ofxOMXCameraSettings settings_)
     listener = settings.photoGrabberListener;
     
     
-    
+    if(settings.drawRectangle.isZero())
+    {
+        settings.drawRectangle.set(0, 0, settings.stillPreviewWidth, settings.stillPreviewHeight);
+    }
     
     ofLogNotice(__func__) << settings.toString();
    
@@ -27,8 +30,7 @@ void ofxOMXPhotoGrabber::setup(ofxOMXCameraSettings settings_)
         displayController.generateEGLImage(settings.stillPreviewWidth, settings.stillPreviewHeight);
 
     }
-    
-    engine.setup(&settings, this, &displayController);  
+    engine.setup(&settings, this, displayController.eglImage);  
 
 
 }
@@ -39,6 +41,18 @@ void ofxOMXPhotoGrabber::onPhotoEngineStart(OMX_HANDLETYPE camera_)
     camera = camera_;
     
     applyAllSettings();
+    
+    if(settings.enableTexture)
+    {
+        displayController.setup(&settings);
+    }else
+    {
+        displayController.setup(&settings, engine.render);
+
+    }
+
+    
+    
     ofLogNotice(__func__) << "shotsRequested: " << shotsRequested << " shotsTaken: " << shotsTaken;
     if(shotsTaken)
     {

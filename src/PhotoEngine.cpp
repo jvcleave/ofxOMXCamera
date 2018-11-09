@@ -1,24 +1,8 @@
 #include "PhotoEngine.h"
 
 
-PhotoEngine::PhotoEngine()
-{
-	didOpen = false;
-    settings = NULL;
-    render = NULL;
-    camera = NULL;
-    encoder = NULL;
-    encoderOutputBuffer = NULL;
-    listener = NULL;
-    nullSink = NULL;
-    OMX_INIT_STRUCTURE(previewPortConfig);
-    previewPortConfig.nPortIndex = CAMERA_PREVIEW_PORT;
-    saveFolderAbsolutePath.clear();
-    renderInputPort = VIDEO_RENDER_INPUT_PORT;
-    displayController = NULL;
-}   
 
-
+#pragma mark TEXTURE RENDER CALLBACKS
 OMX_ERRORTYPE PhotoEngine::textureRenderFillBufferDone(OMX_IN OMX_HANDLETYPE render, OMX_IN OMX_PTR photoEngine, OMX_IN OMX_BUFFERHEADERTYPE* pBuffer)
 {    
     //ofLogNotice(__func__) << endl;
@@ -30,14 +14,75 @@ OMX_ERRORTYPE PhotoEngine::textureRenderFillBufferDone(OMX_IN OMX_HANDLETYPE ren
 }
 
 
-void PhotoEngine::setup(ofxOMXCameraSettings* settings_, PhotoEngineListener* listener_, DisplayController* displayController_)
+
+#pragma mark ENCODER CALLBACKS
+OMX_ERRORTYPE 
+PhotoEngine::encoderEventHandlerCallback(OMX_HANDLETYPE encoder, OMX_PTR photoEngine, OMX_EVENTTYPE event, OMX_U32 nData1, OMX_U32 nData2, OMX_PTR pEventData)
+{
+    
+    OMX_ERRORTYPE error = OMX_ErrorNone;
+    
+    //PhotoEngine* engine = static_cast<PhotoEngine*>(photoEngine);
+    
+    //ofLogNotice(__func__) << GetEventString(event);
+    return error;
+    
+    
+}
+
+
+OMX_ERRORTYPE PhotoEngine::encoderFillBufferDone(OMX_HANDLETYPE encoder, OMX_PTR photoEngine, OMX_BUFFERHEADERTYPE* encoderOutputBuffer)
+{    
+    OMX_ERRORTYPE error = OMX_ErrorNone;
+    
+    PhotoEngine* engine = static_cast<PhotoEngine*>(photoEngine);
+    
+    engine->recordingFileBuffer.append((const char*) encoderOutputBuffer->pBuffer + encoderOutputBuffer->nOffset, 
+                                       encoderOutputBuffer->nFilledLen);
+    
+    
+    ofLogVerbose(__func__) << engine->recordingFileBuffer.size();
+    bool endOfFrame = (encoderOutputBuffer->nFlags & OMX_BUFFERFLAG_ENDOFFRAME);
+    bool endOfStream = (encoderOutputBuffer->nFlags & OMX_BUFFERFLAG_EOS);
+    
+    //ofLogVerbose(__func__) << "OMX_BUFFERFLAG_ENDOFFRAME: " << endOfFrame;
+    //ofLogVerbose(__func__) << "OMX_BUFFERFLAG_EOS: " << endOfStream;
+    if(endOfFrame || endOfStream)
+    {
+        engine->writeFile();
+    }else
+    {
+        OMX_ERRORTYPE error = OMX_FillThisBuffer(encoder, encoderOutputBuffer);
+        OMX_TRACE(error);
+    }   
+    return error;
+}
+
+PhotoEngine::PhotoEngine()
+{
+	didOpen = false;
+    settings = NULL;
+    render = NULL;
+    camera = NULL;
+    encoder = NULL;
+    encoderOutputBuffer = NULL;
+    listener = NULL;
+    nullSink = NULL;
+    eglImage = NULL;
+    OMX_INIT_STRUCTURE(previewPortConfig);
+    previewPortConfig.nPortIndex = CAMERA_PREVIEW_PORT;
+    saveFolderAbsolutePath.clear();
+    renderInputPort = VIDEO_RENDER_INPUT_PORT;
+}   
+
+void PhotoEngine::setup(ofxOMXCameraSettings* settings_, PhotoEngineListener* listener_, EGLImageKHR eglImage_)
 {
     settings = settings_;
     listener = listener_;
-    displayController = displayController_;
+    eglImage = eglImage_;
     //settings->width = omxcam_round(settings->width, 32);
     //settings->height = omxcam_round(settings->height, 16);
-
+    
     
     //settings->stillPreviewWidth = omxcam_round(settings->stillPreviewWidth, 32);
     //settings->stillPreviewHeight = omxcam_round(settings->stillPreviewHeight, 16);
@@ -70,52 +115,48 @@ void PhotoEngine::setup(ofxOMXCameraSettings* settings_, PhotoEngineListener* li
     error = DisableAllPortsForComponent(&encoder);
     OMX_TRACE(error);
     
-   if(settings->enableStillPreview) 
-   {
-       if(settings->enableTexture)
-       {
-           renderInputPort = EGL_RENDER_INPUT_PORT;
-       }
-       //Set up renderer
-       OMX_CALLBACKTYPE renderCallbacks;
-       renderCallbacks.EventHandler    = &PhotoEngine::nullEventHandlerCallback;
-       renderCallbacks.EmptyBufferDone = &PhotoEngine::nullEmptyBufferDone;
-       renderCallbacks.FillBufferDone  = &PhotoEngine::nullFillBufferDone;
-       
-       OMX_STRING renderType = OMX_VIDEO_RENDER; 
-       
-       if(settings->enableTexture)
-       {
-           //Implementation specific
-           renderType = OMX_EGL_RENDER; 
-           renderInputPort = EGL_RENDER_INPUT_PORT;
-           renderCallbacks.FillBufferDone    = &PhotoEngine::textureRenderFillBufferDone;
-       }else
-       {
-           renderCallbacks.FillBufferDone    = &PhotoEngine::nullFillBufferDone;
-       }
-       error = OMX_GetHandle(&render, renderType, this , &renderCallbacks);
-       OMX_TRACE(error);
-       
-       error = DisableAllPortsForComponent(&render);
-       OMX_TRACE(error);
-       
-   }
-
+    if(settings->enableStillPreview) 
+    {
+        if(settings->enableTexture)
+        {
+            renderInputPort = EGL_RENDER_INPUT_PORT;
+        }
+        //Set up renderer
+        OMX_CALLBACKTYPE renderCallbacks;
+        renderCallbacks.EventHandler    = &PhotoEngine::nullEventHandlerCallback;
+        renderCallbacks.EmptyBufferDone = &PhotoEngine::nullEmptyBufferDone;
+        renderCallbacks.FillBufferDone  = &PhotoEngine::nullFillBufferDone;
+        
+        OMX_STRING renderType = OMX_VIDEO_RENDER; 
+        
+        if(settings->enableTexture)
+        {
+            //Implementation specific
+            renderType = OMX_EGL_RENDER; 
+            renderInputPort = EGL_RENDER_INPUT_PORT;
+            renderCallbacks.FillBufferDone    = &PhotoEngine::textureRenderFillBufferDone;
+        }else
+        {
+            renderCallbacks.FillBufferDone    = &PhotoEngine::nullFillBufferDone;
+        }
+        error = OMX_GetHandle(&render, renderType, this , &renderCallbacks);
+        OMX_TRACE(error);
+        
+        error = DisableAllPortsForComponent(&render);
+        OMX_TRACE(error);
+        
+    }
     
-    
-    
+    //create Camera
     OMX_CALLBACKTYPE cameraCallbacks;
     
     cameraCallbacks.EventHandler    = &PhotoEngine::cameraEventHandlerCallback;
-    cameraCallbacks.EmptyBufferDone	= &PhotoEngine::nullEmptyBufferDone;
-    cameraCallbacks.FillBufferDone	= &PhotoEngine::nullFillBufferDone;
+    cameraCallbacks.EmptyBufferDone = &PhotoEngine::nullEmptyBufferDone;
+    cameraCallbacks.FillBufferDone  = &PhotoEngine::nullFillBufferDone;
     
     error = OMX_GetHandle(&camera, OMX_CAMERA, this , &cameraCallbacks);
-    if(error != OMX_ErrorNone) 
-    {
-        OMX_TRACE(error, "camera OMX_GetHandle FAIL");
-    }
+    OMX_TRACE(error);
+
     
     error = DisableAllPortsForComponent(&camera);
     OMX_TRACE(error);
@@ -139,8 +180,6 @@ void PhotoEngine::setup(ofxOMXCameraSettings* settings_, PhotoEngineListener* li
     error = OMX_SetParameter(camera, OMX_IndexParamCameraDeviceNumber, &device);
     OMX_TRACE(error);
     
-    
-
 
     if(settings->enableStillPreview) 
     { 
@@ -164,41 +203,7 @@ void PhotoEngine::setup(ofxOMXCameraSettings* settings_, PhotoEngineListener* li
         }
     }
     
-    
-    
-    
-    
-    
-    //Set the resolution
-    OMX_PARAM_PORTDEFINITIONTYPE stillPortConfig;
-    OMX_INIT_STRUCTURE(stillPortConfig);
-    stillPortConfig.nPortIndex = CAMERA_STILL_OUTPUT_PORT;
-    
-    error =  OMX_GetParameter(camera, OMX_IndexParamPortDefinition, &stillPortConfig);
-    OMX_TRACE(error);
-    
-    stillPortConfig.format.image.nFrameWidth        = settings->width;
-    stillPortConfig.format.image.nFrameHeight       = settings->height;
-    stillPortConfig.format.image.nStride            = settings->width;
-    stillPortConfig.format.image.eCompressionFormat = OMX_IMAGE_CodingUnused;
-    stillPortConfig.format.image.eColorFormat       = OMX_COLOR_FormatUnused;
-    stillPortConfig.format.image.nStride            = settings->width;
-
-    //ofLog() << "CAMERA_STILL_OUTPUT_PORT DEFAULT: " << GetColorFormatString(stillPortConfig.format.image.eColorFormat);
-    //DEFAULT: YUV420PackedPlanar
-    //YUV420PackedSemiPlanar
-    //Unused
-    //YUV420PackedPlanar
-    //YUV420PackedSemiPlanar
-    //YUV422PackedPlanar
-    //YVU420PackedPlanar
-    //YVU420PackedSemiPlanar
-    error =  OMX_SetParameter(camera, OMX_IndexParamPortDefinition, &stillPortConfig);
-    OMX_TRACE(error);
-
-    
-    
-    
+    //Enable RAW info embedded in JPEG
     //may need https://github.com/6by9/dcraw to make useful
     if(settings->enableRaw)
     {
@@ -214,80 +219,87 @@ void PhotoEngine::setup(ofxOMXCameraSettings* settings_, PhotoEngineListener* li
         error =  OMX_SetParameter(camera, OMX_IndexConfigCaptureRawImageURI, &raw);
         OMX_TRACE(error);
     }
-
+    
+    OMX_FRAMESIZETYPE frameSizeConfig;
+    OMX_INIT_STRUCTURE(frameSizeConfig);
+    frameSizeConfig.nPortIndex = OMX_ALL;
+    
+    OMX_PARAM_SENSORMODETYPE sensorMode;
+    OMX_INIT_STRUCTURE(sensorMode);
+    sensorMode.nPortIndex = OMX_ALL;
+    sensorMode.sFrameSize = frameSizeConfig;
+    
+    error =OMX_GetParameter(camera, OMX_IndexParamCommonSensorMode, &sensorMode);
+    OMX_TRACE(error);
+    
+    sensorMode.bOneShot = OMX_TRUE; //seems to determine whether OMX_BUFFERFLAG_EOS is passed
+    
+    error =OMX_SetParameter(camera, OMX_IndexParamCommonSensorMode, &sensorMode);
+    OMX_TRACE(error);
     
 
+    
+    
+    OMX_CONFIG_PORTBOOLEANTYPE cameraStillOutputPortConfig;
+    OMX_INIT_STRUCTURE(cameraStillOutputPortConfig);
+    cameraStillOutputPortConfig.nPortIndex = CAMERA_STILL_OUTPUT_PORT;
+    cameraStillOutputPortConfig.bEnabled = OMX_TRUE;
+    
+    error =OMX_SetParameter(camera, OMX_IndexConfigPortCapturing, &cameraStillOutputPortConfig);    
+    OMX_TRACE(error);
+    
+    /*
+    OMX_CONFIG_BOOLEANTYPE SingleBufferCaptureInput;
+    OMX_INIT_STRUCTURE(SingleBufferCaptureInput);
+    SingleBufferCaptureInput.bEnabled = OMX_TRUE;
+    error =OMX_SetParameter(camera, OMX_IndexParamCameraSingleBufferCaptureInput, &SingleBufferCaptureInput);    
+    OMX_TRACE(error);
+    */
+
+    //Set the resolution
+    OMX_PARAM_PORTDEFINITIONTYPE stillPortConfig;
+    OMX_INIT_STRUCTURE(stillPortConfig);
+    stillPortConfig.nPortIndex = CAMERA_STILL_OUTPUT_PORT;
+    
+    error =  OMX_GetParameter(camera, OMX_IndexParamPortDefinition, &stillPortConfig);
+    OMX_TRACE(error);
+    
+    stillPortConfig.format.image.nFrameWidth        = settings->width;
+    stillPortConfig.format.image.nFrameHeight       = settings->height;
+    stillPortConfig.format.image.nStride            = settings->width;
+    stillPortConfig.format.image.eCompressionFormat = OMX_IMAGE_CodingUnused;
+    stillPortConfig.format.image.eColorFormat       = OMX_COLOR_FormatUnused;
+    stillPortConfig.format.image.nStride            = settings->width;
+    
+    //ofLog() << "CAMERA_STILL_OUTPUT_PORT DEFAULT: " << GetColorFormatString(stillPortConfig.format.image.eColorFormat);
+    //DEFAULT: YUV420PackedPlanar
+    //YUV420PackedSemiPlanar
+    //Unused
+    //YUV420PackedPlanar
+    //YUV420PackedSemiPlanar
+    //YUV422PackedPlanar
+    //YVU420PackedPlanar
+    //YVU420PackedSemiPlanar
+    error =  OMX_SetParameter(camera, OMX_IndexParamPortDefinition, &stillPortConfig);
+    OMX_TRACE(error);
 }
 
-
-OMX_ERRORTYPE PhotoEngine::encoderEventHandlerCallback(OMX_HANDLETYPE encoder, 
-                            OMX_PTR photoEngine,  
-                            OMX_EVENTTYPE event, 
-                            OMX_U32 nData1, 
-                            OMX_U32 nData2, 
-                            OMX_PTR pEventData)
+#pragma mark CAMERA CALLBACKS
+OMX_ERRORTYPE 
+PhotoEngine::cameraEventHandlerCallback(OMX_HANDLETYPE hComponent, OMX_PTR photoEngine, OMX_EVENTTYPE eEvent, OMX_U32 nData1, OMX_U32 nData2, OMX_PTR pEventData)
 {
     
-    OMX_ERRORTYPE error = OMX_ErrorNone;
-    
-    //PhotoEngine* engine = static_cast<PhotoEngine*>(photoEngine);
-    
-    //ofLogNotice(__func__) << GetEventString(event);
-    return error;
-    
-    
-}
-
-
-OMX_ERRORTYPE PhotoEngine::encoderFillBufferDone(OMX_HANDLETYPE encoder,
-                                                 OMX_PTR photoEngine,
-                                                 OMX_BUFFERHEADERTYPE* encoderOutputBuffer)
-{    
-    OMX_ERRORTYPE error = OMX_ErrorNone;
-    
-    PhotoEngine* engine = static_cast<PhotoEngine*>(photoEngine);
-    
-    engine->recordingFileBuffer.append((const char*) encoderOutputBuffer->pBuffer + encoderOutputBuffer->nOffset, 
-                                       encoderOutputBuffer->nFilledLen);
-    
-    
-    ofLogVerbose(__func__) << engine->recordingFileBuffer.size();
-    bool endOfFrame = (encoderOutputBuffer->nFlags & OMX_BUFFERFLAG_ENDOFFRAME);
-    bool endOfStream = (encoderOutputBuffer->nFlags & OMX_BUFFERFLAG_EOS);
-    
-    //ofLogVerbose(__func__) << "OMX_BUFFERFLAG_ENDOFFRAME: " << endOfFrame;
-    //ofLogVerbose(__func__) << "OMX_BUFFERFLAG_EOS: " << endOfStream;
-    if(endOfFrame || endOfStream)
-    {
-        engine->writeFile();
-    }else
-    {
-        OMX_ERRORTYPE error = OMX_FillThisBuffer(encoder, encoderOutputBuffer);
-        OMX_TRACE(error);
-    }   
-    return error;
-}
-
-
-OMX_ERRORTYPE PhotoEngine::cameraEventHandlerCallback(OMX_HANDLETYPE hComponent,
-                                                     OMX_PTR photoEngine,
-                                                     OMX_EVENTTYPE eEvent,
-                                                     OMX_U32 nData1,
-                                                     OMX_U32 nData2,
-                                                     OMX_PTR pEventData)
-{
-
     PhotoEngine* engine = static_cast<PhotoEngine*>(photoEngine);
     
     ofLogNotice(__func__) << GetEventString(eEvent);
-
+    
     switch (eEvent) 
     {
         case OMX_EventParamOrConfigChanged:
         {
             
             return engine->onCameraEventParamOrConfigChanged();
-        }	
+        }    
             
         case OMX_EventError:
         {
@@ -303,61 +315,28 @@ OMX_ERRORTYPE PhotoEngine::cameraEventHandlerCallback(OMX_HANDLETYPE hComponent,
 
 OMX_ERRORTYPE PhotoEngine::onCameraEventParamOrConfigChanged()
 {
-
+    
     OMX_ERRORTYPE error = SetComponentState(camera, OMX_StateIdle);
     OMX_TRACE(error);
-
+    
     //PrintSensorModes(camera);
     
-    OMX_FRAMESIZETYPE frameSizeConfig;
-    OMX_INIT_STRUCTURE(frameSizeConfig);
-    frameSizeConfig.nPortIndex = OMX_ALL;
-    
-    OMX_PARAM_SENSORMODETYPE sensorMode;
-    OMX_INIT_STRUCTURE(sensorMode);
-    sensorMode.nPortIndex = OMX_ALL;
-    sensorMode.sFrameSize = frameSizeConfig;
-    error =OMX_GetParameter(camera, OMX_IndexParamCommonSensorMode, &sensorMode);
-    
-    OMX_TRACE(error);
-    
-    sensorMode.bOneShot = OMX_TRUE; //seems to determine whether OMX_BUFFERFLAG_EOS is passed
-    error =OMX_SetParameter(camera, OMX_IndexParamCommonSensorMode, &sensorMode);
-
-    OMX_TRACE(error);
     
     OMX_CONFIG_CAMERASENSORMODETYPE sensorConfig;
     OMX_INIT_STRUCTURE(sensorConfig);
     sensorConfig.nPortIndex = OMX_ALL;
     //sensorConfig.nModeIndex = 0;
+    
     error =  OMX_GetParameter(camera, OMX_IndexConfigCameraSensorModes, &sensorConfig);
     OMX_TRACE(error);
-
     
-    OMX_CONFIG_PORTBOOLEANTYPE cameraStillOutputPortConfig;
-    OMX_INIT_STRUCTURE(cameraStillOutputPortConfig);
-    cameraStillOutputPortConfig.nPortIndex = CAMERA_STILL_OUTPUT_PORT;
-    cameraStillOutputPortConfig.bEnabled = OMX_TRUE;
-    
-    error =OMX_SetParameter(camera, OMX_IndexConfigPortCapturing, &cameraStillOutputPortConfig);	
-    OMX_TRACE(error);
-    
-
-    OMX_CONFIG_BOOLEANTYPE SingleBufferCaptureInput;
-    OMX_INIT_STRUCTURE(SingleBufferCaptureInput);
-    SingleBufferCaptureInput.bEnabled = OMX_TRUE;
-
-    //error =OMX_SetParameter(camera, OMX_IndexParamCameraSingleBufferCaptureInput, &SingleBufferCaptureInput);    
-    //OMX_TRACE(error);
-    
- 
     if(settings->enableStillPreview) 
     { 
         
         //Set renderer to Idle
         error = SetComponentState(render, OMX_StateIdle);
         OMX_TRACE(error);
-       
+        
         if(settings->enableTexture)
         {
             //Enable render output port
@@ -368,7 +347,7 @@ OMX_ERRORTYPE PhotoEngine::onCameraEventParamOrConfigChanged()
         if(settings->enableTexture)
         {
             //Set renderer to use texture
-            error = OMX_UseEGLImage(render, &eglBuffer, EGL_RENDER_OUTPUT_PORT, this, displayController->eglImage);
+            error = OMX_UseEGLImage(render, &eglBuffer, EGL_RENDER_OUTPUT_PORT, this, eglImage);
             OMX_TRACE(error);
         }
         
@@ -387,7 +366,7 @@ OMX_ERRORTYPE PhotoEngine::onCameraEventParamOrConfigChanged()
         error = WaitForPortEnable(render, renderInputPort);
         OMX_TRACE(error);
         
-
+        
     }else
     {
         
@@ -413,15 +392,11 @@ OMX_ERRORTYPE PhotoEngine::onCameraEventParamOrConfigChanged()
         error = SetComponentState(nullSink, OMX_StateExecuting);
         OMX_TRACE(error);
     }
-
-
+    
+    
     //Start camera
     error = SetComponentState(camera, OMX_StateExecuting);
     OMX_TRACE(error);  
-
-    
-
-    
     
     if(settings->enableStillPreview) 
     { 
@@ -443,31 +418,24 @@ OMX_ERRORTYPE PhotoEngine::onCameraEventParamOrConfigChanged()
             error = OMX_FillThisBuffer(render, eglBuffer);
             OMX_TRACE(error);
             ofLogNotice(__func__) << "TRIED OMX_FillThisBuffer";
-            displayController->setup(settings);
-
-        }else
-        {
-            displayController->setup(settings, render);
+            
         }
     }
     
     didOpen = true;
     
     listener->onPhotoEngineStart(camera);
-
+    
     
     //debug actual preview size
     /*
-    error =  OMX_GetParameter(camera, OMX_IndexParamPortDefinition, &previewPortConfig);
-    OMX_TRACE(error);
-    ofLogNotice(__func__) << "previewPortConfig: " << PrintPortDef(previewPortConfig);
-    */
+     error =  OMX_GetParameter(camera, OMX_IndexParamPortDefinition, &previewPortConfig);
+     OMX_TRACE(error);
+     ofLogNotice(__func__) << "previewPortConfig: " << PrintPortDef(previewPortConfig);
+     */
     
     return error;
 }
-
-
-
 
 void PhotoEngine::takePhoto()
 {
@@ -612,7 +580,7 @@ void PhotoEngine::writeFile()
     }
     
     close();
-    setup(settings, listener, displayController);
+    setup(settings, listener, eglImage);
 }
 
 
@@ -633,9 +601,6 @@ void PhotoEngine::close()
     
 
     OMX_ERRORTYPE error;
-   
-    displayController->close();
-    displayController = NULL;
     
     if(camera)
     {
@@ -737,13 +702,8 @@ void PhotoEngine::close()
         error = OMX_FreeHandle(nullSink);
         OMX_TRACE(error); 
     }
-    
 
     didOpen = false;
-
-
-    
-
 }
 
 

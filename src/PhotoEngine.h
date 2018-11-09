@@ -11,7 +11,7 @@
 #include "ofMain.h"
 #include "OMX_Maps.h"
 #include "ofxOMXCameraSettings.h"
-#include "DisplayController.h"
+
 class PhotoEngineListener
 {
 public:
@@ -24,7 +24,7 @@ class PhotoEngine
 public:
 	PhotoEngine();
     ~PhotoEngine();
-    void setup(ofxOMXCameraSettings*, PhotoEngineListener*, DisplayController* displayController_ = NULL);
+    void setup(ofxOMXCameraSettings*, PhotoEngineListener*, EGLImageKHR eglImage_=NULL);
     bool isOpen(){return didOpen;}
     void takePhoto();
     void close();
@@ -51,7 +51,7 @@ public:
     
     OMX_BUFFERHEADERTYPE* encoderOutputBuffer;
     
-    DisplayController* displayController;
+    EGLImageKHR eglImage;
     
     static OMX_ERRORTYPE 
     nullEmptyBufferDone(OMX_HANDLETYPE hComponent, 
