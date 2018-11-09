@@ -5,7 +5,7 @@
 #pragma mark TEXTURE RENDER CALLBACKS
 OMX_ERRORTYPE PhotoEngine::textureRenderFillBufferDone(OMX_IN OMX_HANDLETYPE render, OMX_IN OMX_PTR photoEngine, OMX_IN OMX_BUFFERHEADERTYPE* pBuffer)
 {    
-    //ofLogNotice(__func__) << endl;
+    //ofLogNotice(__func__) << pBuffer->nFilledLen << endl;
     
     //PhotoEngine* engine = static_cast<PhotoEngine*>(photoEngine);
     OMX_ERRORTYPE error = OMX_FillThisBuffer(render, pBuffer);
@@ -60,7 +60,7 @@ OMX_ERRORTYPE PhotoEngine::encoderFillBufferDone(OMX_HANDLETYPE encoder, OMX_PTR
 
 PhotoEngine::PhotoEngine()
 {
-	didOpen = false;
+	isOpen = false;
     settings = NULL;
     render = NULL;
     camera = NULL;
@@ -403,26 +403,22 @@ OMX_ERRORTYPE PhotoEngine::onCameraEventParamOrConfigChanged()
         //Start renderer
         error = SetComponentState(render, OMX_StateExecuting);
         OMX_TRACE(error);
-        
-        
-        if(settings->drawRectangle.isZero())
-        {
-            settings->drawRectangle.set(0, 0, settings->stillPreviewWidth, settings->stillPreviewHeight);
-        }
-        
-        
+ 
         if(settings->enableTexture)
         {
             //start the buffer filling loop
             //once completed the callback will trigger and refill
             error = OMX_FillThisBuffer(render, eglBuffer);
             OMX_TRACE(error);
-            ofLogNotice(__func__) << "TRIED OMX_FillThisBuffer";
+            if(error == OMX_ErrorNone)
+            {
+                ofLogNotice(__func__) << "TRIED OMX_FillThisBuffer";
+ 
+            }
             
         }
     }
     
-    didOpen = true;
     
     listener->onPhotoEngineStart(camera);
     
@@ -588,7 +584,7 @@ void PhotoEngine::writeFile()
 
 PhotoEngine::~PhotoEngine()
 {
-    if(didOpen)
+    if(isOpen)
     {
         close();
     }
@@ -703,7 +699,7 @@ void PhotoEngine::close()
         OMX_TRACE(error); 
     }
 
-    didOpen = false;
+    isOpen = false;
 }
 
 

@@ -50,7 +50,7 @@ void ofxOMXPhotoGrabber::onPhotoEngineStart(OMX_HANDLETYPE camera_)
         displayController.setup(&settings, engine.render);
 
     }
-
+    engine.isOpen = true;
     
     
     ofLogNotice(__func__) << "shotsRequested: " << shotsRequested << " shotsTaken: " << shotsTaken;
@@ -75,7 +75,7 @@ void ofxOMXPhotoGrabber::onPhotoEngineStart(OMX_HANDLETYPE camera_)
 
 bool ofxOMXPhotoGrabber::isReady()
 {
-    return engine.isOpen();
+    return engine.isOpen;
 }
 
 
@@ -127,18 +127,26 @@ int ofxOMXPhotoGrabber::getHeight()
 
 void ofxOMXPhotoGrabber::draw(ofRectangle& rectangle)
 {
-    displayController.draw(rectangle);
+    displayController.updateTexture();
+    displayController.draw(rectangle.x, rectangle.y, rectangle.width, rectangle.height);
 }
 
 void ofxOMXPhotoGrabber::draw(int x, int y)
 {
-    displayController.draw(x, y);
-
+    displayController.updateTexture();
+    displayController.draw(x, y);  
 }
+
 void ofxOMXPhotoGrabber::draw(int x, int y, int width, int height)
 {
-    
+    displayController.updateTexture();
     displayController.draw(x, y, width, height);
+}
+
+void ofxOMXPhotoGrabber::draw()
+{
+    displayController.updateTexture();
+    displayController.draw();  
 }
 
 

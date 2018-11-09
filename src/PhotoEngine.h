@@ -25,7 +25,6 @@ public:
 	PhotoEngine();
     ~PhotoEngine();
     void setup(ofxOMXCameraSettings*, PhotoEngineListener*, EGLImageKHR eglImage_=NULL);
-    bool isOpen(){return didOpen;}
     void takePhoto();
     void close();
     
@@ -34,8 +33,8 @@ public:
     ofxOMXCameraSettings* settings;
     OMX_IMAGE_CODINGTYPE codingType;    
     PhotoEngineListener* listener;
-    OMX_U32 stride;
-    bool didOpen;
+
+    bool isOpen;
 
     OMX_HANDLETYPE render;
     OMX_HANDLETYPE encoder;
