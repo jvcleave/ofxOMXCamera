@@ -13,7 +13,7 @@
 #include "OMXCameraController.h"
 
 #include "PhotoEngine.h"
-
+#include "DisplayController.h"
 
 
 

@@ -1002,6 +1002,12 @@ string omxErrorToString(OMX_ERRORTYPE error)
 
 #define TRACE_LINE ofLogNotice(__func__) << __LINE__;
 
+#define LINE_TIME_START int start = ofGetElapsedTimeMillis();
+#define LINE_TIME_END(x) ofLog() << x << " TOOK " << ofGetElapsedTimeMillis()-start << "MS";
+
+
+
+
 static  
 void logOMXError(OMX_ERRORTYPE error, string comments="", string functionName="", int lineNumber=0)
 {
@@ -1682,6 +1688,109 @@ void PrintSensorModes(OMX_HANDLETYPE camera)
         ofLogVerbose(__func__) << "sensorInfo "<< i << " : \n" << sensorInfo.str();
     }
 }
+
+
+static
+string DebugEventHandlerString (OMX_HANDLETYPE hComponent, OMX_EVENTTYPE eEvent, OMX_U32 nData1, OMX_U32 nData2, OMX_PTR pEventData)
+{
+    
+    stringstream info;
+    info << GetEventString(eEvent) << endl;
+    switch (eEvent)
+    {
+        case OMX_EventParamOrConfigChanged:
+        {
+            break;
+        }
+        case OMX_EventCmdComplete:
+        {
+            OMX_COMMANDTYPE command = (OMX_COMMANDTYPE)nData1;
+            string commandString = GetOMXCommandString(command);
+            
+            info << "command: "  << commandString << endl;
+
+            switch(command)
+            {
+                case OMX_CommandStateSet:
+                {
+                    OMX_STATETYPE state = (OMX_STATETYPE)nData2;
+                    info << "state: "  << GetOMXStateString(state) << endl;
+
+                    switch (state)
+                    {
+                        case OMX_StateInvalid:
+                        case OMX_StateLoaded:
+                        case OMX_StateIdle:
+                        case OMX_StateExecuting:
+                        case OMX_StatePause:
+                        case OMX_StateWaitForResources:
+                        default:
+                        {
+                            break;
+                        }
+                    }
+                    break;
+                }
+                
+                case OMX_CommandPortDisable:
+                case OMX_CommandPortEnable:
+                case OMX_CommandFlush:
+                {
+                    info << "port: "  << nData2 << endl;
+                    break;
+
+                }
+                case OMX_CommandMarkBuffer:
+                case OMX_CommandKhronosExtensions:
+                case OMX_CommandVendorStartUnused:
+                case OMX_CommandMax:
+                default:
+                {
+                    //ofLogNotice("onEvent") << GetName() << " : " << commandString << " port: " << (int)nData2;
+                    break;
+                }
+            }
+            break;
+        }
+        case OMX_EventBufferFlag:
+        {
+            break;
+        }
+        case OMX_EventPortSettingsChanged:
+        case OMX_EventMark:
+        case OMX_EventResourcesAcquired:
+        case OMX_EventError:
+        {
+            OMX_ERRORTYPE error = (OMX_ERRORTYPE)nData1;
+            string errorString = GetOMXErrorString(error);
+            
+            info << "error: "  << errorString << " nData1: " << nData1 << " nData2: " << nData2 << endl;
+            switch(error)
+            {
+                    
+                case OMX_ErrorStreamCorrupt:
+                case OMX_ErrorSameState:
+                case OMX_ErrorInsufficientResources:
+                case OMX_ErrorFormatNotDetected:
+                case OMX_ErrorPortUnpopulated:
+                case OMX_ErrorUnsupportedSetting:
+                default:
+                {
+                    break;
+                }
+            }
+            break;
+        }
+        default:
+        {
+            //ofLogError("onEvent") << GetName() << "Unknown eEvent : " << eEvent << " nData1: " << nData1 << " nData2: " << nData2;
+            break;
+        }
+    }
+    
+    return info.str();
+}
+
 
 #if 0
 static 
