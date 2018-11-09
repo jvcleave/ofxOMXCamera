@@ -115,25 +115,23 @@ void ofxOMXVideoGrabber::onUpdate(ofEventArgs & args)
         //ofLogError() << "ENGINE CLOSED";
         return;
     }
-    frameCounter = engine.getFrameCounter();
-	if (frameCounter > updateFrameCounter) 
-	{
-		updateFrameCounter = frameCounter;
-		hasNewFrame = true;
-		
-	}else
-	{
-		hasNewFrame = false;
-	}
-	if (hasNewFrame) 
-	{
-		if (settings.enableTexture) 
-		{
-            displayController.updateTexture(pixelsRequested);
+    if (settings.enableTexture) 
+    {
+        frameCounter = engine.getFrameCounter();
+        if (frameCounter > updateFrameCounter) 
+        {
+            updateFrameCounter = frameCounter;
+            hasNewFrame = true;
             
-		}
-	}
-   
+        }else
+        {
+            hasNewFrame = false;
+        }
+        if (hasNewFrame) 
+        {
+            displayController.updateTexture(pixelsRequested);
+        }
+    }
 	//ofLogVerbose() << "hasNewFrame: " << hasNewFrame;
 }
 
@@ -143,6 +141,10 @@ void ofxOMXVideoGrabber::onUpdate(ofEventArgs & args)
 
 bool ofxOMXVideoGrabber::isFrameNew()
 {
+    if(!settings.enableTexture)
+    {
+        return  true;
+    }
     return hasNewFrame;
 }
 
