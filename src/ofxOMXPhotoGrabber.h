@@ -25,13 +25,14 @@ public:
     
 	ofxOMXPhotoGrabber();
     ~ofxOMXPhotoGrabber();
-    void setup(ofxOMXCameraSettings);
+    void setup(ofxOMXCameraSettings&);
     bool isReady();
 	int getWidth();
 	int getHeight();
     void takePhoto(int numShots=0);
     PhotoEngine engine;
     
+    void setJPEGCompression(int); // 1-100
     
     void draw();
     void draw(int x, int y);
@@ -41,8 +42,8 @@ public:
     void setDisplayAlpha(int);
     void setDisplayLayer(int);
     void setDisplayRotation(int);
-    void setDisplayDrawRectangle(ofRectangle);
-    void setDisplayCropRectangle(ofRectangle);
+    void setDisplayDrawRectangle(ofRectangle&);
+    void setDisplayCropRectangle(ofRectangle&);
     void setDisplayMirror(bool);
 
     ofxOMXPhotoGrabberListener* listener;
@@ -52,4 +53,5 @@ public:
     vector<string> photosTaken;
 
     DisplayController displayController;
+    bool isTextureEnabled(){  return settings.enableTexture; }
 };

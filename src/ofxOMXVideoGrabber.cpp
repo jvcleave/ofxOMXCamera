@@ -15,7 +15,7 @@ ofxOMXVideoGrabber::ofxOMXVideoGrabber()
 void ofxOMXVideoGrabber::reset()
 {
     resetValues();
-    //settings.resetValues();
+    settings.resetValues();
     applyAllSettings();
 }
 
@@ -239,13 +239,13 @@ void ofxOMXVideoGrabber::setDisplayRotation(int rotationDegrees)
     displayController.setDisplayRotation(rotationDegrees);
 }
 
-void ofxOMXVideoGrabber::setDisplayDrawRectangle(ofRectangle drawRectangle)
+void ofxOMXVideoGrabber::setDisplayDrawRectangle(ofRectangle& drawRectangle)
 {
     displayController.setDisplayDrawRectangle(drawRectangle);
 
 }
 
-void ofxOMXVideoGrabber::setDisplayCropRectangle(ofRectangle cropRectangle)
+void ofxOMXVideoGrabber::setDisplayCropRectangle(ofRectangle& cropRectangle)
 {
     displayController.setDisplayCropRectangle(cropRectangle);
 

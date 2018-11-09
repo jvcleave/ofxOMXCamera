@@ -19,43 +19,6 @@ VideoEngine::VideoEngine()
 
 int VideoEngine::getFrameCounter()
 {
-    
-    if (!isOpen) 
-    {
-        return 0;
-    }
-#if 0
-    if(!settings->enableTexture)
-    {
-        OMX_CONFIG_BRCMPORTSTATSTYPE stats;
-        
-        OMX_INIT_STRUCTURE(stats);
-        stats.nPortIndex = VIDEO_RENDER_INPUT_PORT;
-        OMX_ERRORTYPE error =OMX_GetParameter(render, OMX_IndexConfigBrcmPortStats, &stats);
-        OMX_TRACE(error);
-        if (error == OMX_ErrorNone)
-        {
-            /*OMX_U32 nImageCount;
-             OMX_U32 nBufferCount;
-             OMX_U32 nFrameCount;
-             OMX_U32 nFrameSkips;
-             OMX_U32 nDiscards;
-             OMX_U32 nEOS;
-             OMX_U32 nMaxFrameSize;
-             
-             OMX_TICKS nByteCount;
-             OMX_TICKS nMaxTimeDelta;
-             OMX_U32 nCorruptMBs;*/
-            //ofLogVerbose(__func__) << "nFrameCount: " << stats.nFrameCount;
-            frameCounter = stats.nFrameCount;
-        }else
-        {      
-            ofLogError(__func__) << GetOMXErrorString(error);
-            //frameCounter = 0;
-        }
-    }
-#endif
-    
     return frameCounter;
 }
 
@@ -93,20 +56,20 @@ bool VideoEngine::setup(ofxOMXCameraSettings* settings_, VideoEngineListener* li
     settings = settings_;
     listener = listener_;
     eglImage = eglImage_;
+    
     ofLogVerbose(__func__) << "settings: " << settings->toString();
 
-    
     if(settings->enableTexture)
     {
-        renderType = OMX_EGL_RENDER; 
+        renderType      = OMX_EGL_RENDER; 
         renderInputPort = EGL_RENDER_INPUT_PORT;
     }else
     {
-        renderType = OMX_VIDEO_RENDER; 
+        renderType      = OMX_VIDEO_RENDER; 
         renderInputPort = VIDEO_RENDER_INPUT_PORT;
     }
     
-    ofLogNotice(__func__) << "renderType: " << renderType << " : " << renderInputPort;
+    ofLogVerbose(__func__) << "renderType: " << renderType << " : " << renderInputPort;
 
     OMX_ERRORTYPE error = OMX_ErrorNone;
     
@@ -166,7 +129,6 @@ bool VideoEngine::setup(ofxOMXCameraSettings* settings_, VideoEngineListener* li
     renderCallbacks.EventHandler    = &VideoEngine::nullEventHandler;
     
     
-    
     if(settings->enableTexture)
     {
         //Implementation specific
@@ -179,11 +141,7 @@ bool VideoEngine::setup(ofxOMXCameraSettings* settings_, VideoEngineListener* li
         renderCallbacks.EmptyBufferDone = &VideoEngine::nullEmptyBufferDone;
 
     }
-    
 
-    
-  
-    
     error = OMX_GetHandle(&render, renderType, this , &renderCallbacks);
     OMX_TRACE(error);
     
@@ -221,11 +179,10 @@ bool VideoEngine::setup(ofxOMXCameraSettings* settings_, VideoEngineListener* li
     error = OMX_SetConfig(camera, OMX_IndexConfigRequestCallback, &cameraCallback);
     OMX_TRACE(error);
     
-    //Set the camera (always 0)
     OMX_PARAM_U32TYPE device;
     OMX_INIT_STRUCTURE(device);
-    device.nPortIndex    = OMX_ALL;
-    device.nU32            = 0;
+    device.nPortIndex   = OMX_ALL;
+    device.nU32         = settings->cameraDeviceID;
     
     error = OMX_SetParameter(camera, OMX_IndexParamCameraDeviceNumber, &device);
     OMX_TRACE(error);
@@ -299,11 +256,6 @@ bool VideoEngine::setup(ofxOMXCameraSettings* settings_, VideoEngineListener* li
      OMX_COLOR_FormatYUV422PackedPlanar
      OMX_COLOR_Format32bitABGR8888
      */
-    /*
-     ofLogVerbose(__func__) << "CHECK: cameraOutputPortDefinition.format.video eCompressionFormat: " << OMX_Maps::getInstance().videoCodingTypes[cameraOutputPortDefinition.format.video.eCompressionFormat];
-     
-     ofLogVerbose(__func__) << "CHECK: cameraOutputPortDefinition.format.video eColorFormat: " << OMX_Maps::getInstance().colorFormatTypes[cameraOutputPortDefinition.format.video.eColorFormat];
-     */;
     
 }
 
@@ -326,7 +278,6 @@ OMX_ERRORTYPE VideoEngine::onCameraEventParamOrConfigChanged()
     OMX_TRACE(error);
     
  
-    
     //Create camera->splitter Tunnel
     error = OMX_SetupTunnel(camera, CAMERA_OUTPUT_PORT,
                             splitter, VIDEO_SPLITTER_INPUT_PORT);
@@ -399,8 +350,6 @@ OMX_ERRORTYPE VideoEngine::onCameraEventParamOrConfigChanged()
         ofLogError(__func__) << "UNABLE TO RECORD - MAY REQUIRE MORE GPU MEMORY";
     }
     
-    
-    
     if(settings->enableTexture)
     {
         if(!eglImage)
@@ -411,8 +360,6 @@ OMX_ERRORTYPE VideoEngine::onCameraEventParamOrConfigChanged()
         //Set renderer to use texture
         error = OMX_UseEGLImage(render, &eglBuffer, EGL_RENDER_OUTPUT_PORT, this, eglImage);
         OMX_TRACE(error);
-
-        
     }
     
     
@@ -428,13 +375,8 @@ OMX_ERRORTYPE VideoEngine::onCameraEventParamOrConfigChanged()
     error = WaitForState(render, OMX_StateExecuting);
     OMX_TRACE(error);
     
-    
-    
-    
     if(settings->enableTexture)
     {
-        
-        
         //start the buffer filling loop
         //once completed the callback will trigger and refill
         error = OMX_FillThisBuffer(render, eglBuffer);
@@ -449,25 +391,16 @@ OMX_ERRORTYPE VideoEngine::onCameraEventParamOrConfigChanged()
             ofLogError() << "render currentState: " << GetOMXStateString(currentState);
             //ofSleepMillis(5000);
         }
-    }else
-    {
     }
-    
     
     listener->onVideoEngineStart();
     return error;
 }
 
 
-
-
-
-
-OMX_ERRORTYPE VideoEngine::encoderFillBufferDone(OMX_HANDLETYPE encoder,
-                                                OMX_PTR videoEngine_,
-                                                OMX_BUFFERHEADERTYPE* encoderOutputBuffer)
+OMX_ERRORTYPE VideoEngine::encoderFillBufferDone(OMX_HANDLETYPE encoder, OMX_PTR videoEngine, OMX_BUFFERHEADERTYPE* encoderOutputBuffer)
 {    
-    VideoEngine* engine = static_cast<VideoEngine*>(videoEngine_);
+    VideoEngine* engine = static_cast<VideoEngine*>(videoEngine);
     
     bool isKeyframeValid = false;
     engine->recordedFrameCounter++;
@@ -511,7 +444,6 @@ OMX_ERRORTYPE VideoEngine::encoderFillBufferDone(OMX_HANDLETYPE encoder,
 
 void VideoEngine::stopRecording()
 {
-	
 	stopRequested = true;
 }
 

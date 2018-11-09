@@ -16,7 +16,7 @@ void ofApp::onTakePhotoComplete(string fileName)
         currentCompression = 100;
     }
     photoGrabber.setImageFilter(filterCollection.getNextFilter());
-    photoGrabber.engine.setJPEGCompression(currentCompression);
+    photoGrabber.setJPEGCompression(currentCompression);
     
 }
 //--------------------------------------------------------------
@@ -82,7 +82,7 @@ void ofApp::update()
 //--------------------------------------------------------------
 void ofApp::draw(){
 
-    if(photoGrabber.settings.enableTexture)
+    if(photoGrabber.isTextureEnabled())
     {
         photoGrabber.draw(0, 0, ofGetWidth(), ofGetHeight()); 
         
@@ -108,7 +108,7 @@ void ofApp::keyPressed  (int key)
         }
         case 't':
         {
-            photoGrabber.takePhoto(100);
+            photoGrabber.takePhoto(10);
             break;
         }
         case 's':
@@ -116,6 +116,10 @@ void ofApp::keyPressed  (int key)
             photoGrabber.settings.saveJSONFile();
             break;
         } 
+        case '1':
+        {
+            photoGrabber.takePhoto();
+        }
     }
 
 }

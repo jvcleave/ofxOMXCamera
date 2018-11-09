@@ -201,17 +201,17 @@ public:
         if(!isOpen) return;
 
         
-        displayConfig.set = (OMX_DISPLAYSETTYPE)(OMX_DISPLAY_SET_DEST_RECT /*| OMX_DISPLAY_SET_SRC_RECT */ | OMX_DISPLAY_SET_FULLSCREEN | OMX_DISPLAY_SET_NOASPECT | OMX_DISPLAY_SET_TRANSFORM | OMX_DISPLAY_SET_ALPHA | OMX_DISPLAY_SET_LAYER | OMX_DISPLAY_SET_MODE);
+        displayConfig.set = (OMX_DISPLAYSETTYPE)(OMX_DISPLAY_SET_DEST_RECT | OMX_DISPLAY_SET_SRC_RECT  | OMX_DISPLAY_SET_FULLSCREEN | OMX_DISPLAY_SET_NOASPECT | OMX_DISPLAY_SET_TRANSFORM | OMX_DISPLAY_SET_ALPHA | OMX_DISPLAY_SET_LAYER | OMX_DISPLAY_SET_MODE);
         
         displayConfig.dest_rect.x_offset  = settings->drawRectangle.x;
         displayConfig.dest_rect.y_offset  = settings->drawRectangle.y;
         displayConfig.dest_rect.width     = settings->drawRectangle.width;
         displayConfig.dest_rect.height    = settings->drawRectangle.height;
         //ofLog() << "drawRectangle: " << drawRectangle;
-        /*displayConfig.src_rect.x_offset  = settings->cropRectangle.x;
+        displayConfig.src_rect.x_offset  = settings->cropRectangle.x;
         displayConfig.src_rect.y_offset  = settings->cropRectangle.y;
         displayConfig.src_rect.width     = settings->cropRectangle.width;
-        displayConfig.src_rect.height    = settings->cropRectangle.height;*/
+        displayConfig.src_rect.height    = settings->cropRectangle.height;
         
         displayConfig.fullscreen = (OMX_BOOL)doFullScreen;
         displayConfig.noaspect   = (OMX_BOOL)noAspectRatio;    
@@ -310,7 +310,7 @@ public:
         applyConfig();
     }
     
-    void setDisplayDrawRectangle(ofRectangle rect)
+    void setDisplayDrawRectangle(ofRectangle& rect)
     {
         if(!settings) return;
         
@@ -318,7 +318,7 @@ public:
         applyConfig();
     }
     
-    void setDisplayCropRectangle(ofRectangle cropRectangle_)
+    void setDisplayCropRectangle(ofRectangle& cropRectangle_)
     {
         if(!isOpen) return;
         settings->cropRectangle = cropRectangle_;
@@ -347,7 +347,7 @@ public:
         info << "isTextureEnabled: " << isTextureEnabled() << endl;
         info << "drawRectangle: " << settings->drawRectangle << endl;
 
-        if(isTextureEnabled())
+        if(!isTextureEnabled())
         {
             info << "fullscreen: " << displayConfig.fullscreen << endl; 
             info << "noaspect: " << displayConfig.noaspect << endl;

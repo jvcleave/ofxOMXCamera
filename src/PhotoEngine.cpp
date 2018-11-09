@@ -114,6 +114,8 @@ PhotoEngine::PhotoEngine()
 void PhotoEngine::setup(ofxOMXCameraSettings* settings_, PhotoEngineListener* listener_, EGLImageKHR eglImage_)
 {
     settings = settings_;
+    if(!settings) return;
+    
     listener = listener_;
     eglImage = eglImage_;
     
@@ -170,7 +172,7 @@ void PhotoEngine::setup(ofxOMXCameraSettings* settings_, PhotoEngineListener* li
     OMX_TRACE(error);
     
     //Set the camera (usually 0 unless compute module/multiple cameras)
-    device.nU32         = 0;
+    device.nU32         = settings->cameraDeviceID;
     
     error = OMX_SetParameter(camera, OMX_IndexParamCameraDeviceNumber, &device);
     OMX_TRACE(error);
@@ -410,6 +412,8 @@ OMX_ERRORTYPE PhotoEngine::onCameraEventParamOrConfigChanged()
 }
 void PhotoEngine::setJPEGCompression(int quality)
 {
+    if(!settings) return;
+    
     OMX_ERRORTYPE error =OMX_GetParameter(encoder, OMX_IndexParamQFactor, &compressionConfig);
     OMX_TRACE(error);
     
@@ -543,7 +547,7 @@ void PhotoEngine::close()
         //error = FlushOMXComponent(render, renderInputPort);
         OMX_TRACE(error);
         
-        if(settings->enableTexture)
+        if(settings && settings->enableTexture)
         {
             error = FlushOMXComponent(render, EGL_RENDER_OUTPUT_PORT);
             OMX_TRACE(error);
@@ -573,7 +577,7 @@ void PhotoEngine::close()
         OMX_TRACE(error);
     }
     
-    if(settings->enableStillPreview) 
+    if(settings && settings->enableStillPreview) 
     {    
         if(camera)
         {

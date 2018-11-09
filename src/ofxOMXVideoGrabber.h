@@ -56,8 +56,8 @@ public:
     void setDisplayAlpha(int);
     void setDisplayLayer(int);
     void setDisplayRotation(int);
-    void setDisplayDrawRectangle(ofRectangle);
-    void setDisplayCropRectangle(ofRectangle);
+    void setDisplayDrawRectangle(ofRectangle&);
+    void setDisplayCropRectangle(ofRectangle&);
     void setDisplayMirror(bool);
     
     void onRecordingComplete(string filePath) override;

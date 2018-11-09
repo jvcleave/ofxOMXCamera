@@ -12,7 +12,7 @@ ofxOMXPhotoGrabber::ofxOMXPhotoGrabber()
 
 int totalTime = 0;
 
-void ofxOMXPhotoGrabber::setup(ofxOMXCameraSettings settings_)
+void ofxOMXPhotoGrabber::setup(ofxOMXCameraSettings& settings_)
 {
     settings = settings_;
     listener = settings.photoGrabberListener;
@@ -120,9 +120,21 @@ void ofxOMXPhotoGrabber::onTakePhotoComplete(string filePath)
         }
     }
     
-    
-    ;
-    
+}
+
+void ofxOMXPhotoGrabber::setJPEGCompression(int compression)
+{
+    if(compression <= 0)
+    {
+        compression = 1;
+    }else
+    {
+        if(compression>100)
+        {
+            compression = 100;
+        }
+    }
+    engine.setJPEGCompression(compression);
 }
 
 int ofxOMXPhotoGrabber::getWidth()
@@ -180,12 +192,12 @@ void ofxOMXPhotoGrabber::setDisplayRotation(int rotationDegrees)
     displayController.setDisplayRotation(rotationDegrees);
 }
 
-void ofxOMXPhotoGrabber::setDisplayDrawRectangle(ofRectangle drawRectangle)
+void ofxOMXPhotoGrabber::setDisplayDrawRectangle(ofRectangle& drawRectangle)
 {
     displayController.setDisplayDrawRectangle(drawRectangle);
 }
 
-void ofxOMXPhotoGrabber::setDisplayCropRectangle(ofRectangle cropRectangle)
+void ofxOMXPhotoGrabber::setDisplayCropRectangle(ofRectangle& cropRectangle)
 {
     displayController.setDisplayCropRectangle(cropRectangle);
 }

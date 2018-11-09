@@ -66,9 +66,10 @@ public:
     bool enableRaw;
     bool enableStillPreview;
     string savedPhotosFolderName;
-    
+    int cameraDeviceID;
     ofxOMXPhotoGrabberListener* photoGrabberListener;
     ofxOMXVideoGrabberListener* videoGrabberListener;
+    
 	ofxOMXCameraSettings()
 	{
         photoGrabberListener = NULL;
@@ -116,6 +117,7 @@ public:
         enableStillPreview = true;
         burstModeEnabled = false;
         savedPhotosFolderName = "photos";
+        cameraDeviceID = 0;
     }
     
     
@@ -157,7 +159,7 @@ public:
         info << "burstModeEnabled " << burstModeEnabled << endl;
         info << "savedPhotosFolderName " << savedPhotosFolderName << endl;
         info << "recordingBitrateMB " << recordingBitrateMB << endl;
-
+        info << "cameraDeviceID" << cameraDeviceID << endl;
             
         return info.str();
     }
@@ -233,6 +235,7 @@ public:
         if(exists(json, "burstModeEnabled")) burstModeEnabled = json["burstModeEnabled"].get<bool>();
         if(exists(json, "savedPhotosFolderName")) savedPhotosFolderName = json["savedPhotosFolderName"].get<string>();
         if(exists(json, "recordingBitrateMB")) recordingBitrateMB = json["recordingBitrateMB"].get<float>();
+        if(exists(json, "cameraDeviceID")) cameraDeviceID = json["cameraDeviceID"].get<float>();
 
         
         
@@ -288,6 +291,7 @@ public:
         result["burstModeEnabled"]=burstModeEnabled;
         result["savedPhotosFolderName"]=savedPhotosFolderName;
         result["recordingBitrateMB"]=recordingBitrateMB;
+        result["cameraDeviceID"]=cameraDeviceID;
 
         
         

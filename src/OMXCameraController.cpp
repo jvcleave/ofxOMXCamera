@@ -323,7 +323,7 @@ void OMXCameraController::setSaturation(int saturation_) //-100 to 100
     if(!camera) return;
     
     settings.saturation = saturation_;
-    ofLogNotice(__func__) << "settings.saturation: " << settings.saturation;
+    //ofLogNotice(__func__) << "settings.saturation: " << settings.saturation;
     OMX_ERRORTYPE error = OMX_ErrorNone;
     saturationConfig.nSaturation    = settings.saturation; 
     
