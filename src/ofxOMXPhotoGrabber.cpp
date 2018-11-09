@@ -53,23 +53,7 @@ void ofxOMXPhotoGrabber::onPhotoEngineStart(OMX_HANDLETYPE camera_)
     engine.isOpen = true;
     
     
-    ofLogNotice(__func__) << "shotsRequested: " << shotsRequested << " shotsTaken: " << shotsTaken;
-    if(shotsTaken)
-    {
-        //setBurstMode(settings.burstModeEnabled);
-        if(shotsTaken >= 1)
-        {
-            //arbitrary timing so exposure doesn't fade to black :/
-            ofSleepMillis(300);
-        }
-        if(shotsTaken < shotsRequested)
-        {
-            takePhoto();
-        }else
-        {
-            ofLog() << shotsTaken << " TOOK totalTime: " << totalTime << " EACH " << totalTime/shotsTaken;
-        }
-    }
+    
 }
 
 
@@ -87,9 +71,10 @@ void ofxOMXPhotoGrabber::takePhoto(int numShots)
     {
         photoStart = ofGetElapsedTimeMillis();
         engine.takePhoto();
+    }else
+    {
+        ofLogError(__func__ ) << "NO CAMERA";
     }
-    
-    camera = NULL;
 }
 
 void ofxOMXPhotoGrabber::onTakePhotoComplete(string filePath)
@@ -112,6 +97,32 @@ void ofxOMXPhotoGrabber::onTakePhotoComplete(string filePath)
     {
         ofLogWarning(__func__) << filePath << " WRITTEN BUT NO LISTENER SET";
     }
+    
+    
+    if(shotsTaken)
+    {
+        //setBurstMode(settings.burstModeEnabled);
+        if(shotsTaken >= 1)
+        {
+            //arbitrary timing so exposure doesn't fade to black :/
+            //ofSleepMillis(300);
+        }
+        if(shotsTaken < shotsRequested)
+        {
+            ofLogNotice(__func__) << "TAKING ANOTHER";
+            takePhoto();
+        }else
+        {
+            engine.isCapturing = false;
+            engine.close();
+            engine.setup(&settings, this, displayController.eglImage);
+            ofLog() << shotsTaken << " TOOK totalTime: " << totalTime << " EACH " << totalTime/shotsTaken;
+        }
+    }
+    
+    
+    ;
+    
 }
 
 int ofxOMXPhotoGrabber::getWidth()
@@ -127,24 +138,28 @@ int ofxOMXPhotoGrabber::getHeight()
 
 void ofxOMXPhotoGrabber::draw(ofRectangle& rectangle)
 {
+    if(engine.isCapturing) return;
     displayController.updateTexture();
     displayController.draw(rectangle.x, rectangle.y, rectangle.width, rectangle.height);
 }
 
 void ofxOMXPhotoGrabber::draw(int x, int y)
 {
+    if(engine.isCapturing) return;
     displayController.updateTexture();
     displayController.draw(x, y);  
 }
 
 void ofxOMXPhotoGrabber::draw(int x, int y, int width, int height)
 {
+    if(engine.isCapturing) return;
     displayController.updateTexture();
     displayController.draw(x, y, width, height);
 }
 
 void ofxOMXPhotoGrabber::draw()
 {
+    if(engine.isCapturing) return;
     displayController.updateTexture();
     displayController.draw();  
 }

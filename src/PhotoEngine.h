@@ -28,7 +28,7 @@ public:
     void takePhoto();
     void close();
     
-    
+    bool isCapturing;
     OMX_HANDLETYPE camera;
     ofxOMXCameraSettings* settings;
     OMX_IMAGE_CODINGTYPE codingType;    

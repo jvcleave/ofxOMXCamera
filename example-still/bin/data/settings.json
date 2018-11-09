@@ -17,7 +17,7 @@
     "dreLevel": 0,
     "enablePixels": false,
     "enableRaw": false,
-    "enableStillPreview": true,
+    "enableStillPreview": false,
     "enableTexture": true,
     "exposurePreset": "Auto",
     "flickerCancellation": false,
@@ -33,7 +33,7 @@
     "shutterSpeed": 0,
     "stillPreviewHeight": 720,
     "stillPreviewWidth": 1280,
-    "stillQuality": 100,
+    "stillQuality": 75,
     "width": 2592,
     "zoomLevel": 0
 }
