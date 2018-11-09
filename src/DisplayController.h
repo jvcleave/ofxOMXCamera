@@ -124,6 +124,8 @@ public:
     void updateTexture(bool pixelsRequested=false)
     {
         if(!isOpen) return;
+        if(!settings)return;
+        if(!settings->enableTexture) return;
         fbo.begin();
         ofClear(0, 0, 0, 0);
         texture.draw(0, 0);

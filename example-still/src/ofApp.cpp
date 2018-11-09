@@ -82,6 +82,8 @@ void ofApp::draw(){
     if(photoGrabber.settings.enableTexture)
     {
         photoGrabber.draw(0, 0, ofGetWidth(), ofGetHeight()); 
+        
+        photoGrabber.draw();
         ofDrawBitmapStringHighlight(photoGrabber.settings.toString(), 100, 100, ofColor::black, ofColor::yellow);
 
     }
