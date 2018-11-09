@@ -6,14 +6,17 @@ void ofApp::onTakePhotoComplete(string fileName)
 {
     ofLog() << "onTakePhotoComplete fileName: " << fileName;
     
+    int currentCompression = photoGrabber.settings.stillQuality;
     
-    if(photoGrabber.settings.stillQuality-1 > 0)
+    if(currentCompression-1 > 0)
     {
-        photoGrabber.settings.stillQuality--;
+        currentCompression--;
     }else
     {
-        photoGrabber.settings.stillQuality = 100;
+        currentCompression = 100;
     }
+    photoGrabber.setImageFilter(filterCollection.getNextFilter());
+    photoGrabber.engine.setJPEGCompression(currentCompression);
     
 }
 //--------------------------------------------------------------
@@ -105,7 +108,7 @@ void ofApp::keyPressed  (int key)
         }
         case 't':
         {
-            photoGrabber.takePhoto(10);
+            photoGrabber.takePhoto(100);
             break;
         }
         case 's':

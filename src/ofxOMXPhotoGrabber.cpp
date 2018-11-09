@@ -113,9 +113,9 @@ void ofxOMXPhotoGrabber::onTakePhotoComplete(string filePath)
             takePhoto();
         }else
         {
-            engine.isCapturing = false;
-            engine.close();
-            engine.setup(&settings, this, displayController.eglImage);
+            engine.stopCapture();
+            //engine.close();
+            //engine.setup(&settings, this, displayController.eglImage);
             ofLog() << shotsTaken << " TOOK totalTime: " << totalTime << " EACH " << totalTime/shotsTaken;
         }
     }
