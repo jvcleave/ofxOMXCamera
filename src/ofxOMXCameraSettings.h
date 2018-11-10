@@ -103,7 +103,7 @@ public:
         whiteBalance="Auto";
         imageFilter="None";
         dreLevel=0;
-        cropRectangle.set(0,0,100,100);
+        cropRectangle.set(0,0,0,0);
         zoomLevel=0;
         rotation=0;
         mirror="None";
