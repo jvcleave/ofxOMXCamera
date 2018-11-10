@@ -2,7 +2,7 @@
 #include "ofMain.h"
 #include "OMX_Maps.h"
 #include "ofxOMXCameraSettings.h"
-
+#include "DisplayController.h"
 
 enum MIRROR
 {
@@ -181,6 +181,35 @@ public:
     void saveStateToFile(string fileName="");
     
 
+    DisplayController displayController;
+    void setDisplayAlpha(int);
+    void setDisplayLayer(int);
+    void setDisplayRotation(int);
+    void setDisplayDrawRectangle(ofRectangle&);
+    void setDisplayCropRectangle(ofRectangle&);
+    void setDisplayMirror(bool);
+    
+    
+    
+    virtual void setup(ofxOMXCameraSettings&)=0;
+    virtual void close() = 0;
+    virtual bool isReady() = 0;;
+    virtual void draw() =0;
+    virtual void draw(int x, int y)=0;
+    virtual void draw(int x, int y, int width, int height)=0;
+    virtual void draw(ofRectangle&)=0;
+    
+    virtual int getWidth() = 0;
+    virtual int getHeight()= 0;
+
+    bool isTextureEnabled(){  return settings.enableTexture; }
+    ofPixels& getPixels();
+    GLuint getTextureID();
+    ofTexture& getTextureReference();
+    void enablePixels();
+    void disablePixels();
+    unsigned char * getRawPixels();
+    bool pixelsRequested;
 
 };
 

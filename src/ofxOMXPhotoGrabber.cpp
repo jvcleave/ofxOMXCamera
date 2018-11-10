@@ -139,12 +139,12 @@ void ofxOMXPhotoGrabber::setJPEGCompression(int compression)
 
 int ofxOMXPhotoGrabber::getWidth()
 {
-    return settings.width;
+    return settings.stillPreviewWidth;
 }
 
 int ofxOMXPhotoGrabber::getHeight()
 {
-    return settings.height;
+    return settings.stillPreviewHeight;
 }
 
 
@@ -177,42 +177,23 @@ void ofxOMXPhotoGrabber::draw()
 }
 
 
-void ofxOMXPhotoGrabber::setDisplayAlpha(int alpha)
-{
-    displayController.setDisplayAlpha(alpha);
-}
-
-void ofxOMXPhotoGrabber::setDisplayLayer(int layer)
-{
-    displayController.setDisplayAlpha(layer);
-}
-
-void ofxOMXPhotoGrabber::setDisplayRotation(int rotationDegrees)
-{
-    displayController.setDisplayRotation(rotationDegrees);
-}
-
-void ofxOMXPhotoGrabber::setDisplayDrawRectangle(ofRectangle& drawRectangle)
-{
-    displayController.setDisplayDrawRectangle(drawRectangle);
-}
-
-void ofxOMXPhotoGrabber::setDisplayCropRectangle(ofRectangle& cropRectangle)
-{
-    displayController.setDisplayCropRectangle(cropRectangle);
-}
-
-void ofxOMXPhotoGrabber::setDisplayMirror(bool doMirror)
-{
-    displayController.setDisplayMirror(doMirror);
-}
 
 
 ofxOMXPhotoGrabber::~ofxOMXPhotoGrabber()
 {
-    listener = NULL;
+    close();
 }
 
+void ofxOMXPhotoGrabber::close()
+{
+    displayController.close();
+    engine.close();
+    camera = NULL;
+    photosTaken.clear();
+    listener = NULL;
+    shotsRequested = 0;
+    shotsTaken = 0;
+}
 
 
 

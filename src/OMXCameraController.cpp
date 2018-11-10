@@ -23,7 +23,8 @@ int zoomStepsSource[61] =
 OMXCameraController::OMXCameraController()
 {
     camera = NULL;
-    
+    pixelsRequested = false;
+
     //Requires gpio program provided via wiringPi
     //sudo apt-get install wiringpi
     ofFile gpioProgram("/usr/bin/gpio");
@@ -1131,3 +1132,70 @@ string OMXCameraController::printExposure()
     
 }
 
+
+void OMXCameraController::setDisplayAlpha(int alpha)
+{
+    displayController.setDisplayAlpha(alpha);
+}
+
+void OMXCameraController::setDisplayLayer(int layer)
+{
+    displayController.setDisplayAlpha(layer);
+}
+
+void OMXCameraController::setDisplayRotation(int rotationDegrees)
+{
+    displayController.setDisplayRotation(rotationDegrees);
+}
+
+void OMXCameraController::setDisplayDrawRectangle(ofRectangle& drawRectangle)
+{
+    displayController.setDisplayDrawRectangle(drawRectangle);
+}
+
+void OMXCameraController::setDisplayCropRectangle(ofRectangle& cropRectangle)
+{
+    displayController.setDisplayCropRectangle(cropRectangle);
+}
+
+void OMXCameraController::setDisplayMirror(bool doMirror)
+{
+    displayController.setDisplayMirror(doMirror);
+}
+
+
+GLuint OMXCameraController::getTextureID()
+{
+    return displayController.textureID;
+}
+
+void OMXCameraController::enablePixels()
+{
+    if(settings.enableTexture)
+    {
+        pixelsRequested = true;
+    }
+}
+
+void OMXCameraController::disablePixels()
+{
+    if(settings.enableTexture)
+    {
+        pixelsRequested = false;
+    }
+}
+
+unsigned char * OMXCameraController::getRawPixels()
+{
+    return displayController.pixels;
+}
+
+ofPixels& OMXCameraController::getPixels()
+{
+    return displayController.of_pixels;
+}
+
+ofTexture& OMXCameraController::getTextureReference()
+{
+    return displayController.texture;
+}

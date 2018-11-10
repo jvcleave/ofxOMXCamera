@@ -13,7 +13,7 @@
 #include "OMXCameraController.h"
 
 #include "PhotoEngine.h"
-#include "DisplayController.h"
+
 
 
 
@@ -25,33 +25,27 @@ public:
     
 	ofxOMXPhotoGrabber();
     ~ofxOMXPhotoGrabber();
-    void setup(ofxOMXCameraSettings&);
-    bool isReady();
-	int getWidth();
-	int getHeight();
-    void takePhoto(int numShots=0);
-    PhotoEngine engine;
     
-    void setJPEGCompression(int); // 1-100
-    
-    void draw();
-    void draw(int x, int y);
-    void draw(int x, int y, int width, int height);
-    void draw(ofRectangle&);
-    
-    void setDisplayAlpha(int);
-    void setDisplayLayer(int);
-    void setDisplayRotation(int);
-    void setDisplayDrawRectangle(ofRectangle&);
-    void setDisplayCropRectangle(ofRectangle&);
-    void setDisplayMirror(bool);
+    //OMXCameraController
+    void setup(ofxOMXCameraSettings&) override;
+    void close() override;
+    bool isReady() override;
+
+    void draw() override;
+    void draw(int x, int y) override;
+    void draw(int x, int y, int width, int height) override;
+    void draw(ofRectangle&) override;
+    int getWidth() override;
+    int getHeight() override;
 
     ofxOMXPhotoGrabberListener* listener;
-    
+
+    //PhotoEngineListener
     void onTakePhotoComplete(string filePath) override;
     void onPhotoEngineStart(OMX_HANDLETYPE camera_) override;
+    
+    PhotoEngine engine;
     vector<string> photosTaken;
-
-    DisplayController displayController;
-    bool isTextureEnabled(){  return settings.enableTexture; }
+    void takePhoto(int numShots=0);
+    void setJPEGCompression(int); // 1-100
 };

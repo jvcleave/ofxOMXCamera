@@ -8,7 +8,6 @@ ofxOMXVideoGrabber::ofxOMXVideoGrabber()
 	frameCounter = 0;
 	hasNewFrame = false;
     camera = NULL;
-	pixelsRequested = false;
 	ofAddListener(ofEvents().update, this, &ofxOMXVideoGrabber::onUpdate);    
 }
 
@@ -148,10 +147,6 @@ bool ofxOMXVideoGrabber::isFrameNew()
     return hasNewFrame;
 }
 
-bool ofxOMXVideoGrabber::isTextureEnabled()
-{
-    return settings.enableTexture;
-}
 
 int ofxOMXVideoGrabber::getWidth()
 {
@@ -169,41 +164,7 @@ int ofxOMXVideoGrabber::getFrameRate()
 }
 
 #pragma mark PIXELS/TEXTURE
-GLuint ofxOMXVideoGrabber::getTextureID()
-{
-	return displayController.textureID;
-}
 
-void ofxOMXVideoGrabber::enablePixels()
-{
-    if(settings.enableTexture)
-    {
-        pixelsRequested = true;
-    }
-}
-
-void ofxOMXVideoGrabber::disablePixels()
-{
-    if(settings.enableTexture)
-    {
-        pixelsRequested = false;
-    }
-}
-
-unsigned char * ofxOMXVideoGrabber::getRawPixels()
-{
-    return displayController.pixels;
-}
-
-ofPixels& ofxOMXVideoGrabber::getPixels()
-{
-    return displayController.of_pixels;
-}
-
-ofTexture& ofxOMXVideoGrabber::getTextureReference()
-{
-	return displayController.texture;
-}
 
 #pragma mark RECORDING
 
@@ -224,40 +185,6 @@ void ofxOMXVideoGrabber::stopRecording()
 }
 
 #pragma mark DRAW
-void ofxOMXVideoGrabber::setDisplayAlpha(int alpha)
-{
-    displayController.setDisplayAlpha(alpha);
-}
-
-void ofxOMXVideoGrabber::setDisplayLayer(int layer)
-{
-    displayController.setDisplayLayer(layer);
-}
-
-void ofxOMXVideoGrabber::setDisplayRotation(int rotationDegrees)
-{
-    displayController.setDisplayRotation(rotationDegrees);
-}
-
-void ofxOMXVideoGrabber::setDisplayDrawRectangle(ofRectangle& drawRectangle)
-{
-    displayController.setDisplayDrawRectangle(drawRectangle);
-
-}
-
-void ofxOMXVideoGrabber::setDisplayCropRectangle(ofRectangle& cropRectangle)
-{
-    displayController.setDisplayCropRectangle(cropRectangle);
-
-}
-
-void ofxOMXVideoGrabber::setDisplayMirror(bool doMirror)
-{
-    displayController.setDisplayMirror(doMirror);
-}
-
-
-
 void ofxOMXVideoGrabber::draw(ofRectangle& rectangle)
 {
     displayController.draw(rectangle.x, rectangle.y, rectangle.width, rectangle.height);

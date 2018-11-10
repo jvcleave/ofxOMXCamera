@@ -10,7 +10,6 @@
 #include "OMXCameraController.h"
 #include "ofAppEGLWindow.h"
 #include "VideoEngine.h"
-#include "DisplayController.h"
 
 using namespace std;
 
@@ -20,62 +19,43 @@ class ofxOMXVideoGrabber : public OMXCameraController, public VideoEngineListene
 {
 
 public:
-	
 
 	ofxOMXVideoGrabber();
     ~ofxOMXVideoGrabber();
-        
-    void setup(ofxOMXCameraSettings&);
-    int getWidth();
-    int getHeight();
+    
+    //OMXCameraController
+    void setup(ofxOMXCameraSettings&)override;
+    void close() override;
+    bool isReady() override;
+    
+    void draw() override;
+    void draw(int x, int y)override;
+    void draw(int x, int y, int width, int height)override;
+    void draw(ofRectangle&)override;
+    int getWidth()override;
+    int getHeight()override;
+
+
     int getFrameRate();
     bool isFrameNew();
-    bool isTextureEnabled();	
-    GLuint getTextureID();
-    ofTexture& getTextureReference();
-    
+
     bool isRecording();
     void startRecording();
     void stopRecording();
-    void enablePixels();
-    void disablePixels();
-    unsigned char * getRawPixels();
-    
-    ofPixels& getPixels();
-
-    bool isReady();
-    
-    void draw();
-    void draw(int x, int y);
-	void draw(int x, int y, int width, int height);
-    void draw(ofRectangle&);
-    
     void reset();
-    void close();
     
-    void setDisplayAlpha(int);
-    void setDisplayLayer(int);
-    void setDisplayRotation(int);
-    void setDisplayDrawRectangle(ofRectangle&);
-    void setDisplayCropRectangle(ofRectangle&);
-    void setDisplayMirror(bool);
-    
+ 
+    //VideoEngineListener
+    VideoEngine engine;
     void onRecordingComplete(string filePath) override;
     void onVideoEngineStart() override;
     void onVideoEngineClose() override;
     
-    VideoEngine engine;
-    DisplayController displayController;
 
 private:
     bool hasNewFrame;
-    
     int updateFrameCounter;
     int frameCounter;
-    bool pixelsRequested;
 	void onUpdate(ofEventArgs & args);
     
-
-
-	
 };
