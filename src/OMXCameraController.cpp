@@ -19,7 +19,8 @@ int zoomStepsSource[61] =
     456131, 472515, 488899, 506593,
     524288
 };
-
+int isoEntries[10]{ 0, 100, 160, 200, 250,
+                  320, 400, 500, 640, 800};
 OMXCameraController::OMXCameraController()
 {
     camera = NULL;
@@ -37,6 +38,14 @@ OMXCameraController::OMXCameraController()
         
     }
 
+    if(isoLevels.empty())
+    {
+        vector<int> converted(isoEntries, 
+                              isoEntries + sizeof isoEntries / sizeof isoEntries[0]);
+        isoLevels = converted;
+        ofLog() << "isoLevels.size(): " << isoLevels.size();
+    }
+    
     resetValues();
 }
 
@@ -63,6 +72,9 @@ void OMXCameraController::applyAllSettings()
     setSaturation(settings.saturation);
     setFrameStabilization(settings.frameStabilization);
     setWhiteBalance(settings.whiteBalance);
+    setWhiteBalanceGainR(settings.whiteBalanceGainR);
+    setWhiteBalanceGainB(settings.whiteBalanceGainB);
+
     setImageFilter(settings.imageFilter);
     //setColorEnhancement(false);     //TODO implement
     setDRE(settings.dreLevel);
@@ -201,6 +213,10 @@ void OMXCameraController::resetValues()
     flickerCancelConfig.nPortIndex = OMX_ALL;
     
     OMX_INIT_STRUCTURE(burstModeConfig);  
+    
+    
+    OMX_INIT_STRUCTURE(whiteBalanceGainsConfig);
+    
     
     ofLogNotice(__func__) << endl;
 }
@@ -374,7 +390,8 @@ OMX_ERRORTYPE OMXCameraController::setAutoISO(bool doAutoISO)
 OMX_ERRORTYPE OMXCameraController::setISO(int ISO_)
 {
     if(!camera) return OMX_ErrorNone;
-
+    if(ISO_ < 0 || ISO_ > 800) return OMX_ErrorBadParameter;
+    
     OMX_ERRORTYPE error = OMX_GetConfig(camera, OMX_IndexConfigCommonExposureValue, &exposureConfig);
     OMX_TRACE(error);
     if(error == OMX_ErrorNone) 
@@ -390,6 +407,23 @@ OMX_ERRORTYPE OMXCameraController::setISO(int ISO_)
     return error;
 }
 
+OMX_ERRORTYPE OMXCameraController::setISONormalized(float value)
+{
+    if(value<0 || value>1)
+    {
+        ofLogError(__func__) << value << "MUST BE BETWEEN 0.0 - 1.0";
+        return OMX_ErrorBadParameter;
+    }
+    int isoIndex = (int) ofMap(value, 0.0f, 1.0f, 0, isoLevels.size());
+    
+    return setISO(isoLevels[isoIndex]);
+}
+
+float OMXCameraController::getISOLevelNormalized()
+{
+    return ofMap(settings.ISO, 0, isoLevels.size(), 0.0f, 1.0f);
+}
+
 #pragma mark SHUTTER
 
 OMX_ERRORTYPE OMXCameraController::setShutterSpeed(int shutterSpeedMicroSeconds_)
@@ -403,15 +437,34 @@ OMX_ERRORTYPE OMXCameraController::setShutterSpeed(int shutterSpeedMicroSeconds_
     OMX_TRACE(error);
     if(error == OMX_ErrorNone)
     {
-        settings.shutterSpeed = getShutterSpeed();
+        settings.shutterSpeed = exposureConfig.nShutterSpeedMsec;
     }
     ofLogVerbose(__func__) << "POST getShutterSpeed(): " << getShutterSpeed();
     return error;
     
 }
 
-
-
+OMX_ERRORTYPE OMXCameraController::setShutterSpeedNormalized(float value)
+{
+    if(!camera) return OMX_ErrorNone;
+    if(value<0 || value>1)
+    {
+        ofLogError(__func__) << value << "MUST BE BETWEEN 0.0 - 1.0";
+        return OMX_ErrorBadParameter;
+    }
+    
+    float microseconds = ofMap(value, 0.0, 1.0, 0.0f, 6000000);
+    OMX_ERRORTYPE error = setShutterSpeed(microseconds);
+    OMX_TRACE(error);
+    return error;
+    
+}
+float OMXCameraController::getShutterSpeedNormalized()
+{
+    int value = getShutterSpeed();
+    float result = ofMap(value, 0, 6000000, 0.0f, 1.0f);
+    return result;
+}
 OMX_ERRORTYPE OMXCameraController::setAutoShutter(bool doAutoShutter)
 {
     if(!camera) return OMX_ErrorNone;
@@ -771,6 +824,48 @@ OMX_ERRORTYPE OMXCameraController::setWhiteBalance(OMX_WHITEBALCONTROLTYPE white
     }
     return error;
 }
+
+OMX_ERRORTYPE OMXCameraController::setWhiteBalanceGainR(float value)
+{
+    
+    OMX_ERRORTYPE error;
+    if (value < 0 || value > 1) 
+    {
+        return OMX_ErrorBadParameter;
+    }
+
+    whiteBalanceGainsConfig.xGainR = toQ16(value);
+    
+    error = OMX_SetConfig(camera, OMX_IndexConfigCustomAwbGains , &whiteBalanceGainsConfig );
+    OMX_TRACE(error);
+    if(error == OMX_ErrorNone)
+    {
+        settings.whiteBalanceGainR = value;
+    }
+    return error;
+}
+
+
+OMX_ERRORTYPE OMXCameraController::setWhiteBalanceGainB(float value)
+{
+    
+    OMX_ERRORTYPE error;
+    if (value < 0 || value > 1) 
+    {
+        return OMX_ErrorBadParameter;
+    }
+
+    whiteBalanceGainsConfig.xGainB = toQ16(value);
+    
+    error = OMX_SetConfig(camera, OMX_IndexConfigCustomAwbGains , &whiteBalanceGainsConfig );
+    OMX_TRACE(error);
+    if(error == OMX_ErrorNone)
+    {
+        settings.whiteBalanceGainB = value;
+    }
+    return error;
+}
+
 
 OMX_ERRORTYPE OMXCameraController::setWhiteBalance(string name)
 {    

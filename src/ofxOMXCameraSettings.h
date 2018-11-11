@@ -54,6 +54,8 @@ public:
     string exposurePreset;
     int evCompensation;
     string whiteBalance;
+    float whiteBalanceGainR;
+    float whiteBalanceGainB;
     bool burstModeEnabled;
     bool flickerCancellation;
     bool frameStabilization;
@@ -101,6 +103,8 @@ public:
         frameStabilization=false;
         flickerCancellation = false;
         whiteBalance="Auto";
+        whiteBalanceGainR = 0;
+        whiteBalanceGainB = 0;
         imageFilter="None";
         dreLevel=0;
         cropRectangle.set(0,0,0,0);
@@ -118,51 +122,12 @@ public:
         burstModeEnabled = false;
         savedPhotosFolderName = "photos";
         cameraDeviceID = 0;
+
     }
     
     
 
-    string toString()
-    {
-        stringstream info;
-        info << "width " << width << endl;
-        info << "height " << height << endl;
-        info << "framerate " << framerate << endl;
-        info << "enableTexture " << enableTexture << endl;
-        info << "enablePixels " << enablePixels << endl;
-        info << "exposurePreset " << exposurePreset << endl;
-        info << "meteringType " << meteringType << endl;
-        info << "autoISO " << autoISO << endl;
-        info << "ISO " << ISO << endl;
-        info << "autoShutter " << autoShutter << endl;
-        info << "shutterSpeed " << shutterSpeed << endl;
-        info << "sharpness " << sharpness << endl;
-        info << "contrast " << contrast << endl;
-        info << "brightness " << brightness << endl;
-        info << "saturation " << saturation << endl;
-        info << "frameStabilization " << frameStabilization << endl;
-        info << "flickerCancellation " << flickerCancellation << endl;
-        info << "dreLevel " << dreLevel << endl;
-        info << "cropRectangle " << cropRectangle << endl;
-        info << "drawRectangle " << drawRectangle << endl;
-        info << "zoomLevel " << zoomLevel << endl;
-        info << "rotation " << rotation << endl;
-        info << "mirror " << mirror << endl;
-        info << "doDisableSoftwareSharpen " << doDisableSoftwareSharpen << endl;
-        info << "doDisableSoftwareSaturation " << doDisableSoftwareSaturation << endl;
-        info << "LED " << LED << endl;
-        info << "stillPreviewWidth " << stillPreviewWidth << endl;
-        info << "stillPreviewHeight " << stillPreviewHeight << endl;
-        info << "stillQuality " << stillQuality << endl;
-        info << "enableRaw " << enableRaw << endl;
-        info << "enableStillPreview " << enableStillPreview << endl;
-        info << "burstModeEnabled " << burstModeEnabled << endl;
-        info << "savedPhotosFolderName " << savedPhotosFolderName << endl;
-        info << "recordingBitrateMB " << recordingBitrateMB << endl;
-        info << "cameraDeviceID" << cameraDeviceID << endl;
-            
-        return info.str();
-    }
+    
     
     bool exists(ofJson& json, const string& key)
     {
@@ -185,7 +150,12 @@ public:
         if(exists(json, "enableTexture")) enableTexture = json["enableTexture"].get<bool>();
         if(exists(json, "enablePixels")) enablePixels = json["enablePixels"].get<bool>();
         
+        
+        if(exists(json, "exposurePreset")) exposurePreset = json["exposurePreset"].get<string>();
         if(exists(json, "meteringType")) meteringType = json["meteringType"].get<string>();
+        if(exists(json, "imageFilter")) imageFilter = json["imageFilter"].get<string>();
+
+        
         
         if(exists(json, "autoISO")) autoISO = json["autoISO"].get<bool>();
         if(exists(json, "ISO")) ISO = json["ISO"].get<int>();
@@ -236,6 +206,9 @@ public:
         if(exists(json, "savedPhotosFolderName")) savedPhotosFolderName = json["savedPhotosFolderName"].get<string>();
         if(exists(json, "recordingBitrateMB")) recordingBitrateMB = json["recordingBitrateMB"].get<float>();
         if(exists(json, "cameraDeviceID")) cameraDeviceID = json["cameraDeviceID"].get<float>();
+        if(exists(json, "whiteBalance")) whiteBalance = json["whiteBalance"].get<string>();
+        if(exists(json, "whiteBalanceGainR")) whiteBalanceGainR = json["whiteBalanceGainR"].get<float>();
+        if(exists(json, "whiteBalanceGainB")) whiteBalanceGainB = json["whiteBalanceGainB"].get<float>();
 
         
         
@@ -243,6 +216,7 @@ public:
 
 
     }   
+    
     ofJson toJSON()
     {
         ofJson result;
@@ -253,6 +227,7 @@ public:
         result["enableTexture"]=enableTexture;
         result["enablePixels"]=enablePixels;
         result["exposurePreset"]=exposurePreset;
+        result["imageFilter"]=imageFilter;
         result["meteringType"]=meteringType;
         result["autoISO"]=autoISO;
         result["ISO"]=ISO;
@@ -294,7 +269,10 @@ public:
         result["cameraDeviceID"]=cameraDeviceID;
 
         
-        
+        result["whiteBalance"]=whiteBalance;
+        result["whiteBalanceGainR"]=whiteBalanceGainR;
+        result["whiteBalanceGainB"]=whiteBalanceGainB;
+
         return result;
     }
     
@@ -306,6 +284,52 @@ public:
         }
         ofSavePrettyJson(path, toJSON());
     }
+    
+    string toString()
+    {
+        stringstream info;
+        info << "width " << width << endl;
+        info << "height " << height << endl;
+        info << "framerate " << framerate << endl;
+        info << "enableTexture " << enableTexture << endl;
+        info << "enablePixels " << enablePixels << endl;
+        info << "exposurePreset " << exposurePreset << endl;
+        info << "imageFilter " << imageFilter << endl;
+        info << "meteringType " << meteringType << endl;
+        info << "autoISO " << autoISO << endl;
+        info << "ISO " << ISO << endl;
+        info << "autoShutter " << autoShutter << endl;
+        info << "shutterSpeed " << shutterSpeed << endl;
+        info << "sharpness " << sharpness << endl;
+        info << "contrast " << contrast << endl;
+        info << "brightness " << brightness << endl;
+        info << "saturation " << saturation << endl;
+        info << "frameStabilization " << frameStabilization << endl;
+        info << "flickerCancellation " << flickerCancellation << endl;
+        info << "dreLevel " << dreLevel << endl;
+        info << "cropRectangle " << cropRectangle << endl;
+        info << "drawRectangle " << drawRectangle << endl;
+        info << "zoomLevel " << zoomLevel << endl;
+        info << "rotation " << rotation << endl;
+        info << "mirror " << mirror << endl;
+        info << "doDisableSoftwareSharpen " << doDisableSoftwareSharpen << endl;
+        info << "doDisableSoftwareSaturation " << doDisableSoftwareSaturation << endl;
+        info << "LED " << LED << endl;
+        info << "stillPreviewWidth " << stillPreviewWidth << endl;
+        info << "stillPreviewHeight " << stillPreviewHeight << endl;
+        info << "stillQuality " << stillQuality << endl;
+        info << "enableRaw " << enableRaw << endl;
+        info << "enableStillPreview " << enableStillPreview << endl;
+        info << "burstModeEnabled " << burstModeEnabled << endl;
+        info << "savedPhotosFolderName " << savedPhotosFolderName << endl;
+        info << "recordingBitrateMB " << recordingBitrateMB << endl;
+        info << "cameraDeviceID" << cameraDeviceID << endl;
+        info << "whiteBalance " << whiteBalance << endl;
+        info << "whiteBalanceGainR " << whiteBalanceGainR << endl;
+        info << "whiteBalanceGainB " << whiteBalanceGainB << endl;
+        return info.str();
+    }
+    
 /*
     https://www.raspberrypi.org/blog/new-camera-mode-released/
     

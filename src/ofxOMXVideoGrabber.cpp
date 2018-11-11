@@ -30,7 +30,10 @@ void ofxOMXVideoGrabber::setup(ofxOMXCameraSettings& settings_)
     {
         settings.drawRectangle.set(0, 0, settings.width, settings.height);
     }
-    
+    if(settings.cropRectangle.isZero())
+    {
+        settings.cropRectangle.set(0, 0, settings.width, settings.height);
+    }
     
     if(settings.enableTexture)
     {

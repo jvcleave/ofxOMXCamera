@@ -67,6 +67,7 @@ public:
     
     OMX_CONFIG_BOOLEANTYPE disableSoftwareSharpenConfig;
     OMX_CONFIG_BOOLEANTYPE disableSoftwareSaturationConfig;
+    OMX_CONFIG_CUSTOMAWBGAINSTYPE whiteBalanceGainsConfig;
     
     void resetValues();
     void applyAllSettings();
@@ -140,13 +141,19 @@ public:
     OMX_ERRORTYPE setWhiteBalance(OMX_WHITEBALCONTROLTYPE);
     OMX_ERRORTYPE setWhiteBalance(string);
     string getWhiteBalance();
-    
+    OMX_ERRORTYPE setWhiteBalanceGainR(float);
+    OMX_ERRORTYPE setWhiteBalanceGainB(float);
+    float getWhiteBalanceGainR(){return settings.whiteBalanceGainR; }
+    float getWhiteBalanceGainB(){return settings.whiteBalanceGainB; }
+
     OMX_ERRORTYPE setAutoShutter(bool);
     bool getAutoShutter();
     int getShutterSpeed();
     
     OMX_ERRORTYPE setShutterSpeed(int shutterSpeedMicroSeconds);
-    
+    OMX_ERRORTYPE setShutterSpeedNormalized(float value);
+    float getShutterSpeedNormalized();
+
     OMX_ERRORTYPE setMeteringType(OMX_METERINGTYPE);
     OMX_ERRORTYPE setMeteringType(string);
     string getMeteringType();
@@ -166,8 +173,11 @@ public:
     void setBurstMode(bool);
     bool isBurstModeEnabled(){ return settings.burstModeEnabled;}
     
+    vector<int>isoLevels;
     OMX_ERRORTYPE setISO(int ISO);
     int getISO();
+    OMX_ERRORTYPE setISONormalized(float);
+    float getISOLevelNormalized();
     
     OMX_ERRORTYPE setAutoISO(bool);
     bool getAutoISO();
@@ -210,6 +220,6 @@ public:
     void disablePixels();
     unsigned char * getRawPixels();
     bool pixelsRequested;
-
+   
 };
 
