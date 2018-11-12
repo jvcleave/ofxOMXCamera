@@ -109,7 +109,6 @@ void OMXCameraController::applyAllSettings()
         {
             //silence compiler warning 
         }
-        settings.LED = true;
         setLEDState(settings.LED);
     } 
     ofLogNotice(__func__)  << "END";
@@ -142,12 +141,16 @@ string OMXCameraController::getLEDPin()
             //ofLogVerbose(__func__) << "secondLine: " << secondLine;
             vector<string> secondLineContents = ofSplitString(secondLine, ",");
             string modelValue = secondLineContents[0];
-            ofLogVerbose(__func__) << "modelValue: " << modelValue;
+            ofLogNotice(__func__) << "modelValue: " << modelValue;
             //assuming RPI2 and RPI3 GPIO layout is the same
             //TODO: check RPI3
-            if(ofIsStringInString(modelValue, "2") || ofIsStringInString(modelValue, "3"))
+            if(ofIsStringInString(modelValue, "2"))
             {
                 result = "32";
+            }
+            if(ofIsStringInString(modelValue, "3"))
+            {
+                result = "134";
             }
         }
     }
@@ -217,7 +220,7 @@ void OMXCameraController::resetValues()
     
     OMX_INIT_STRUCTURE(whiteBalanceGainsConfig);
     
-    
+
     ofLogNotice(__func__) << endl;
 }
 
