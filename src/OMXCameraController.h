@@ -221,5 +221,7 @@ public:
     unsigned char * getRawPixels();
     bool pixelsRequested;
    
+    
+    int cameraOutputPort;
 };
 
