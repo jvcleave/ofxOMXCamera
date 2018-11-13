@@ -69,6 +69,8 @@ public:
     OMX_CONFIG_BOOLEANTYPE disableSoftwareSaturationConfig;
     OMX_CONFIG_CUSTOMAWBGAINSTYPE whiteBalanceGainsConfig;
     
+    
+    void reset();
     void resetValues();
     void applyAllSettings();
     

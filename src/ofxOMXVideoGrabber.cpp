@@ -12,12 +12,7 @@ ofxOMXVideoGrabber::ofxOMXVideoGrabber()
 	ofAddListener(ofEvents().update, this, &ofxOMXVideoGrabber::onUpdate);    
 }
 
-void ofxOMXVideoGrabber::reset()
-{
-    resetValues();
-    settings.resetValues();
-    applyAllSettings();
-}
+
 
 void ofxOMXVideoGrabber::setup(ofxOMXCameraSettings& settings_)
 {

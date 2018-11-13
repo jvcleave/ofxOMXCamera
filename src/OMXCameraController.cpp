@@ -49,6 +49,12 @@ OMXCameraController::OMXCameraController()
     resetValues();
 }
 
+void OMXCameraController::reset()
+{
+    resetValues();
+    settings.resetValues();
+    applyAllSettings();
+}
 
 void OMXCameraController::applyAllSettings()
 {

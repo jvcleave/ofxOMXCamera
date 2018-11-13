@@ -42,7 +42,6 @@ public:
     bool isRecording();
     void startRecording();
     void stopRecording();
-    void reset();
     
  
     //VideoEngineListener
