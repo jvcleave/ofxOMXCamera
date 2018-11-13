@@ -49,6 +49,12 @@ OMXCameraController::OMXCameraController()
     resetValues();
 }
 
+void OMXCameraController::reset()
+{
+    resetValues();
+    settings.resetValues();
+    applyAllSettings();
+}
 
 void OMXCameraController::applyAllSettings()
 {
@@ -78,7 +84,7 @@ void OMXCameraController::applyAllSettings()
     setImageFilter(settings.imageFilter);
     //setColorEnhancement(false);     //TODO implement
     setDRE(settings.dreLevel);
-    setSensorCrop(settings.cropRectangle);
+    setSensorCrop(settings.sensorCropRectangle);
     setZoomLevelNormalized(settings.zoomLevel);
     setRotation(settings.rotation);
     setMirror(settings.mirror);
@@ -114,10 +120,10 @@ void OMXCameraController::applyAllSettings()
     ofLogNotice(__func__)  << "END";
 }
 
-string OMXCameraController::getLEDPin()
+int OMXCameraController::getLEDPin()
 {
     //default as RPI1 GPIO Layout
-    string result = "5";
+    int result = 5;
     if(hasGPIOProgram)
     {
         string command = "gpio -v";
@@ -146,11 +152,11 @@ string OMXCameraController::getLEDPin()
             //TODO: check RPI3
             if(ofIsStringInString(modelValue, "2"))
             {
-                result = "32";
+                result = 32;
             }
             if(ofIsStringInString(modelValue, "3"))
             {
-                result = "134";
+                result = 134;
             }
         }
     }
@@ -419,7 +425,12 @@ OMX_ERRORTYPE OMXCameraController::setISONormalized(float value)
     }
     int isoIndex = (int) ofMap(value, 0.0f, 1.0f, 0, isoLevels.size());
     
-    return setISO(isoLevels[isoIndex]);
+    OMX_ERRORTYPE error =  setISO(isoLevels[isoIndex]);
+    if(error == OMX_ErrorNone)
+    {
+        settings.isoNormalized = getISOLevelNormalized();
+    }
+    return error;
 }
 
 float OMXCameraController::getISOLevelNormalized()
@@ -432,8 +443,35 @@ float OMXCameraController::getISOLevelNormalized()
 OMX_ERRORTYPE OMXCameraController::setShutterSpeed(int shutterSpeedMicroSeconds_)
 {
     if(!camera) return OMX_ErrorNone;
-
-    OMX_ERRORTYPE error = OMX_GetConfig(camera, OMX_IndexConfigCommonExposureValue, &exposureConfig);
+    OMX_ERRORTYPE error;
+    
+    if(shutterSpeedMicroSeconds_ >= 6000000)
+    {
+        OMX_PARAM_BRCMFRAMERATERANGETYPE fpsRangeConfig;
+        OMX_INIT_STRUCTURE(fpsRangeConfig);
+        fpsRangeConfig.nPortIndex = cameraOutputPort;
+        
+        error = OMX_GetConfig(camera, OMX_IndexParamBrcmFpsRange, &fpsRangeConfig);
+        //167/1000 = 0.167, or approx 1/6 frames/sec = 6 secs/frame. 
+        ofLog() << " PRE xFramerateLow: " << fromQ16(fpsRangeConfig.xFramerateLow);
+        ofLog() << "PRE xFramerateHigh: " << fromQ16(fpsRangeConfig.xFramerateHigh);
+        
+        OMX_TRACE(error);
+        fpsRangeConfig.xFramerateLow = toQ16(0.05);
+        fpsRangeConfig.xFramerateHigh = toQ16(0.167);
+        
+        error = OMX_SetConfig(camera, OMX_IndexParamBrcmFpsRange, &fpsRangeConfig);
+        OMX_TRACE(error); 
+        
+        
+        error = OMX_GetConfig(camera, OMX_IndexParamBrcmFpsRange, &fpsRangeConfig);
+        //167/1000 = 0.167, or approx 1/6 frames/sec = 6 secs/frame. 
+        ofLog() << "POST xFramerateLow: " << fromQ16(fpsRangeConfig.xFramerateLow);
+        ofLog() << "POST xFramerateHigh: " << fromQ16(fpsRangeConfig.xFramerateHigh);
+        
+    }
+    
+    error = OMX_GetConfig(camera, OMX_IndexConfigCommonExposureValue, &exposureConfig);
     OMX_TRACE(error);
     exposureConfig.nShutterSpeedMsec = shutterSpeedMicroSeconds_;
     error =  applyExposure();
@@ -441,9 +479,12 @@ OMX_ERRORTYPE OMXCameraController::setShutterSpeed(int shutterSpeedMicroSeconds_
     if(error == OMX_ErrorNone)
     {
         settings.shutterSpeed = exposureConfig.nShutterSpeedMsec;
+        settings.shutterSpeedNormalized = getShutterSpeedNormalized();
     }
     ofLogVerbose(__func__) << "POST getShutterSpeed(): " << getShutterSpeed();
+
     return error;
+
     
 }
 
@@ -885,12 +926,12 @@ string OMXCameraController::getWhiteBalance()
 
 OMX_ERRORTYPE OMXCameraController::updateSensorCrop()
 {
-    return setSensorCrop(settings.cropRectangle);
+    return setSensorCrop(settings.sensorCropRectangle);
 }
 
 OMX_ERRORTYPE OMXCameraController::setSensorCrop(int left, int top, int width, int height)
 {
-    settings.cropRectangle.set(left, top, width, height);
+    settings.sensorCropRectangle.set(left, top, width, height);
     return updateSensorCrop();
 }
 
@@ -911,8 +952,8 @@ OMX_ERRORTYPE OMXCameraController::setSensorCrop(ofRectangle& rectangle)
         ofLogError(__func__) << omxErrorToString(error);
         if(error == OMX_ErrorBadParameter)
         {
-            ofLogWarning(__func__) << "resetting cropRectangle to known good params (0, 0, 100, 100)";
-            settings.cropRectangle.set(0, 0, 100, 100);
+            ofLogWarning(__func__) << "resetting sensorCropRectangle to known good params (0, 0, 100, 100)";
+            settings.sensorCropRectangle.set(0, 0, 100, 100);
             return updateSensorCrop(); 
         }
         
@@ -980,6 +1021,11 @@ OMX_ERRORTYPE OMXCameraController::setDigitalZoom()
         
         OMX_ERRORTYPE error = OMX_SetConfig(camera, OMX_IndexConfigCommonDigitalZoom, &digitalZoomConfig);
         OMX_TRACE(error);
+        
+        if(error == OMX_ErrorNone)
+        {
+            settings.zoomLevelNormalized = getZoomLevelNormalized();
+        }
         return error;
     }
     return OMX_ErrorNone;

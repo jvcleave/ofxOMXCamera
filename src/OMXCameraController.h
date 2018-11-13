@@ -29,7 +29,7 @@ public:
     virtual ~OMXCameraController(){};
     OMX_HANDLETYPE camera;
 
-    string getLEDPin();
+    int getLEDPin();
     bool hasGPIOProgram;
     ofxOMXCameraSettings settings;
     
@@ -69,6 +69,8 @@ public:
     OMX_CONFIG_BOOLEANTYPE disableSoftwareSaturationConfig;
     OMX_CONFIG_CUSTOMAWBGAINSTYPE whiteBalanceGainsConfig;
     
+    
+    void reset();
     void resetValues();
     void applyAllSettings();
     
@@ -221,5 +223,7 @@ public:
     unsigned char * getRawPixels();
     bool pixelsRequested;
    
+    
+    int cameraOutputPort;
 };
 

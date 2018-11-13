@@ -5,6 +5,7 @@ int shotsTaken;
 
 ofxOMXPhotoGrabber::ofxOMXPhotoGrabber()
 {
+    cameraOutputPort = CAMERA_STILL_OUTPUT_PORT;
     camera = NULL;
     shotsRequested = 0;
     shotsTaken = 0;
@@ -55,7 +56,10 @@ void ofxOMXPhotoGrabber::onPhotoEngineStart(OMX_HANDLETYPE camera_)
     }
     engine.isOpen = true;
     
-    
+    if(listener)
+    {
+        listener->onPhotoGrabberEngineStart();
+    }
     
 }
 

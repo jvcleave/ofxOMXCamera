@@ -3,6 +3,7 @@
 #pragma mark SETUP
 ofxOMXVideoGrabber::ofxOMXVideoGrabber()
 {
+    cameraOutputPort = CAMERA_OUTPUT_PORT;
     resetValues();
 	updateFrameCounter = 0;
 	frameCounter = 0;
@@ -11,12 +12,7 @@ ofxOMXVideoGrabber::ofxOMXVideoGrabber()
 	ofAddListener(ofEvents().update, this, &ofxOMXVideoGrabber::onUpdate);    
 }
 
-void ofxOMXVideoGrabber::reset()
-{
-    resetValues();
-    settings.resetValues();
-    applyAllSettings();
-}
+
 
 void ofxOMXVideoGrabber::setup(ofxOMXCameraSettings& settings_)
 {
