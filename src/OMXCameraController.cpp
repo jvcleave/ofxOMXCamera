@@ -434,23 +434,32 @@ OMX_ERRORTYPE OMXCameraController::setShutterSpeed(int shutterSpeedMicroSeconds_
     if(!camera) return OMX_ErrorNone;
     OMX_ERRORTYPE error;
     
-    OMX_PARAM_BRCMFRAMERATERANGETYPE fpsRangeConfig;
-    OMX_INIT_STRUCTURE(fpsRangeConfig);
-    fpsRangeConfig.nPortIndex = cameraOutputPort;
+    if(shutterSpeedMicroSeconds_ >= 6000000)
+    {
+        OMX_PARAM_BRCMFRAMERATERANGETYPE fpsRangeConfig;
+        OMX_INIT_STRUCTURE(fpsRangeConfig);
+        fpsRangeConfig.nPortIndex = cameraOutputPort;
+        
+        error = OMX_GetConfig(camera, OMX_IndexParamBrcmFpsRange, &fpsRangeConfig);
+        //167/1000 = 0.167, or approx 1/6 frames/sec = 6 secs/frame. 
+        ofLog() << " PRE xFramerateLow: " << fromQ16(fpsRangeConfig.xFramerateLow);
+        ofLog() << "PRE xFramerateHigh: " << fromQ16(fpsRangeConfig.xFramerateHigh);
+        
+        OMX_TRACE(error);
+        fpsRangeConfig.xFramerateLow = toQ16(0.05);
+        fpsRangeConfig.xFramerateHigh = toQ16(0.167);
+        
+        error = OMX_SetConfig(camera, OMX_IndexParamBrcmFpsRange, &fpsRangeConfig);
+        OMX_TRACE(error); 
+        
+        
+        error = OMX_GetConfig(camera, OMX_IndexParamBrcmFpsRange, &fpsRangeConfig);
+        //167/1000 = 0.167, or approx 1/6 frames/sec = 6 secs/frame. 
+        ofLog() << "POST xFramerateLow: " << fromQ16(fpsRangeConfig.xFramerateLow);
+        ofLog() << "POST xFramerateHigh: " << fromQ16(fpsRangeConfig.xFramerateHigh);
+        
+    }
     
-    error = OMX_GetConfig(camera, OMX_IndexParamBrcmFpsRange, &fpsRangeConfig);
-    //167/1000 = 0.167, or approx 1/6 frames/sec = 6 secs/frame. 
-    ofLog() << "xFramerateLow: " << fromQ16(fpsRangeConfig.xFramerateLow);
-    ofLog() << "xFramerateHigh: " << fromQ16(fpsRangeConfig.xFramerateHigh);
-    
-    OMX_TRACE(error);
-    fpsRangeConfig.xFramerateLow = toQ16(0.05);
-    fpsRangeConfig.xFramerateHigh = toQ16(0.167);
-    
-    error = OMX_SetConfig(camera, OMX_IndexParamBrcmFpsRange, &fpsRangeConfig);
-    OMX_TRACE(error);
-    
-#if 1
     error = OMX_GetConfig(camera, OMX_IndexConfigCommonExposureValue, &exposureConfig);
     OMX_TRACE(error);
     exposureConfig.nShutterSpeedMsec = shutterSpeedMicroSeconds_;
@@ -461,10 +470,6 @@ OMX_ERRORTYPE OMXCameraController::setShutterSpeed(int shutterSpeedMicroSeconds_
         settings.shutterSpeed = exposureConfig.nShutterSpeedMsec;
     }
     ofLogVerbose(__func__) << "POST getShutterSpeed(): " << getShutterSpeed();
-#endif   
-    
-    
-
 
     return error;
 
