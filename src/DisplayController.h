@@ -31,9 +31,7 @@ public:
     bool doMirror;
     int rotationIndex;
     int rotationDegrees;
-    int alpha;
     bool doForceFill;
-    int layer;
     bool textureMode;
     bool isTextureEnabled()
     {
@@ -51,8 +49,6 @@ public:
         rotationIndex=0;
         
         doHDMISync = true;
-        alpha = 255;
-        layer = 0;
         doMirror = false;
         rotationIndex = 0;
         rotationDegrees =0; 
@@ -217,8 +213,8 @@ public:
         displayConfig.noaspect   = (OMX_BOOL)noAspectRatio;    
         displayConfig.transform  = (OMX_DISPLAYTRANSFORMTYPE)rotationIndex;
         //int alpha = (ofGetFrameNum() % 255); 
-        displayConfig.alpha  = alpha;
-        displayConfig.layer  = layer;
+        displayConfig.alpha  = settings->displayAlpha;
+        displayConfig.layer  = settings->displayLayer;
 
         if(doForceFill)
         {
@@ -294,13 +290,13 @@ public:
     
     void setDisplayAlpha(int alpha_)
     {
-        alpha = alpha_;
+        settings->displayAlpha = alpha_;
         applyConfig();
     }
     
     void setDisplayLayer(int layer_)
     {
-        layer = layer_;
+        settings->displayLayer = layer_;
         applyConfig();
     }
     
@@ -322,16 +318,7 @@ public:
     {
         if(!isOpen) return;
         settings->cropRectangle = cropRectangle_;
-        OMX_CONFIG_DISPLAYREGIONTYPE cropConfig;
-        OMX_INIT_STRUCTURE(cropConfig);
-        cropConfig.nPortIndex = VIDEO_RENDER_INPUT_PORT;        
-        cropConfig.set = (OMX_DISPLAYSETTYPE)(OMX_DISPLAY_SET_SRC_RECT);
-        cropConfig.src_rect.x_offset  = settings->cropRectangle.x;
-        cropConfig.src_rect.y_offset  = settings->cropRectangle.y;
-        cropConfig.src_rect.width     = settings->cropRectangle.width;
-        cropConfig.src_rect.height    = settings->cropRectangle.height;
-        OMX_ERRORTYPE error  = OMX_SetParameter(renderComponent, OMX_IndexConfigDisplayRegion, &cropConfig);
-        OMX_TRACE(error);
+        applyConfig();
     }
     
     void setDisplayMirror(bool doMirror_)

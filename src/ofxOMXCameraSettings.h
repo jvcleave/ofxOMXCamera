@@ -10,6 +10,7 @@ class ofxOMXPhotoGrabberListener
 {
 public:
     virtual void onTakePhotoComplete(string filePath)=0;
+    virtual void onPhotoGrabberEngineStart() = 0;
     
 };
 
@@ -45,6 +46,7 @@ public:
     int dreLevel;    //   -4 to 4
     ofRectangle cropRectangle;
     ofRectangle drawRectangle;
+    ofRectangle sensorCropRectangle;//percentage, e.g. 0, 0, 100(% width), 100(% height)
 
     
     int zoomLevel;
@@ -69,9 +71,17 @@ public:
     bool enableStillPreview;
     string savedPhotosFolderName;
     int cameraDeviceID;
+    float isoNormalized;
+    float shutterSpeedNormalized;
+    float zoomLevelNormalized;
+    
     ofxOMXPhotoGrabberListener* photoGrabberListener;
     ofxOMXVideoGrabberListener* videoGrabberListener;
     
+    
+  
+    int displayAlpha;
+    int displayLayer;
 	ofxOMXCameraSettings()
 	{
         photoGrabberListener = NULL;
@@ -108,6 +118,9 @@ public:
         imageFilter="None";
         dreLevel=0;
         cropRectangle.set(0,0,0,0);
+        sensorCropRectangle.set(0,0,100,100);
+
+        
         zoomLevel=0;
         rotation=0;
         mirror="None";
@@ -123,6 +136,12 @@ public:
         savedPhotosFolderName = "photos";
         cameraDeviceID = 0;
         LED_PIN = 5; //RPI1: 5, RPI2: 32, RPI3: 134
+        
+        isoNormalized = 0;
+        shutterSpeedNormalized = 0;
+        zoomLevelNormalized = 0;
+        displayAlpha = 255;
+        displayLayer  = 0;
     }
     
     
@@ -189,7 +208,14 @@ public:
                               json["drawRectangle"]["height"].get<int>());
             
         }
-        
+        if(exists(json, "sensorCropRectangle"))
+        {
+            sensorCropRectangle.set(json["sensorCropRectangle"]["x"].get<int>(),
+                                    json["sensorCropRectangle"]["y"].get<int>(),
+                                    json["sensorCropRectangle"]["width"].get<int>(),
+                                    json["sensorCropRectangle"]["height"].get<int>());
+            
+        }
         
         if(exists(json, "zoomLevel")) zoomLevel = json["zoomLevel"].get<float>();
         if(exists(json, "rotation")) rotation = json["rotation"].get<int>();
@@ -212,6 +238,11 @@ public:
         if(exists(json, "whiteBalance")) whiteBalance = json["whiteBalance"].get<string>();
         if(exists(json, "whiteBalanceGainR")) whiteBalanceGainR = json["whiteBalanceGainR"].get<float>();
         if(exists(json, "whiteBalanceGainB")) whiteBalanceGainB = json["whiteBalanceGainB"].get<float>();
+        if(exists(json, "isoNormalized")) isoNormalized = json["isoNormalized"].get<float>();
+        if(exists(json, "shutterSpeedNormalized")) shutterSpeedNormalized = json["shutterSpeedNormalized"].get<float>();
+        if(exists(json, "zoomLevelNormalized")) zoomLevelNormalized = json["zoomLevelNormalized"].get<float>();
+        if(exists(json, "displayAlpha")) displayAlpha = json["displayAlpha"].get<int>();
+        if(exists(json, "displayLayer")) displayLayer = json["displayLayer"].get<int>();
 
         
         
@@ -254,6 +285,16 @@ public:
         result["drawRectangle"]["width"]= drawRectangle.width;
         result["drawRectangle"]["height"]= drawRectangle.height;
         
+        result["sensorCropRectangle"]["x"]= sensorCropRectangle.x;
+        result["sensorCropRectangle"]["y"]= sensorCropRectangle.y;
+        result["sensorCropRectangle"]["width"]= sensorCropRectangle.width;
+        result["sensorCropRectangle"]["height"]= sensorCropRectangle.height;
+        
+        
+        
+        result["displayAlpha"] = displayAlpha;
+        result["displayLayer"] = displayLayer;
+
         
         result["zoomLevel"]=zoomLevel;
         result["rotation"]=rotation;
@@ -277,6 +318,11 @@ public:
         result["whiteBalanceGainR"]=whiteBalanceGainR;
         result["whiteBalanceGainB"]=whiteBalanceGainB;
 
+        result["isoNormalized"]=isoNormalized;
+        result["shutterSpeedNormalized"]=shutterSpeedNormalized;
+        result["zoomLevelNormalized"]=zoomLevelNormalized;
+
+        
         return result;
     }
     
@@ -302,8 +348,10 @@ public:
         info << "meteringType " << meteringType << endl;
         info << "autoISO " << autoISO << endl;
         info << "ISO " << ISO << endl;
+        info << "isoNormalized " << isoNormalized << endl;
         info << "autoShutter " << autoShutter << endl;
         info << "shutterSpeed " << shutterSpeed << endl;
+        info << "shutterSpeedNormalized " << shutterSpeedNormalized << endl;
         info << "sharpness " << sharpness << endl;
         info << "contrast " << contrast << endl;
         info << "brightness " << brightness << endl;
@@ -313,7 +361,13 @@ public:
         info << "dreLevel " << dreLevel << endl;
         info << "cropRectangle " << cropRectangle << endl;
         info << "drawRectangle " << drawRectangle << endl;
+        info << "sensorCropRectangle " << sensorCropRectangle << endl;
+
+        
+        info << "displayAlpha" << displayAlpha << endl;
+        info << "displayLayer" << displayLayer << endl;
         info << "zoomLevel " << zoomLevel << endl;
+        info << "zoomLevelNormalized " << zoomLevelNormalized << endl;
         info << "rotation " << rotation << endl;
         info << "mirror " << mirror << endl;
         info << "doDisableSoftwareSharpen " << doDisableSoftwareSharpen << endl;

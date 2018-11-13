@@ -56,7 +56,10 @@ void ofxOMXPhotoGrabber::onPhotoEngineStart(OMX_HANDLETYPE camera_)
     }
     engine.isOpen = true;
     
-    
+    if(listener)
+    {
+        listener->onPhotoGrabberEngineStart();
+    }
     
 }
 

@@ -78,7 +78,7 @@ void OMXCameraController::applyAllSettings()
     setImageFilter(settings.imageFilter);
     //setColorEnhancement(false);     //TODO implement
     setDRE(settings.dreLevel);
-    setSensorCrop(settings.cropRectangle);
+    setSensorCrop(settings.sensorCropRectangle);
     setZoomLevelNormalized(settings.zoomLevel);
     setRotation(settings.rotation);
     setMirror(settings.mirror);
@@ -419,7 +419,12 @@ OMX_ERRORTYPE OMXCameraController::setISONormalized(float value)
     }
     int isoIndex = (int) ofMap(value, 0.0f, 1.0f, 0, isoLevels.size());
     
-    return setISO(isoLevels[isoIndex]);
+    OMX_ERRORTYPE error =  setISO(isoLevels[isoIndex]);
+    if(error == OMX_ErrorNone)
+    {
+        settings.isoNormalized = getISOLevelNormalized();
+    }
+    return error;
 }
 
 float OMXCameraController::getISOLevelNormalized()
@@ -468,6 +473,7 @@ OMX_ERRORTYPE OMXCameraController::setShutterSpeed(int shutterSpeedMicroSeconds_
     if(error == OMX_ErrorNone)
     {
         settings.shutterSpeed = exposureConfig.nShutterSpeedMsec;
+        settings.shutterSpeedNormalized = getShutterSpeedNormalized();
     }
     ofLogVerbose(__func__) << "POST getShutterSpeed(): " << getShutterSpeed();
 
@@ -914,12 +920,12 @@ string OMXCameraController::getWhiteBalance()
 
 OMX_ERRORTYPE OMXCameraController::updateSensorCrop()
 {
-    return setSensorCrop(settings.cropRectangle);
+    return setSensorCrop(settings.sensorCropRectangle);
 }
 
 OMX_ERRORTYPE OMXCameraController::setSensorCrop(int left, int top, int width, int height)
 {
-    settings.cropRectangle.set(left, top, width, height);
+    settings.sensorCropRectangle.set(left, top, width, height);
     return updateSensorCrop();
 }
 
@@ -940,8 +946,8 @@ OMX_ERRORTYPE OMXCameraController::setSensorCrop(ofRectangle& rectangle)
         ofLogError(__func__) << omxErrorToString(error);
         if(error == OMX_ErrorBadParameter)
         {
-            ofLogWarning(__func__) << "resetting cropRectangle to known good params (0, 0, 100, 100)";
-            settings.cropRectangle.set(0, 0, 100, 100);
+            ofLogWarning(__func__) << "resetting sensorCropRectangle to known good params (0, 0, 100, 100)";
+            settings.sensorCropRectangle.set(0, 0, 100, 100);
             return updateSensorCrop(); 
         }
         
@@ -1009,6 +1015,11 @@ OMX_ERRORTYPE OMXCameraController::setDigitalZoom()
         
         OMX_ERRORTYPE error = OMX_SetConfig(camera, OMX_IndexConfigCommonDigitalZoom, &digitalZoomConfig);
         OMX_TRACE(error);
+        
+        if(error == OMX_ErrorNone)
+        {
+            settings.zoomLevelNormalized = getZoomLevelNormalized();
+        }
         return error;
     }
     return OMX_ErrorNone;
