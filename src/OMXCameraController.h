@@ -29,7 +29,7 @@ public:
     virtual ~OMXCameraController(){};
     OMX_HANDLETYPE camera;
 
-    string getLEDPin();
+    int getLEDPin();
     bool hasGPIOProgram;
     ofxOMXCameraSettings settings;
     

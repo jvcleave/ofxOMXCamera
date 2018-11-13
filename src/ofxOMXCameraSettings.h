@@ -32,7 +32,7 @@ public:
 	string recordingFilePath;
     float recordingBitrateMB;
     bool LED;
-    string LED_PIN;
+    int LED_PIN;
     string meteringType;
     bool autoISO;
     int ISO;
@@ -122,7 +122,7 @@ public:
         burstModeEnabled = false;
         savedPhotosFolderName = "photos";
         cameraDeviceID = 0;
-
+        LED_PIN = 5; //RPI1: 5, RPI2: 32, RPI3: 134
     }
     
     
@@ -197,6 +197,9 @@ public:
         if(exists(json, "doDisableSoftwareSharpen")) doDisableSoftwareSharpen = json["doDisableSoftwareSharpen"].get<bool>();
         if(exists(json, "doDisableSoftwareSaturation")) doDisableSoftwareSaturation = json["doDisableSoftwareSaturation"].get<bool>();
         if(exists(json, "LED")) LED = json["LED"].get<bool>();
+        if(exists(json, "LED_PIN")) LED_PIN = json["LED_PIN"].get<int>();
+
+        
         if(exists(json, "stillPreviewWidth")) stillPreviewWidth = json["stillPreviewWidth"].get<int>();
         if(exists(json, "stillPreviewHeight")) stillPreviewHeight = json["stillPreviewHeight"].get<int>();
         if(exists(json, "stillQuality")) stillQuality = json["stillQuality"].get<int>();
@@ -258,6 +261,7 @@ public:
         result["doDisableSoftwareSharpen"]=doDisableSoftwareSharpen;
         result["doDisableSoftwareSaturation"]=doDisableSoftwareSaturation;
         result["LED"]=LED;
+        result["LED_PIN"]=LED_PIN;
         result["stillPreviewWidth"]=stillPreviewWidth;
         result["stillPreviewHeight"]=stillPreviewHeight;
         result["stillQuality"]=stillQuality;
@@ -315,6 +319,7 @@ public:
         info << "doDisableSoftwareSharpen " << doDisableSoftwareSharpen << endl;
         info << "doDisableSoftwareSaturation " << doDisableSoftwareSaturation << endl;
         info << "LED " << LED << endl;
+        info << "LED_PIN " << LED_PIN << endl;
         info << "stillPreviewWidth " << stillPreviewWidth << endl;
         info << "stillPreviewHeight " << stillPreviewHeight << endl;
         info << "stillQuality " << stillQuality << endl;

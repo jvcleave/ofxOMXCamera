@@ -114,10 +114,10 @@ void OMXCameraController::applyAllSettings()
     ofLogNotice(__func__)  << "END";
 }
 
-string OMXCameraController::getLEDPin()
+int OMXCameraController::getLEDPin()
 {
     //default as RPI1 GPIO Layout
-    string result = "5";
+    int result = 5;
     if(hasGPIOProgram)
     {
         string command = "gpio -v";
@@ -146,11 +146,11 @@ string OMXCameraController::getLEDPin()
             //TODO: check RPI3
             if(ofIsStringInString(modelValue, "2"))
             {
-                result = "32";
+                result = 32;
             }
             if(ofIsStringInString(modelValue, "3"))
             {
-                result = "134";
+                result = 134;
             }
         }
     }
