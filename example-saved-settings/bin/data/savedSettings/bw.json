@@ -5,7 +5,7 @@
     "autoShutter": true,
     "brightness": 50,
     "contrast": 100,
-    "cropRectangle": {
+    "drawCropRectangle": {
         "height": 0.0,
         "width": 0.0,
         "x": 0.0,

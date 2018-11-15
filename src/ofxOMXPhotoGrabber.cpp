@@ -23,9 +23,9 @@ void ofxOMXPhotoGrabber::setup(ofxOMXCameraSettings& settings_)
     {
         settings.drawRectangle.set(0, 0, settings.stillPreviewWidth, settings.stillPreviewHeight);
     }
-    if(settings.cropRectangle.isZero())
+    if(settings.drawCropRectangle.isZero())
     {
-        settings.cropRectangle.set(0, 0, settings.width, settings.height);
+        settings.drawCropRectangle.set(0, 0, settings.stillPreviewWidth, settings.stillPreviewHeight);
     }
     ofLogNotice(__func__) << settings.toString();
    

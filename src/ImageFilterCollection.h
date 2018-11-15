@@ -5,8 +5,6 @@
 
 #pragma once
 
-#include "ofMain.h"
-
 #include "OMX_Maps.h"
 
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ofMain.h"
+//#include "ofMain.h"
 #include <fcntl.h>
 
 class KeyListenerEventData

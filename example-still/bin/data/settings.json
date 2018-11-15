@@ -6,7 +6,7 @@
     "brightness": 50,
     "burstModeEnabled": false,
     "contrast": -10,
-    "cropRectangle": {
+    "drawCropRectangle": {
         "height": 0.0,
         "width": 0.0,
         "x": 0.0,

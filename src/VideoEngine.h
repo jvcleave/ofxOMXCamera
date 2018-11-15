@@ -8,9 +8,8 @@
 
 #pragma once
 
-#include "ofMain.h"
-#include "ofAppEGLWindow.h"
 #include "OMX_Maps.h"
+#include "ofAppEGLWindow.h"
 #include "ofxOMXCameraSettings.h"
 #include "DisplayController.h"
 

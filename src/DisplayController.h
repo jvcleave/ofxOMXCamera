@@ -1,6 +1,5 @@
 #pragma once
 
-#include "ofMain.h"
 #include "OMX_Maps.h"
 #include "ofAppEGLWindow.h"
 
@@ -52,7 +51,7 @@ public:
         doMirror = false;
         rotationIndex = 0;
         rotationDegrees =0; 
-        doForceFill = false;
+        doForceFill = true;
         
         OMX_INIT_STRUCTURE(displayConfig);
         displayConfig.nPortIndex = VIDEO_RENDER_INPUT_PORT;
@@ -68,6 +67,7 @@ public:
         textureMode = false;
         settings = NULL;
         isOpen = false;
+        
     };
     
     
@@ -204,10 +204,7 @@ public:
         displayConfig.dest_rect.width     = settings->drawRectangle.width;
         displayConfig.dest_rect.height    = settings->drawRectangle.height;
         //ofLog() << "drawRectangle: " << drawRectangle;
-        displayConfig.src_rect.x_offset  = settings->cropRectangle.x;
-        displayConfig.src_rect.y_offset  = settings->cropRectangle.y;
-        displayConfig.src_rect.width     = settings->cropRectangle.width;
-        displayConfig.src_rect.height    = settings->cropRectangle.height;
+
         
         displayConfig.fullscreen = (OMX_BOOL)doFullScreen;
         displayConfig.noaspect   = (OMX_BOOL)noAspectRatio;    
@@ -231,7 +228,26 @@ public:
         OMX_TRACE(error);
     }
 
- 
+    void setDisplayCropRectangle(ofRectangle& drawCropRectangle_)
+    {
+        if(!isOpen) return;
+        
+        if(drawCropRectangle_.isZero()) return;
+        
+        settings->drawCropRectangle = drawCropRectangle_;
+
+        OMX_CONFIG_DISPLAYREGIONTYPE cropConfig;
+        OMX_INIT_STRUCTURE(cropConfig);
+        cropConfig.nPortIndex = VIDEO_RENDER_INPUT_PORT;
+        
+        cropConfig.set = (OMX_DISPLAYSETTYPE)(OMX_DISPLAY_SET_SRC_RECT);
+        displayConfig.src_rect.x_offset  = settings->drawCropRectangle.x;
+        displayConfig.src_rect.y_offset  = settings->drawCropRectangle.y;
+        displayConfig.src_rect.width     = settings->drawCropRectangle.width;
+        displayConfig.src_rect.height    = settings->drawCropRectangle.height;
+        OMX_ERRORTYPE error  = OMX_SetParameter(renderComponent, OMX_IndexConfigDisplayRegion, &cropConfig);
+        OMX_TRACE(error);
+    }
     
     
     void rotateDisplay(OMX_DISPLAYTRANSFORMTYPE type)
@@ -314,12 +330,7 @@ public:
         applyConfig();
     }
     
-    void setDisplayCropRectangle(ofRectangle& cropRectangle_)
-    {
-        if(!isOpen) return;
-        settings->cropRectangle = cropRectangle_;
-        applyConfig();
-    }
+  
     
     void setDisplayMirror(bool doMirror_)
     {

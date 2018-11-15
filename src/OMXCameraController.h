@@ -1,5 +1,5 @@
 #pragma once
-#include "ofMain.h"
+
 #include "OMX_Maps.h"
 #include "ofxOMXCameraSettings.h"
 #include "DisplayController.h"
@@ -108,7 +108,7 @@ public:
     
     
     OMX_ERRORTYPE setSensorCrop(ofRectangle&);
-    ofRectangle& getCropRectangle() { return settings.cropRectangle; }
+    ofRectangle& getDrawCropRectangle() { return settings.drawCropRectangle; }
     OMX_ERRORTYPE setSensorCrop(int left, int top, int width, int height);
     
     vector<int> zoomLevels;

@@ -121,6 +121,7 @@ void PhotoEngine::setup(ofxOMXCameraSettings* settings_, PhotoEngineListener* li
     
     OMX_ERRORTYPE error = OMX_ErrorNone;
     
+    ofLogNotice(__func__) << settings->toString();
 
     error =OMX_GetHandle(&encoder, OMX_IMAGE_ENCODER, this , &encoderCallbacks);
     OMX_TRACE(error);
@@ -134,20 +135,21 @@ void PhotoEngine::setup(ofxOMXCameraSettings* settings_, PhotoEngineListener* li
     error = DisableAllPortsForComponent(&nullSink);
     OMX_TRACE(error);
     
+    
+    OMX_STRING renderType = OMX_VIDEO_RENDER;
+    if(settings->enableTexture)
+    {
+        renderType = OMX_EGL_RENDER; 
+        renderInputPort = EGL_RENDER_INPUT_PORT;
+    }else
+    {
+         
+        renderInputPort = VIDEO_RENDER_INPUT_PORT;
+    }
     if(settings->enableStillPreview) 
     {
         if(settings->enableTexture)
         {
-            renderInputPort = EGL_RENDER_INPUT_PORT;
-        }
-        //Set up renderer
-        OMX_STRING renderType = OMX_VIDEO_RENDER; 
-        
-        if(settings->enableTexture)
-        {
-            //Implementation specific
-            renderType = OMX_EGL_RENDER; 
-            renderInputPort = EGL_RENDER_INPUT_PORT;
             renderCallbacks.FillBufferDone    = &PhotoEngine::textureRenderFillBufferDone;
         }else
         {
@@ -265,7 +267,8 @@ OMX_ERRORTYPE PhotoEngine::onCameraEventParamOrConfigChanged()
     OMX_TRACE(error);
     
     //PrintSensorModes(camera);
-    
+    ofLogNotice(__func__) << settings->toString();
+
     if(settings->enableStillPreview) 
     { 
         
@@ -290,6 +293,14 @@ OMX_ERRORTYPE PhotoEngine::onCameraEventParamOrConfigChanged()
         error = OMX_SetupTunnel(camera, CAMERA_PREVIEW_PORT, render, renderInputPort);
         OMX_TRACE(error);
         
+        if(renderInputPort == EGL_RENDER_INPUT_PORT)
+        {
+            ofLogNotice(__func__) << "USING EGL_RENDER_INPUT_PORT";
+        }
+        if(renderInputPort == VIDEO_RENDER_INPUT_PORT)
+        {
+            ofLogNotice(__func__) << "USING VIDEO_RENDER_INPUT_PORT";
+        }
         //Enable camera preview port
         error = WaitForPortEnable(camera, CAMERA_PREVIEW_PORT);
         OMX_TRACE(error);
@@ -468,7 +479,7 @@ void PhotoEngine::takePhoto()
 void PhotoEngine::writeFile()
 {
         
-    OMX_ERRORTYPE error;
+    //OMX_ERRORTYPE error;
     
     bool result = false;
     

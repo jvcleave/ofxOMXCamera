@@ -1297,9 +1297,9 @@ void OMXCameraController::setDisplayDrawRectangle(ofRectangle& drawRectangle)
     displayController.setDisplayDrawRectangle(drawRectangle);
 }
 
-void OMXCameraController::setDisplayCropRectangle(ofRectangle& cropRectangle)
+void OMXCameraController::setDisplayCropRectangle(ofRectangle& drawCropRectangle)
 {
-    displayController.setDisplayCropRectangle(cropRectangle);
+    displayController.setDisplayCropRectangle(drawCropRectangle);
 }
 
 void OMXCameraController::setDisplayMirror(bool doMirror)

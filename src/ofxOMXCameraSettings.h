@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ofMain.h"
+//#include "ofMain.h"
 
 #define MEGABYTE_IN_BITS 8388608
 
@@ -44,7 +44,7 @@ public:
     int brightness;  //    0 to 100
     int saturation;  // -100 to 100 
     int dreLevel;    //   -4 to 4
-    ofRectangle cropRectangle;
+    ofRectangle drawCropRectangle;
     ofRectangle drawRectangle;
     ofRectangle sensorCropRectangle;//percentage, e.g. 0, 0, 100(% width), 100(% height)
 
@@ -117,7 +117,7 @@ public:
         whiteBalanceGainB = 0;
         imageFilter="None";
         dreLevel=0;
-        cropRectangle.set(0,0,0,0);
+        drawCropRectangle.set(0,0,0,0);
         sensorCropRectangle.set(0,0,100,100);
 
         
@@ -192,12 +192,12 @@ public:
         if(exists(json, "frameStabilization")) frameStabilization = json["frameStabilization"].get<bool>();
         if(exists(json, "flickerCancellation")) flickerCancellation = json["flickerCancellation"].get<bool>();
         if(exists(json, "dreLevel")) dreLevel = json["dreLevel"].get<int>();
-        if(exists(json, "cropRectangle"))
+        if(exists(json, "drawCropRectangle"))
         {
-            cropRectangle.set(json["cropRectangle"]["x"].get<int>(),
-                              json["cropRectangle"]["y"].get<int>(),
-                              json["cropRectangle"]["width"].get<int>(),
-                              json["cropRectangle"]["height"].get<int>());
+            drawCropRectangle.set(json["drawCropRectangle"]["x"].get<int>(),
+                              json["drawCropRectangle"]["y"].get<int>(),
+                              json["drawCropRectangle"]["width"].get<int>(),
+                              json["drawCropRectangle"]["height"].get<int>());
 
         }
         if(exists(json, "drawRectangle"))
@@ -275,10 +275,10 @@ public:
         result["flickerCancellation"]=flickerCancellation;
         result["dreLevel"]=dreLevel;
         
-        result["cropRectangle"]["x"]= cropRectangle.x;
-        result["cropRectangle"]["y"]= cropRectangle.y;
-        result["cropRectangle"]["width"]= cropRectangle.width;
-        result["cropRectangle"]["height"]= cropRectangle.height;
+        result["drawCropRectangle"]["x"]= drawCropRectangle.x;
+        result["drawCropRectangle"]["y"]= drawCropRectangle.y;
+        result["drawCropRectangle"]["width"]= drawCropRectangle.width;
+        result["drawCropRectangle"]["height"]= drawCropRectangle.height;
         
         result["drawRectangle"]["x"]= drawRectangle.x;
         result["drawRectangle"]["y"]= drawRectangle.y;
@@ -359,7 +359,7 @@ public:
         info << "frameStabilization " << frameStabilization << endl;
         info << "flickerCancellation " << flickerCancellation << endl;
         info << "dreLevel " << dreLevel << endl;
-        info << "cropRectangle " << cropRectangle << endl;
+        info << "drawCropRectangle " << drawCropRectangle << endl;
         info << "drawRectangle " << drawRectangle << endl;
         info << "sensorCropRectangle " << sensorCropRectangle << endl;
 
