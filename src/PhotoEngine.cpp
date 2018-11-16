@@ -394,7 +394,7 @@ OMX_ERRORTYPE PhotoEngine::onCameraEventParamOrConfigChanged()
     if(settings->enableStillPreview) 
     { 
         //Start renderer
-        error = SetComponentState(render, OMX_StateExecuting);
+        error = WaitForState(render, OMX_StateExecuting);
         OMX_TRACE(error);
  
         if(settings->enableTexture)
@@ -407,6 +407,12 @@ OMX_ERRORTYPE PhotoEngine::onCameraEventParamOrConfigChanged()
             {
                 ofLogNotice(__func__) << "TRIED OMX_FillThisBuffer";
  
+            }else
+            {
+                if(error == OMX_ErrorIncorrectStateOperation)
+                {
+                    ofLogError(__func__) << PrintOMXState(render);
+                }
             }
             
         }
