@@ -1284,7 +1284,7 @@ void OMXCameraController::setDisplayAlpha(int alpha)
 
 void OMXCameraController::setDisplayLayer(int layer)
 {
-    displayController.setDisplayAlpha(layer);
+    displayController.setDisplayLayer(layer);
 }
 
 void OMXCameraController::setDisplayRotation(int rotationDegrees)
