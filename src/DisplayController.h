@@ -86,7 +86,6 @@ public:
     {
         isOpen = false;
         renderComponent = NULL;
-        eglImage = NULL;
         display = NULL;
         context = NULL;
         appEGLWindow = NULL;
@@ -124,7 +123,10 @@ public:
         if(!settings->enableTexture) return;
         fbo.begin();
         ofClear(0, 0, 0, 0);
+        ofEnableBlendMode(OF_BLENDMODE_ALPHA);
+        ofSetColor(255, 255, 255, settings->displayAlpha);
         texture.draw(0, 0);
+        ofDisableBlendMode();
         if (pixelsRequested) 
         {
             glReadPixels(0, 0,
@@ -212,6 +214,7 @@ public:
         //int alpha = (ofGetFrameNum() % 255); 
         displayConfig.alpha  = settings->displayAlpha;
         displayConfig.layer  = settings->displayLayer;
+
 
         if(doForceFill)
         {
@@ -486,13 +489,12 @@ public:
         
         if (eglImage == EGL_NO_IMAGE_KHR)
         {
-            ofLog()    << "Create EGLImage FAIL <---------------- :(";
-            
+            ofLogNotice(__func__) << " FAIL <---------------- :(";
         }
         else
         {
             success = true;
-            ofLog()  << "Create EGLImage PASS <---------------- :)";
+            ofLogNotice(__func__) <<  " PASS <---------------- :)";
             of_pixels.setFromExternalPixels(pixels, videoWidth, videoHeight, 4);
         }
         return success;
@@ -520,10 +522,10 @@ public:
             
             if (!eglDestroyImageKHR(display, eglImage))
             {
-                ofLog() << __func__ << " FAIL <---------------- :(";
+                ofLogNotice(__func__) << " FAIL <---------------- :(";
             }else
             {
-                ofLog() << __func__ << " PASS <---------------- :)";
+                ofLogNotice(__func__) <<  " PASS <---------------- :)";
             }
             eglImage = NULL;
         }
