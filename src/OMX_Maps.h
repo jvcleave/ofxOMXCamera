@@ -1791,7 +1791,80 @@ string DebugEventHandlerString (OMX_HANDLETYPE hComponent, OMX_EVENTTYPE eEvent,
     return info.str();
 }
 
+static
+string PrintBuffer(OMX_BUFFERHEADERTYPE* pBuffer)
+{
+    stringstream info;
+    info << "nSize: " << pBuffer->nSize << endl;
 
+    info << "nAllocLen: " << pBuffer->nAllocLen << endl;
+    info << "nFilledLen: " << pBuffer->nFilledLen << endl;
+    info << "nOffset: " << pBuffer->nOffset << endl;
+    info << "nOutputPortIndex: " << pBuffer->nOutputPortIndex << endl;
+    info << "nInputPortIndex: " << pBuffer->nInputPortIndex << endl;
+    info << "nFlags: " << pBuffer->nFlags << endl;
+
+    
+#if 0
+    //info << "nVersion: " << pBuffer->nVersion << endl;
+    //info << "pBuffer: " << pBuffer->pBuffer << endl;
+    info << "pAppPrivate: " << pBuffer->pAppPrivate << endl;
+    info << "pPlatformPrivate: " << pBuffer->pPlatformPrivate << endl;
+    info << "pInputPortPrivate: " << pBuffer->pInputPortPrivate << endl;
+    info << "pOutputPortPrivate: " << pBuffer->pOutputPortPrivate << endl;
+    info << "hMarkTargetComponent: " << pBuffer->hMarkTargetComponent << endl;
+    info << "pMarkData: " << pBuffer->pMarkData << endl;
+    info << "nTickCount: " << pBuffer->nTickCount << endl;
+    //info << "nTimeStamp: " << pBuffer->nTimeStamp << endl;
+
+#endif
+    return info.str();
+#if 0
+    OMX_U32 nSize;              /**< size of the structure in bytes */
+    OMX_VERSIONTYPE nVersion;   /**< OMX specification version information */
+    OMX_U8* pBuffer;            /**< Pointer to actual block of memory 
+                                 that is acting as the buffer */
+    OMX_U32 nAllocLen;          /**< size of the buffer allocated, in bytes */
+    OMX_U32 nFilledLen;         /**< number of bytes currently in the 
+                                 buffer */
+    OMX_U32 nOffset;            /**< start offset of valid data in bytes from
+                                 the start of the buffer */
+    OMX_PTR pAppPrivate;        /**< pointer to any data the application
+                                 wants to associate with this buffer */
+    OMX_PTR pPlatformPrivate;   /**< pointer to any data the platform
+                                 wants to associate with this buffer */ 
+    OMX_PTR pInputPortPrivate;  /**< pointer to any data the input port
+                                 wants to associate with this buffer */
+    OMX_PTR pOutputPortPrivate; /**< pointer to any data the output port
+                                 wants to associate with this buffer */
+    OMX_HANDLETYPE hMarkTargetComponent; /**< The component that will generate a 
+                                          mark event upon processing this buffer. */
+    OMX_PTR pMarkData;          /**< Application specific data associated with 
+                                 the mark sent on a mark event to disambiguate 
+                                 this mark from others. */
+    OMX_U32 nTickCount;         /**< Optional entry that the component and
+                                 application can update with a tick count
+                                 when they access the component.  This
+                                 value should be in microseconds.  Since
+                                 this is a value relative to an arbitrary
+                                 starting point, this value cannot be used 
+                                 to determine absolute time.  This is an
+                                 optional entry and not all components
+                                 will update it.*/
+    OMX_TICKS nTimeStamp;          /**< Timestamp corresponding to the sample 
+                                    starting at the first logical sample 
+                                    boundary in the buffer. Timestamps of 
+                                    successive samples within the buffer may
+                                    be inferred by adding the duration of the 
+                                    of the preceding buffer to the timestamp
+                                    of the preceding buffer.*/
+    OMX_U32     nFlags;           /**< buffer specific flags */
+    OMX_U32 nOutputPortIndex;     /**< The index of the output port (if any) using 
+                                   this buffer */
+    OMX_U32 nInputPortIndex;      /**< The index of the input port (if any) using
+                                   this buffer */
+#endif
+}
 #if 0
 static 
 string PrintPortDef(OMX_PARAM_PORTDEFINITIONTYPE portDef)
