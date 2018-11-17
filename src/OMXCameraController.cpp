@@ -1136,19 +1136,157 @@ OMX_ERRORTYPE OMXCameraController::rotateCounterClockwise()
 
 
 #pragma mark FILTERS
-
+OMX_ERRORTYPE OMXCameraController::setImageFilter(OMX_IMAGEFILTERTYPE imageFilter_, vector<int> params)
+{
+    OMX_ERRORTYPE error  = setImageFilter(imageFilter_);
+    OMX_CONFIG_IMAGEFILTERPARAMSTYPE filtersParams;
+    OMX_INIT_STRUCTURE(filtersParams);
+    filtersParams.nPortIndex = OMX_ALL;
+    filtersParams.eImageFilter = imageFilter_;
+    filtersParams.nNumParams = params.size();
+    for(int i=0; i<params.size(); i++)
+    {
+        filtersParams.nParams[i] = params[i];        
+    }
+    error =  OMX_SetConfig(camera, OMX_IndexConfigCommonImageFilterParameters, &filtersParams);
+    OMX_TRACE(error);
+    return error;
+    
+}
 OMX_ERRORTYPE OMXCameraController::setImageFilter(OMX_IMAGEFILTERTYPE imageFilter_)
 {
     if(!camera) return OMX_ErrorNone;
 
+    OMX_ERRORTYPE error;
+    
     imagefilterConfig.eImageFilter = imageFilter_;
-    OMX_ERRORTYPE error = OMX_SetConfig(camera, OMX_IndexConfigCommonImageFilter, &imagefilterConfig);
+    error = OMX_SetConfig(camera, OMX_IndexConfigCommonImageFilter, &imagefilterConfig);
     OMX_TRACE(error);
     if(error == OMX_ErrorNone)
     {
         settings.imageFilter = GetImageFilterString(imageFilter_);
     }
     return error;
+#if 0
+    bool hasParams = false;
+    switch (imageFilter_) 
+    {
+        case OMX_ImageFilterSolarize:
+        case OMX_ImageFilterSharpen:
+        case OMX_ImageFilterFilm:
+        case OMX_ImageFilterBlur: 
+        case OMX_ImageFilterSaturation:
+        {
+            hasParams = true;
+        }
+    }
+    if(!hasParams)
+    {
+        error = OMX_SetConfig(camera, OMX_IndexConfigCommonImageFilter, &imagefilterConfig);
+        OMX_TRACE(error);
+        if(error == OMX_ErrorNone)
+        {
+            settings.imageFilter = GetImageFilterString(imageFilter_);
+        }
+    }else
+    {
+        OMX_CONFIG_IMAGEFILTERPARAMSTYPE filtersParams;
+        OMX_INIT_STRUCTURE(filtersParams);
+        filtersParams.nPortIndex = OMX_ALL;
+        filtersParams.eImageFilter = imageFilter_;
+        switch (imageFilter_) 
+        {
+            case OMX_ImageFilterSolarize:
+            {
+                filtersParams.nNumParams = 4;
+                filtersParams.nParams[0] = 128;
+                filtersParams.nParams[1] = 128;
+                filtersParams.nParams[2] = 128;
+                filtersParams.nParams[3] = 0;
+                break;
+            }
+            case OMX_ImageFilterSharpen:
+            {
+                /*
+                 sz size of filter, either 1 or 2. str strength of filter. th threshold of filter. Default is "1 40 20".
+                 */
+                filtersParams.nNumParams = 3;
+                filtersParams.nParams[0] = 1;
+                filtersParams.nParams[1] = 40;
+                filtersParams.nParams[2] = 20;
+                
+                break;
+            }
+            case OMX_ImageFilterFilm:
+            {
+                /*
+                 str strength of effect. u sets u to constant value. v sets v to constant value. Default is "24".
+                 */
+                filtersParams.nNumParams = 3;
+                filtersParams.nParams[0] = 1;
+                filtersParams.nParams[1] = 24;
+                filtersParams.nParams[2] = 24;
+                break;
+            }
+            case OMX_ImageFilterBlur:
+            {
+                filtersParams.nNumParams = 1;
+                filtersParams.nParams[0] = 2; //sz size of filter, either 1 or 2. Default is "2".
+                break;
+            }
+            case OMX_ImageFilterSaturation:
+            {
+                filtersParams.nNumParams = 1;
+                /*
+                 str strength of effect, in 8.8 fixed point format. u/v value differences from 128 are multiplied by str. Default is "272".
+                 */
+                filtersParams.nParams[0] = 272;
+                break;
+            }
+        }
+        
+        
+        OMX_CONFIG_IMAGEFILTERPARAMSTYPE getfiltersParams;
+        OMX_INIT_STRUCTURE(getfiltersParams);
+        getfiltersParams.nPortIndex = OMX_ALL;
+        getfiltersParams.eImageFilter = imageFilter_;
+        //error =  OMX_SetConfig(camera, OMX_IndexConfigCommonImageFilterParameters, &getfiltersParams);
+        OMX_TRACE(error);
+        error =  OMX_GetConfig(camera, OMX_IndexConfigCommonImageFilterParameters, &getfiltersParams);
+        
+        int numParams = getfiltersParams.nNumParams;
+        stringstream info;
+        info << GetImageFilterString(imageFilter_) << endl;
+        info << "PRE numParams: " << numParams << endl;
+
+        for(int i=0; i<numParams; i++)
+        {
+            info << i << ":"  << getfiltersParams.nParams[i] << endl;
+
+        }
+        
+        error =  OMX_SetConfig(camera, OMX_IndexConfigCommonImageFilterParameters, &filtersParams);
+        OMX_TRACE(error);
+        if(error == OMX_ErrorNone)
+        {
+            settings.imageFilter = GetImageFilterString(imageFilter_);
+        }
+        
+        error =  OMX_GetConfig(camera, OMX_IndexConfigCommonImageFilterParameters, &filtersParams);
+
+        numParams = filtersParams.nNumParams;
+        info << "POST numParams: " << numParams << endl;
+        for(int i=0; i<numParams; i++)
+        {
+            info << i << ":"  << filtersParams.nParams[i] << endl;
+            
+        }
+        ofLogNotice(__func__) << info.str();
+
+    }
+    
+    return error;
+#endif
 }
 
 OMX_ERRORTYPE OMXCameraController::setImageFilter(string imageFilter_)

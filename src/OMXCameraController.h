@@ -129,6 +129,7 @@ public:
     OMX_ERRORTYPE rotateCounterClockwise();
     int getRotation();
     
+    OMX_ERRORTYPE setImageFilter(OMX_IMAGEFILTERTYPE imageFilter_, vector<int> params);
     OMX_ERRORTYPE setImageFilter(OMX_IMAGEFILTERTYPE);
     OMX_ERRORTYPE setImageFilter(string);
     string getImageFilter();
