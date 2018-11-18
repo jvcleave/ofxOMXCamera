@@ -129,6 +129,9 @@ public:
     OMX_ERRORTYPE rotateCounterClockwise();
     int getRotation();
     
+    
+    void setColorEnhancement(int u, int v);
+    
     OMX_ERRORTYPE setImageFilter(OMX_IMAGEFILTERTYPE imageFilter_, vector<int> params);
     OMX_ERRORTYPE setImageFilter(OMX_IMAGEFILTERTYPE);
     OMX_ERRORTYPE setImageFilter(string);

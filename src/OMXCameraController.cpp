@@ -1289,6 +1289,20 @@ OMX_ERRORTYPE OMXCameraController::setImageFilter(OMX_IMAGEFILTERTYPE imageFilte
 #endif
 }
 
+void OMXCameraController::setColorEnhancement(int u, int v)
+{
+    OMX_CONFIG_COLORENHANCEMENTTYPE color;
+    OMX_INIT_STRUCTURE(color);
+    color.nPortIndex = OMX_ALL;
+    color.bColorEnhancement = OMX_FALSE;
+    color.nCustomizedU = u;
+    color.nCustomizedV = v;
+    OMX_ERRORTYPE error = OMX_SetConfig(camera, OMX_IndexConfigCommonColorEnhancement, &color);
+    OMX_TRACE(error);
+}
+
+
+
 OMX_ERRORTYPE OMXCameraController::setImageFilter(string imageFilter_)
 {
     return setImageFilter(GetImageFilter(imageFilter_));
