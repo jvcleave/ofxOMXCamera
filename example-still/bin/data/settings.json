@@ -23,7 +23,7 @@
     "flickerCancellation": false,
     "frameStabilization": false,
     "framerate": 30,
-    "height": 1952,
+    "sensorHeight": 1952,
     "meteringType": "Average",
     "mirror": "None",
     "rotation": 0,
@@ -34,6 +34,6 @@
     "stillPreviewHeight": 720,
     "stillPreviewWidth": 1280,
     "stillQuality": 2,
-    "width": 2592,
+    "sensorWidth": 2592,
     "zoomLevel": 0
 }

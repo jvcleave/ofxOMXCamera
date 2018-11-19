@@ -11,8 +11,8 @@ void ofApp::setup()
 	consoleListener.setup(this);
 	
 	
-	settings.width = 1280; //default 1280
-	settings.height = 720; //default 720
+	settings.sensorWidth = 1280; //default 1280
+	settings.sensorHeight = 720; //default 720
 	settings.enableTexture = true; //default true
 
 
@@ -44,9 +44,9 @@ void ofApp::draw(){
 	videoGrabber.draw();
 	
 	//draw a smaller version via the getTextureReference() method
-	int drawWidth = settings.width/4;
-	int drawHeight = settings.height/4;
-	videoGrabber.getTextureReference().draw(settings.width-drawWidth, settings.height-drawHeight, drawWidth, drawHeight);
+	int drawWidth = settings.sensorWidth/4;
+	int drawHeight = settings.sensorHeight/4;
+	videoGrabber.getTextureReference().draw(settings.sensorWidth-drawWidth, settings.sensorHeight-drawHeight, drawWidth, drawHeight);
 
 	stringstream info;
 	info << "App FPS: " << ofGetFrameRate() << "\n";

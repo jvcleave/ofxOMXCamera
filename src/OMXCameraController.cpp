@@ -249,7 +249,7 @@ OMX_ERRORTYPE OMXCameraController::setSoftwareSaturation(bool state)
         if(error == OMX_ErrorNone)
         {
             settings.doDisableSoftwareSaturation = state;
-            ofLogVerbose() << "doDisableSoftwareSaturation: " << doDisableSoftwareSaturation;
+            ofLogVerbose() << "doDisableSoftwareSaturation: " << settings.doDisableSoftwareSaturation;
             
         }
     }
@@ -282,7 +282,7 @@ OMX_ERRORTYPE OMXCameraController::setSoftwareSharpening(bool state)
         if(error == OMX_ErrorNone)
         {
             settings.doDisableSoftwareSharpen = state;
-            ofLogVerbose() << "doDisableSoftwareSharpen: " << doDisableSoftwareSharpen;
+            ofLogVerbose() << "doDisableSoftwareSharpen: " << settings.doDisableSoftwareSharpen;
         }
     }
     return error;

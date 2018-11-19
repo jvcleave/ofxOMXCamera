@@ -164,8 +164,6 @@ public:
     OMX_ERRORTYPE setMeteringType(string);
     string getMeteringType();
     
-    bool doDisableSoftwareSharpen;
-    bool doDisableSoftwareSaturation;
     OMX_ERRORTYPE setSoftwareSharpening(bool);
     OMX_ERRORTYPE enableSoftwareSharpening();
     OMX_ERRORTYPE disableSoftwareSharpening();

@@ -24,16 +24,16 @@ void ofxOMXVideoGrabber::setup(ofxOMXCameraSettings& settings_)
     
     if(settings.drawRectangle.isZero())
     {
-        settings.drawRectangle.set(0, 0, settings.width, settings.height);
+        settings.drawRectangle.set(0, 0, settings.sensorWidth, settings.sensorHeight);
     }
     if(settings.drawCropRectangle.isZero())
     {
-        settings.drawCropRectangle.set(0, 0, settings.width, settings.height);
+        settings.drawCropRectangle.set(0, 0, settings.sensorWidth, settings.sensorHeight);
     }
     
     if(settings.enableTexture)
     {
-        displayController.generateEGLImage(settings.width, settings.height);
+        displayController.generateEGLImage(settings.sensorWidth, settings.sensorHeight);
         if(settings.enablePixels)
         {
             pixelsRequested = true;
@@ -149,12 +149,12 @@ bool ofxOMXVideoGrabber::isFrameNew()
 
 int ofxOMXVideoGrabber::getWidth()
 {
-	return settings.width;
+	return settings.sensorWidth;
 }
 
 int ofxOMXVideoGrabber::getHeight()
 {
-	return settings.height;
+	return settings.sensorHeight;
 }
 
 int ofxOMXVideoGrabber::getFrameRate()
