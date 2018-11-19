@@ -364,8 +364,8 @@ public:
         info << "sensorCropRectangle " << sensorCropRectangle << endl;
 
         
-        info << "displayAlpha" << displayAlpha << endl;
-        info << "displayLayer" << displayLayer << endl;
+        info << "displayAlpha " << displayAlpha << endl;
+        info << "displayLayer " << displayLayer << endl;
         info << "zoomLevel " << zoomLevel << endl;
         info << "zoomLevelNormalized " << zoomLevelNormalized << endl;
         info << "rotation " << rotation << endl;

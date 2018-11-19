@@ -373,6 +373,16 @@ OMX_ERRORTYPE OMXCameraController::setColorEnhancement(bool doColorEnhance, int 
 }
 #pragma mark ISO
 
+int OMXCameraController::getISO() 
+{ 
+    return exposureConfig.nSensitivity;
+}
+
+bool OMXCameraController::getAutoISO()
+{
+    return fromOMXBool(exposureConfig.bAutoSensitivity);
+}
+
 OMX_ERRORTYPE OMXCameraController::setAutoISO(bool doAutoISO)
 {
     if(!camera) return OMX_ErrorNone;
@@ -399,19 +409,23 @@ OMX_ERRORTYPE OMXCameraController::setAutoISO(bool doAutoISO)
 OMX_ERRORTYPE OMXCameraController::setISO(int ISO_)
 {
     if(!camera) return OMX_ErrorNone;
-    if(ISO_ < 0 || ISO_ > 800) return OMX_ErrorBadParameter;
+    if(ISO_ < 0 || ISO_ > 800) 
+    {
+        ofLogError(__func__) << "ISO_: " << ISO_;
+        return OMX_ErrorBadParameter;
+    }
     
     OMX_ERRORTYPE error = OMX_GetConfig(camera, OMX_IndexConfigCommonExposureValue, &exposureConfig);
     OMX_TRACE(error);
-    if(error == OMX_ErrorNone) 
+    
+    exposureConfig.nSensitivity = ISO_;
+    error =  applyExposure();
+    OMX_TRACE(error);
+    
+    if(error == OMX_ErrorNone)
     {
-        exposureConfig.nSensitivity    = ISO_;
-        error =  applyExposure();
-        
-        if(error == OMX_ErrorNone)
-        {
-            settings.ISO = getISO();
-        }
+        settings.ISO = exposureConfig.nSensitivity;
+        settings.isoNormalized = getISOLevelNormalized();
     }
     return error;
 }
@@ -423,22 +437,36 @@ OMX_ERRORTYPE OMXCameraController::setISONormalized(float value)
         ofLogError(__func__) << value << "MUST BE BETWEEN 0.0 - 1.0";
         return OMX_ErrorBadParameter;
     }
-    int isoIndex = (int) ofMap(value, 0.0f, 1.0f, 0, isoLevels.size());
+    int isoIndex = (int) ofMap(value, 0.0f, 1.0f, 0, isoLevels.size()-1);
     
     OMX_ERRORTYPE error =  setISO(isoLevels[isoIndex]);
+    OMX_TRACE(error);
     if(error == OMX_ErrorNone)
     {
-        settings.isoNormalized = getISOLevelNormalized();
+        settings.isoNormalized = value;
+
     }
     return error;
 }
 
 float OMXCameraController::getISOLevelNormalized()
 {
-    return ofMap(settings.ISO, 0, isoLevels.size(), 0.0f, 1.0f);
+    int low = isoLevels[0];
+    int high = isoLevels.back();
+    return ofNormalize(settings.ISO, low, high);
 }
 
 #pragma mark SHUTTER
+
+bool OMXCameraController::getAutoShutter()
+{
+    return fromOMXBool(exposureConfig.bAutoShutterSpeed);
+}
+
+int OMXCameraController::getShutterSpeed()
+{
+    return exposureConfig.nShutterSpeedMsec;
+}
 
 OMX_ERRORTYPE OMXCameraController::setShutterSpeed(int shutterSpeedMicroSeconds_)
 {
@@ -813,11 +841,10 @@ OMX_ERRORTYPE OMXCameraController::applyExposure()
     info << "nSensitivity: " << exposureConfig.nSensitivity << endl;
     info << endl;
     info << "eMetering: " << GetMeteringString(exposureConfig.eMetering) << endl;
-    info << "autoShutter: " << autoShutter << endl;
-    info << "shutterSpeed: " << shutterSpeed << endl;
-    info << "autoISO: " << autoISO << endl;
-    info << "ISO: " << ISO << endl;
-    ofLogVerbose(__func__) << " caller: " << caller;
+    info << "autoShutter: " << getAutoShutter() << endl;
+    info << "shutterSpeed: " << getShutterSpeed() << endl;
+    info << "autoISO: " << getAutoISO() << endl;
+    info << "ISO: " << getISO() << endl;
     ofLogVerbose(__func__) << " info: " << info.str();
 #endif
     /*if (error == OMX_ErrorNone) 
@@ -971,7 +998,9 @@ OMX_ERRORTYPE OMXCameraController::setZoomLevelNormalized(float value)
         ofLogError(__func__) << value << "MUST BE BETWEEN 0.0 - 1.0";
         return OMX_ErrorBadParameter;
     }
-    settings.zoomLevel = (int) ofMap(value, 0.0f, 1.0f, 0, zoomLevels.size());
+    settings.zoomLevel = (int) ofMap(value, 0.0f, 1.0f, 0, zoomLevels.size()-1);
+    
+    
     return setDigitalZoom();
 }
 
@@ -1386,25 +1415,9 @@ void OMXCameraController::setLEDState(bool stateRequested)
     }
 }
 
-int OMXCameraController::getISO() 
-{ 
-    return exposureConfig.nSensitivity;
-}
 
-bool OMXCameraController::getAutoISO()
-{
-    return fromOMXBool(exposureConfig.bAutoSensitivity);
-}
 
-bool OMXCameraController::getAutoShutter()
-{
-    return fromOMXBool(exposureConfig.bAutoShutterSpeed);
-}
 
-int OMXCameraController::getShutterSpeed()
-{
-    return exposureConfig.nShutterSpeedMsec;
-}
 
 int OMXCameraController::getEvCompensation()
 {
