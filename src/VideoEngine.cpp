@@ -196,10 +196,10 @@ bool VideoEngine::setup(ofxOMXCameraSettings* settings_, VideoEngineListener* li
     OMX_TRACE(error);
     
     
-    cameraOutputPortDefinition.format.video.nFrameWidth     = settings->width;
-    cameraOutputPortDefinition.format.video.nFrameHeight    = settings->height;
+    cameraOutputPortDefinition.format.video.nFrameWidth     = settings->sensorWidth;
+    cameraOutputPortDefinition.format.video.nFrameHeight    = settings->sensorHeight;
     cameraOutputPortDefinition.format.video.xFramerate      = settings->framerate << 16;
-    cameraOutputPortDefinition.format.video.nStride         = settings->width;
+    cameraOutputPortDefinition.format.video.nStride         = settings->sensorWidth;
     //cameraOutputPortDefinition.format.video.eColorFormat    = OMX_COLOR_FormatYUV420PackedPlanar;
     
     error =  OMX_SetParameter(camera, OMX_IndexParamPortDefinition, &cameraOutputPortDefinition);
@@ -207,14 +207,14 @@ bool VideoEngine::setup(ofxOMXCameraSettings* settings_, VideoEngineListener* li
     if(error == OMX_ErrorBadParameter)
     {
         ofLogError(__func__) << "USING FALLBACK CONFIG";
-        settings->width = 1280;
-        settings->height = 720;
+        settings->sensorWidth = 1280;
+        settings->sensorHeight = 720;
         settings->framerate = 30;
         
-        cameraOutputPortDefinition.format.video.nFrameWidth     = settings->width;
-        cameraOutputPortDefinition.format.video.nFrameHeight    = settings->height;
+        cameraOutputPortDefinition.format.video.nFrameWidth     = settings->sensorWidth;
+        cameraOutputPortDefinition.format.video.nFrameHeight    = settings->sensorHeight;
         cameraOutputPortDefinition.format.video.xFramerate      = settings->framerate << 16;
-        cameraOutputPortDefinition.format.video.nStride         = settings->width;
+        cameraOutputPortDefinition.format.video.nStride         = settings->sensorWidth;
         
         error =  OMX_SetParameter(camera, OMX_IndexParamPortDefinition, &cameraOutputPortDefinition);
         OMX_TRACE(error);
@@ -467,8 +467,8 @@ void VideoEngine::writeFile()
         stringstream fileName;
         fileName << ofGetTimestampString() << "_";
         
-        fileName << settings->width << "x";
-        fileName << settings->height << "_";
+        fileName << settings->sensorWidth << "x";
+        fileName << settings->sensorHeight << "_";
         fileName << settings->framerate << "fps_";
         
         fileName << settings->recordingBitrateMB << "MBps_";

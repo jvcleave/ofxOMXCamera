@@ -15,8 +15,8 @@ void ofApp::setup()
 	ofSetLogLevel(OF_LOG_VERBOSE);			
 	consoleListener.setup(this);
     
-    settings.width = 320;
-    settings.height = 240;
+    settings.sensorWidth = 320;
+    settings.sensorHeight = 240;
     settings.framerate = 15;
     settings.enableTexture = true;
     settings.enablePixels = true;
@@ -71,8 +71,8 @@ void ofApp::draw(){
                                    ofGetWidth(), ofGetHeight());
     }
     
-    float xScale = settings.width;
-    float yScale = settings.height;
+    float xScale = settings.sensorWidth;
+    float yScale = settings.sensorHeight;
     videoGrabber.draw(ofGetWidth()-xScale, ofGetHeight()-yScale, xScale, yScale);
     
 	stringstream info;

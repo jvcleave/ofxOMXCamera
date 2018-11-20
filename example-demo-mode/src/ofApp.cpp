@@ -13,8 +13,8 @@ void ofApp::setup()
     consoleListener.setup(this);
 
     
-    settings.width = 1280;
-    settings.height = 720;
+    settings.sensorWidth = 1280;
+    settings.sensorHeight = 720;
     settings.framerate = 30;
     settings.enableTexture = true;
     //pass in the settings and it will start the camera

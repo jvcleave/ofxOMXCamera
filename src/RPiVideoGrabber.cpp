@@ -27,8 +27,8 @@ bool RPiVideoGrabber::initGrabber(int w, int h)
 {
     
     
-    settings.width = w; 
-    settings.height = h;
+    settings.sensorWidth = w; 
+    settings.sensorHeight = h;
     settings.enablePixels = true;
     cameraWidth = w;
     cameraHeight = h;
