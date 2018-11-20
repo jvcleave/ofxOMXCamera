@@ -24,8 +24,8 @@ class ofxOMXCameraSettings
 {
 public:
     
-	int width;
-	int height;
+	int sensorWidth;
+	int sensorHeight;
 	int framerate;
 	
 	bool enableTexture;
@@ -46,7 +46,7 @@ public:
     int dreLevel;    //   -4 to 4
     ofRectangle drawCropRectangle;
     ofRectangle drawRectangle;
-    ofRectangle sensorCropRectangle;//percentage, e.g. 0, 0, 100(% width), 100(% height)
+    ofRectangle sensorCropRectangle;//percentage, e.g. 0, 0, 100(% width), 100(% sensorHeight)
 
     
     int zoomLevel;
@@ -93,8 +93,8 @@ public:
 	
     void resetValues()
     {
-        width = 1280;
-        height = 720;
+        sensorWidth = 1280;
+        sensorHeight = 720;
         framerate = 30;
         enableTexture = true;
         enablePixels = false;
@@ -162,8 +162,8 @@ public:
         {
             return false;
         }
-        if(exists(json, "width")) width = json["width"].get<int>();
-        if(exists(json, "height")) height = json["height"].get<int>();
+        if(exists(json, "sensorWidth")) sensorWidth = json["sensorWidth"].get<int>();
+        if(exists(json, "sensorHeight")) sensorHeight = json["sensorHeight"].get<int>();
         if(exists(json, "framerate")) framerate = json["framerate"].get<int>();
         
         if(exists(json, "enableTexture")) enableTexture = json["enableTexture"].get<bool>();
@@ -255,8 +255,8 @@ public:
     {
         ofJson result;
         
-        result["width"]=width;
-        result["height"]=height;
+        result["sensorWidth"]=sensorWidth;
+        result["sensorHeight"]=sensorHeight;
         result["framerate"]=framerate;
         result["enableTexture"]=enableTexture;
         result["enablePixels"]=enablePixels;
@@ -338,8 +338,8 @@ public:
     string toString()
     {
         stringstream info;
-        info << "width " << width << endl;
-        info << "height " << height << endl;
+        info << "sensorWidth " << sensorWidth << endl;
+        info << "sensorHeight " << sensorHeight << endl;
         info << "framerate " << framerate << endl;
         info << "enableTexture " << enableTexture << endl;
         info << "enablePixels " << enablePixels << endl;
@@ -364,8 +364,8 @@ public:
         info << "sensorCropRectangle " << sensorCropRectangle << endl;
 
         
-        info << "displayAlpha" << displayAlpha << endl;
-        info << "displayLayer" << displayLayer << endl;
+        info << "displayAlpha " << displayAlpha << endl;
+        info << "displayLayer " << displayLayer << endl;
         info << "zoomLevel " << zoomLevel << endl;
         info << "zoomLevelNormalized " << zoomLevelNormalized << endl;
         info << "rotation " << rotation << endl;
@@ -443,8 +443,8 @@ public:
             case PRESET_1080P_30FPS_TEXTURE :
             case PRESET_HIGHEST_RES_TEXTURE :
             {
-                width = 1920;
-                height = 1080;
+                sensorWidth = 1920;
+                sensorHeight = 1080;
                 framerate = 30;
                 enableTexture=false;
                 break;
@@ -453,8 +453,8 @@ public:
             case PRESET_1080P_30FPS_NONTEXTURE :
             case PRESET_HIGHEST_RES_NONTEXTURE :
             {
-                width = 1920;
-                height = 1080;
+                sensorWidth = 1920;
+                sensorHeight = 1080;
                 framerate = 30;
                 enableTexture=false;
                 break;
@@ -463,16 +463,16 @@ public:
             case PRESET_1080P_30FPS :
             case PRESET_HIGHEST_RES :
             {
-                width = 1920;
-                height = 1080;
+                sensorWidth = 1920;
+                sensorHeight = 1080;
                 framerate = 30;
                 break;
             }
                 
             case PRESET_720P_40FPS_TEXTURE :
             {
-                width = 1280;
-                height = 720;
+                sensorWidth = 1280;
+                sensorHeight = 720;
                 framerate = 40;
                 enableTexture=true;
                 break;
@@ -480,8 +480,8 @@ public:
                 
             case PRESET_720P_40FPS_NONTEXTURE :
             {
-                width = 1280;
-                height = 720;
+                sensorWidth = 1280;
+                sensorHeight = 720;
                 framerate = 40;
                 enableTexture=false;
                 break;
@@ -490,15 +490,15 @@ public:
             case PRESET_720P_40FPS :
             case PRESET_FASTEST_720P:
             {
-                width = 1280;
-                height = 720;
+                sensorWidth = 1280;
+                sensorHeight = 720;
                 framerate = 40;
                 break;
             }
             case PRESET_720P_30FPS :
             {
-                width = 1280;
-                height = 720;
+                sensorWidth = 1280;
+                sensorHeight = 720;
                 framerate = 30;
                 break;
             }
@@ -506,8 +506,8 @@ public:
                 
             case PRESET_720P_30FPS_TEXTURE :
             {
-                width = 1280;
-                height = 720;
+                sensorWidth = 1280;
+                sensorHeight = 720;
                 framerate = 30;
                 enableTexture=true;
                 break;
@@ -515,8 +515,8 @@ public:
                 
             case PRESET_720P_30FPS_NONTEXTURE :
             {
-                width = 1280;
-                height = 720;
+                sensorWidth = 1280;
+                sensorHeight = 720;
                 framerate = 30;
                 enableTexture=false;
                 break;
@@ -524,16 +524,16 @@ public:
                 
             case PRESET_480P_90FPS_TEXTURE :
             {
-                width = 640;
-                height = 480;
+                sensorWidth = 640;
+                sensorHeight = 480;
                 framerate = 90;
                 enableTexture=true;
                 break;
             } 
             case PRESET_480P_60FPS_TEXTURE :
             {
-                width = 640;
-                height = 480;
+                sensorWidth = 640;
+                sensorHeight = 480;
                 framerate = 60;
                 enableTexture=true;
                 break;
@@ -541,8 +541,8 @@ public:
                 
             case PRESET_480P_40FPS_TEXTURE :
             {
-                width = 640;
-                height = 480;
+                sensorWidth = 640;
+                sensorHeight = 480;
                 framerate = 40;
                 enableTexture=true;
                 break;
@@ -551,8 +551,8 @@ public:
                 
             case PRESET_480P_30FPS_TEXTURE :
             {
-                width = 640;
-                height = 480;
+                sensorWidth = 640;
+                sensorHeight = 480;
                 framerate = 30;
                 enableTexture=true;
                 break;
@@ -560,24 +560,24 @@ public:
                 
             case PRESET_480P_90FPS_NONTEXTURE :
             {
-                width = 640;
-                height = 480;
+                sensorWidth = 640;
+                sensorHeight = 480;
                 framerate = 90;
                 enableTexture=false;
                 break;
             } 
             case PRESET_480P_60FPS_NONTEXTURE :
             {
-                width = 640;
-                height = 480;
+                sensorWidth = 640;
+                sensorHeight = 480;
                 framerate = 60;
                 enableTexture=false;
                 break;
             } 
             case PRESET_480P_40FPS_NONTEXTURE :
             {
-                width = 640;
-                height = 480;
+                sensorWidth = 640;
+                sensorHeight = 480;
                 framerate = 40;
                 enableTexture=false;
                 break;
@@ -585,8 +585,8 @@ public:
                 
             case PRESET_480P_30FPS_NONTEXTURE :
             {
-                width = 640;
-                height = 480;
+                sensorWidth = 640;
+                sensorHeight = 480;
                 framerate = 30;
                 enableTexture=false;
                 break;
@@ -596,40 +596,40 @@ public:
             case PRESET_FASTEST_480P:
             case PRESET_FASTEST_FRAME_RATE :
             {
-                width = 640;
-                height = 480;
+                sensorWidth = 640;
+                sensorHeight = 480;
                 framerate = 90;
                 break;
             }
                 
             case PRESET_480P_60FPS :
             {
-                width = 640;
-                height = 480;
+                sensorWidth = 640;
+                sensorHeight = 480;
                 framerate = 60;
                 break;
             }
                 
             case PRESET_480P_40FPS :
             {
-                width = 640;
-                height = 480;
+                sensorWidth = 640;
+                sensorHeight = 480;
                 framerate = 40;
                 break;
             }
                 
             case PRESET_480P_30FPS :
             {
-                width = 640;
-                height = 480;
+                sensorWidth = 640;
+                sensorHeight = 480;
                 framerate = 30;
                 break;
             }
                 
             default:
             {
-                width = 1280;
-                height = 720;
+                sensorWidth = 1280;
+                sensorHeight = 720;
                 framerate = 30;
                 break;
             }

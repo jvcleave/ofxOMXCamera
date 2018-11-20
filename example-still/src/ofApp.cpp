@@ -36,13 +36,13 @@ void ofApp::setup()
         cameraSettings.parseJSON(jsonBuffer.getText());
     }else
     {
-        cameraSettings.width = 2592;
-        cameraSettings.height = 1944;
+        cameraSettings.sensorWidth = 2592;
+        cameraSettings.sensorHeight = 1944;
         
         cameraSettings.stillPreviewWidth = 1280;
         cameraSettings.stillPreviewHeight = 720;
         
-        //cameraSettings.stillPreviewWidth = cameraSettings.width;
+        //cameraSettings.stillPreviewWidth = cameraSettings.sensorWidth;
         //cameraSettings.stillPreviewHeight = cameraSettings.height;
         cameraSettings.saturation = -100;
         cameraSettings.sharpness = 100;

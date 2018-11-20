@@ -12,8 +12,8 @@ void ofApp::setup()
 		
 	consoleListener.setup(this);
 	
-	settings.width = 1280;
-	settings.height = 720;
+	settings.sensorWidth = 1280;
+	settings.sensorHeight = 720;
 	settings.framerate = 30;
 	settings.enableTexture = true;
 	
@@ -23,7 +23,7 @@ void ofApp::setup()
 	doShader = true;
 	shader.load("shaderExample");
 	
-	fbo.allocate(settings.width, settings.height);
+	fbo.allocate(settings.sensorWidth, settings.sensorHeight);
 	fbo.begin();
 		ofClear(0, 0, 0, 0);
 	fbo.end();

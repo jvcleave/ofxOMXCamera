@@ -10,8 +10,8 @@ void ofApp::setup()
 	consoleListener.setup(this);
 	
 	ofxOMXCameraSettings settings;
-	settings.width					= 1280;
-	settings.height				= 720;
+	settings.sensorWidth					= 1280;
+	settings.sensorHeight				= 720;
 	settings.enableTexture         = false;
 
 	

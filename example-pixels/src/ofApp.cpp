@@ -15,8 +15,8 @@ void ofApp::setup()
 		
 	consoleListener.setup(this);
 	
-	settings.width = 1280;
-	settings.height = 720;
+	settings.sensorWidth = 1280;
+	settings.sensorHeight = 720;
 	settings.framerate = 30;
 	settings.enableTexture = true;
 	
@@ -29,7 +29,7 @@ void ofApp::setup()
 	if (doPixels) 
 	{
 		settings.enablePixels = true;
-		videoTexture.allocate(settings.width, settings.height, GL_RGBA);
+		videoTexture.allocate(settings.sensorWidth, settings.sensorHeight, GL_RGBA);
 	}
 
 	videoGrabber.setup(settings);
@@ -50,7 +50,7 @@ void ofApp::update()
 	{
         if (videoGrabber.isFrameNew()) 
         {
-            videoTexture.loadData(videoGrabber.getRawPixels(), settings.width, settings.height, GL_RGBA);
+            videoTexture.loadData(videoGrabber.getRawPixels(), settings.sensorWidth, settings.sensorHeight, GL_RGBA);
         }
 
 	}
@@ -65,7 +65,7 @@ void ofApp::draw(){
 	videoGrabber.draw();
 	if(doPixels && doReloadPixels)
 	{
-		videoTexture.draw(0, 0, settings.width/2, settings.height/2);
+		videoTexture.draw(0, 0, settings.sensorWidth/2, settings.sensorHeight/2);
 	}
 
 	stringstream info;

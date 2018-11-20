@@ -21,13 +21,13 @@
     "flickerCancellation": false,
     "frameStabilization": false,
     "framerate": 90,
-    "height": 480,
+    "sensorHeight": 480,
     "meteringType": "Average",
     "mirror": "None",
     "rotation": 0,
     "saturation": 0,
     "sharpness": -50,
     "shutterSpeed": 0,
-    "width": 640,
+    "sensorWidth": 640,
     "zoomLevel": 0
 }

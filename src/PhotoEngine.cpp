@@ -224,12 +224,12 @@ void PhotoEngine::setup(ofxOMXCameraSettings* settings_, PhotoEngineListener* li
     error =  OMX_GetParameter(camera, OMX_IndexParamPortDefinition, &stillPortConfig);
     OMX_TRACE(error);
     
-    stillPortConfig.format.image.nFrameWidth        = settings->width;
-    stillPortConfig.format.image.nFrameHeight       = settings->height;
-    stillPortConfig.format.image.nStride            = settings->width;
+    stillPortConfig.format.image.nFrameWidth        = settings->sensorWidth;
+    stillPortConfig.format.image.nFrameHeight       = settings->sensorHeight;
+    stillPortConfig.format.image.nStride            = settings->sensorWidth;
     stillPortConfig.format.image.eCompressionFormat = OMX_IMAGE_CodingUnused;
     stillPortConfig.format.image.eColorFormat       = OMX_COLOR_FormatUnused;
-    stillPortConfig.format.image.nStride            = settings->width;
+    stillPortConfig.format.image.nStride            = settings->sensorWidth;
     
     //ofLog() << "CAMERA_STILL_OUTPUT_PORT DEFAULT: " << GetColorFormatString(stillPortConfig.format.image.eColorFormat);
     //DEFAULT: YUV420PackedPlanar
@@ -345,9 +345,9 @@ OMX_ERRORTYPE PhotoEngine::onCameraEventParamOrConfigChanged()
     error =OMX_GetParameter(encoder, OMX_IndexParamPortDefinition, &encoderOutputPortDefinition);
     OMX_TRACE(error);
     
-    encoderOutputPortDefinition.format.image.nFrameWidth        = settings->width;
-    encoderOutputPortDefinition.format.image.nFrameHeight       = settings->height;
-    encoderOutputPortDefinition.format.image.nSliceHeight       = settings->height;
+    encoderOutputPortDefinition.format.image.nFrameWidth        = settings->sensorWidth;
+    encoderOutputPortDefinition.format.image.nFrameHeight       = settings->sensorHeight;
+    encoderOutputPortDefinition.format.image.nSliceHeight       = settings->sensorHeight;
     encoderOutputPortDefinition.format.image.eCompressionFormat = OMX_IMAGE_CodingJPEG;
     encoderOutputPortDefinition.format.image.eColorFormat       = OMX_COLOR_FormatUnused;
     

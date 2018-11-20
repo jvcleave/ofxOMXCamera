@@ -14,8 +14,8 @@ void ofApp::setup()
     doStopRecording =false;
     consoleListener.setup(this);
     settings.enableTexture = false;
-    settings.width = 1280;
-    settings.height = 720;
+    settings.sensorWidth = 1280;
+    settings.sensorHeight = 720;
     settings.videoGrabberListener = this; //calls onRecordingComplete
     
 	//pass in the settings and it will start the camera

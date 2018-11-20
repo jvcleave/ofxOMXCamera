@@ -20,8 +20,8 @@ void ofApp::setup()
     
 	consoleListener.setup(this);
 	
-	settings.width					= 1280;
-	settings.height				= 720;
+	settings.sensorWidth					= 1280;
+	settings.sensorHeight				= 720;
 	settings.enableTexture		= false;
 	
 	
@@ -30,9 +30,9 @@ void ofApp::setup()
 	filterCollection.setup();
     
     int step=200;
-    for(int i=0; i<settings.width; i+=step)
+    for(int i=0; i<settings.sensorWidth; i+=step)
     {
-        for(int j=0; j<settings.height; j+=step)
+        for(int j=0; j<settings.sensorHeight; j+=step)
         {
             ofRectangle grid(i, j, step, step);
             grids.push_back(grid);
