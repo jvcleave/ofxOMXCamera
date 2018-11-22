@@ -192,8 +192,7 @@ void OMXCameraController::resetValues()
     OMX_INIT_STRUCTURE(whiteBalanceConfig);
     whiteBalanceConfig.nPortIndex = OMX_ALL;
     
-    OMX_INIT_STRUCTURE(colorEnhancementConfig);
-    colorEnhancementConfig.nPortIndex = OMX_ALL;
+
     
     OMX_INIT_STRUCTURE(imagefilterConfig);
     imagefilterConfig.nPortIndex = OMX_ALL;
@@ -358,19 +357,8 @@ void OMXCameraController::setSaturation(int saturation_) //-100 to 100
     
 }
 
-OMX_ERRORTYPE OMXCameraController::setColorEnhancement(bool doColorEnhance, int U, int V)
-{
-    
-    if(!camera) return OMX_ErrorNone;
 
-    colorEnhancementConfig.bColorEnhancement = toOMXBool(doColorEnhance);
-    colorEnhancementConfig.nCustomizedU = U;
-    colorEnhancementConfig.nCustomizedV = V;
-    OMX_ERRORTYPE error = OMX_SetConfig(camera, OMX_IndexConfigCommonColorEnhancement, &colorEnhancementConfig);
-    OMX_TRACE(error);
-    return error;
-    
-}
+
 #pragma mark ISO
 
 int OMXCameraController::getISO() 
@@ -753,6 +741,7 @@ OMX_ERRORTYPE OMXCameraController::setFlickerCancellation(OMX_COMMONFLICKERCANCE
     
     return error;
 }
+
 
 #pragma mark DYNAMIC RANGE EXPANSION (DRE)
 
@@ -1507,4 +1496,101 @@ ofPixels& OMXCameraController::getPixels()
 ofTexture& OMXCameraController::getTextureReference()
 {
     return displayController.texture;
+}
+
+
+void OMXCameraController::setZeroShutterLag(bool value)
+{
+    OMX_CONFIG_ZEROSHUTTERLAGTYPE config;
+    OMX_INIT_STRUCTURE(config);
+    //requests that the camera should run preview using the full resolution sensor mode
+    config.bZeroShutterMode = OMX_FALSE;
+    //whether captures should then grab the last raw preview image and generate the capture based on that
+    config.bConcurrentCapture = toOMXBool(value);
+
+    OMX_ERRORTYPE error = OMX_SetConfig(camera, OMX_IndexParamCameraZeroShutterLag, &config);
+    OMX_TRACE(error);
+
+}
+
+#pragma mark UNSUPPORTED
+void OMXCameraController::enableAnnotation()
+{
+    OMX_CONFIG_BRCMANNOTATETYPE config;
+    OMX_INIT_STRUCTURE(config);
+    
+    OMX_ERRORTYPE error = OMX_GetConfig(camera, OMX_IndexConfigBrcmCameraAnnotate, &config);
+    OMX_TRACE(error);
+    
+    stringstream info;
+    
+    
+    info << "config.bEnable: " << config.bEnable << endl;
+    info << "bShowShutter: " << config.bShowShutter << endl;
+    info << "bShowAnalogGain: " << config.bShowAnalogGain << endl;
+    info << "bShowLens: " << config.bShowLens << endl;
+    info << "bShowCaf: " << config.bShowCaf << endl;
+    info << "bShowMotion: " << config.bShowMotion << endl;
+    info << "bShowFrameNum: " << config.bShowFrameNum << endl;
+    info << "bEnableBackground: " << config.bEnableBackground << endl;
+    info << "bCustomBackgroundColour: " << config.bCustomBackgroundColour << endl;
+    
+    ofLogNotice(__func__) << info.str();
+    config.bEnable = OMX_TRUE;
+#if 0
+    config.bShowShutter = OMX_TRUE;
+    config.bShowAnalogGain = OMX_TRUE;
+    config.bShowLens = OMX_TRUE;
+    config.bShowCaf = OMX_TRUE;
+    config.bShowMotion = OMX_TRUE;
+    config.bShowFrameNum = OMX_TRUE;
+    config.bEnableBackground = OMX_TRUE;
+    config.bCustomBackgroundColour = OMX_FALSE;
+    
+    OMX_U8 nBackgroundY;
+    OMX_U8 nBackgroundU;
+    OMX_U8 nBackgroundV;
+    OMX_U8 dummy1;
+    OMX_BOOL bCustomTextColour;
+    OMX_U8 nTextY;
+    OMX_U8 nTextU;
+    OMX_U8 nTextV;
+    OMX_U8 nTextSize;
+    OMX_U8 sText[OMX_BRCM_MAXANNOTATETEXTLEN];
+    OMX_BRCMANNOTATEJUSTIFYTYPE eJustify;
+    OMX_U32 nXOffset;
+    OMX_U32 nYOffset;
+#endif
+    error = OMX_GetConfig(camera, OMX_IndexConfigBrcmCameraAnnotate, &config);
+    OMX_TRACE(error);
+    
+}
+OMX_ERRORTYPE OMXCameraController::setColorDenoise(bool doColorDenoise)
+{
+    
+    if(!camera) return OMX_ErrorNone;
+    OMX_CONFIG_BOOLEANTYPE colorDenoise;
+    OMX_INIT_STRUCTURE(colorDenoise);
+    colorDenoise.bEnabled = toOMXBool(doColorDenoise);
+    OMX_ERRORTYPE error = OMX_SetConfig(camera, OMX_IndexConfigStillColourDenoiseEnable, &colorDenoise);
+    OMX_TRACE(error);
+    return error;
+    
+}
+
+OMX_ERRORTYPE OMXCameraController::setColorEnhancement(bool doColorEnhance, int U, int V)
+{
+    
+    if(!camera) return OMX_ErrorNone;
+    OMX_CONFIG_COLORENHANCEMENTTYPE colorEnhancementConfig;
+    
+    OMX_INIT_STRUCTURE(colorEnhancementConfig);
+    colorEnhancementConfig.nPortIndex = CAMERA_OUTPUT_PORT;
+    colorEnhancementConfig.bColorEnhancement = OMX_TRUE;
+    colorEnhancementConfig.nCustomizedU = U;
+    colorEnhancementConfig.nCustomizedV = V;
+    OMX_ERRORTYPE error = OMX_SetConfig(camera, OMX_IndexConfigCommonColorEnhancement, &colorEnhancementConfig);
+    OMX_TRACE(error);
+    return error;
+    
 }

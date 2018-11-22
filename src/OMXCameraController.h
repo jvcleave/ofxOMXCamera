@@ -50,7 +50,6 @@ public:
     OMX_CONFIG_BRIGHTNESSTYPE brightnessConfig;
     OMX_CONFIG_SATURATIONTYPE saturationConfig;
     OMX_CONFIG_WHITEBALCONTROLTYPE whiteBalanceConfig;
-    OMX_CONFIG_COLORENHANCEMENTTYPE colorEnhancementConfig;
     OMX_CONFIG_IMAGEFILTERTYPE imagefilterConfig;
     
     OMX_CONFIG_BOOLEANTYPE burstModeConfig;
@@ -130,6 +129,9 @@ public:
     int getRotation();
     
     
+    void enableAnnotation();
+    void setZeroShutterLag(bool value);
+    OMX_ERRORTYPE setColorDenoise(bool doColorDenoise);
     void setColorEnhancement(int u, int v);
     
     OMX_ERRORTYPE setImageFilter(OMX_IMAGEFILTERTYPE imageFilter_, vector<int> params);
