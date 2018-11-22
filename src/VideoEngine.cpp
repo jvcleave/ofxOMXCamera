@@ -52,6 +52,8 @@ OMX_ERRORTYPE VideoEngine::cameraEventHandlerCallback(OMX_HANDLETYPE camera, OMX
 
 bool VideoEngine::setup(ofxOMXCameraSettings* settings_, VideoEngineListener* listener_, EGLImageKHR eglImage_)
 {
+    OMX_ERRORTYPE error = OMX_ErrorNone;
+    
     bool success = false;
     settings = settings_;
     listener = listener_;
@@ -59,20 +61,37 @@ bool VideoEngine::setup(ofxOMXCameraSettings* settings_, VideoEngineListener* li
     
     ofLogVerbose(__func__) << "settings: " << settings->toString();
 
-    if(settings->enableTexture)
-    {
-        renderType      = OMX_EGL_RENDER; 
-        renderInputPort = EGL_RENDER_INPUT_PORT;
-    }else
-    {
-        renderType      = OMX_VIDEO_RENDER; 
-        renderInputPort = VIDEO_RENDER_INPUT_PORT;
-    }
-    
-    ofLogVerbose(__func__) << "renderType: " << renderType << " : " << renderInputPort;
 
-    OMX_ERRORTYPE error = OMX_ErrorNone;
+#pragma mark nullSink SETUP  
+   
+    OMX_CALLBACKTYPE nullSinkCallbacks;
+    nullSinkCallbacks.EventHandler       = &VideoEngine::nullEventHandler;
+    nullSinkCallbacks.EmptyBufferDone    = &VideoEngine::nullEmptyBufferDone;
+    nullSinkCallbacks.FillBufferDone     = &VideoEngine::nullFillBufferDone;
     
+    error =OMX_GetHandle(&nullSink, OMX_NULL_SINK, this , &nullSinkCallbacks);
+    OMX_TRACE(error);
+    
+    error = DisableAllPortsForComponent(&nullSink);
+    OMX_TRACE(error);
+    
+#pragma mark imageFX SETUP  
+  
+    OMX_CALLBACKTYPE imageFXCallbacks;
+    imageFXCallbacks.EventHandler       = &VideoEngine::nullEventHandler;
+    imageFXCallbacks.EmptyBufferDone    = &VideoEngine::nullEmptyBufferDone;
+    imageFXCallbacks.FillBufferDone     = &VideoEngine::nullFillBufferDone;
+    
+    error =OMX_GetHandle(&imageFX, OMX_IMAGE_FX, this , &imageFXCallbacks);
+    OMX_TRACE(error);
+    
+    
+    error = DisableAllPortsForComponent(&imageFX);
+    OMX_TRACE(error);
+    
+    
+#pragma mark ENCODER SETUP  
+
     OMX_CALLBACKTYPE encoderCallbacks;
     encoderCallbacks.EventHandler       = &VideoEngine::nullEventHandler;
     encoderCallbacks.EmptyBufferDone    = &VideoEngine::nullEmptyBufferDone;
@@ -123,8 +142,20 @@ bool VideoEngine::setup(ofxOMXCameraSettings* settings_, VideoEngineListener* li
     error = OMX_GetParameter(encoder, OMX_IndexParamVideoPortFormat, &encodingFormat);
     OMX_TRACE(error);
     
+#pragma mark RENDER SETUP  
+
+    if(settings->enableTexture)
+    {
+        renderType      = OMX_EGL_RENDER; 
+        renderInputPort = EGL_RENDER_INPUT_PORT;
+    }else
+    {
+        renderType      = OMX_VIDEO_RENDER; 
+        renderInputPort = VIDEO_RENDER_INPUT_PORT;
+    }
     
-    //Set up renderer
+    ofLogVerbose(__func__) << "renderType: " << renderType << " : " << renderInputPort;
+
     OMX_CALLBACKTYPE renderCallbacks;
     renderCallbacks.EventHandler    = &VideoEngine::nullEventHandler;
     
@@ -148,6 +179,9 @@ bool VideoEngine::setup(ofxOMXCameraSettings* settings_, VideoEngineListener* li
     error = DisableAllPortsForComponent(&render);
     OMX_TRACE(error);
     
+    
+#pragma mark SPLITTER SETUP  
+
     //Set up video splitter
     OMX_CALLBACKTYPE splitterCallbacks;
     splitterCallbacks.EventHandler    = &VideoEngine::nullEventHandler;
@@ -159,6 +193,9 @@ bool VideoEngine::setup(ofxOMXCameraSettings* settings_, VideoEngineListener* li
     error =DisableAllPortsForComponent(&splitter);
     OMX_TRACE(error);
     
+    
+#pragma mark CAMERA SETUP  
+
     OMX_CALLBACKTYPE cameraCallbacks;
     cameraCallbacks.EventHandler    = &VideoEngine::cameraEventHandlerCallback;
     cameraCallbacks.EmptyBufferDone = &VideoEngine::nullEmptyBufferDone;
@@ -223,7 +260,6 @@ bool VideoEngine::setup(ofxOMXCameraSettings* settings_, VideoEngineListener* li
             return false; 
         }
     }
-    //PrintPortDef(cameraOutputPortDefinition);
     
     //Enable Camera Output Port
     OMX_CONFIG_PORTBOOLEANTYPE cameraport;
@@ -277,7 +313,15 @@ OMX_ERRORTYPE VideoEngine::onCameraEventParamOrConfigChanged()
     error = SetComponentState(encoder, OMX_StateIdle);
     OMX_TRACE(error);
     
- 
+    
+    //Set imageFX to Idle
+    error = SetComponentState(imageFX, OMX_StateIdle);
+    OMX_TRACE(error);
+    
+    
+
+#pragma mark TUNNELS SETUP  
+
     //Create camera->splitter Tunnel
     error = OMX_SetupTunnel(camera, CAMERA_OUTPUT_PORT,
                             splitter, VIDEO_SPLITTER_INPUT_PORT);
@@ -294,6 +338,17 @@ OMX_ERRORTYPE VideoEngine::onCameraEventParamOrConfigChanged()
                             render, renderInputPort);
     OMX_TRACE(error);
 
+    
+    //Create splitter->imageFX Tunnel
+    error = OMX_SetupTunnel(splitter, VIDEO_SPLITTER_OUTPUT_PORT3,
+                            imageFX, IMAGE_FX_INPUT_PORT);
+    OMX_TRACE(error);
+    
+    error = OMX_SetupTunnel(imageFX, IMAGE_FX_OUTPUT_PORT,
+                            nullSink, NULL_SINK_INPUT_PORT);
+    OMX_TRACE(error);
+    
+    
     //Enable camera output port
     error = EnableComponentPort(camera, CAMERA_OUTPUT_PORT);
     OMX_TRACE(error);
@@ -308,6 +363,22 @@ OMX_ERRORTYPE VideoEngine::onCameraEventParamOrConfigChanged()
     
     //Enable splitter output2 port
     error = EnableComponentPort(splitter, VIDEO_SPLITTER_OUTPUT_PORT2);
+    OMX_TRACE(error);
+    
+    
+    //Enable splitter output2 port
+    error = EnableComponentPort(splitter, VIDEO_SPLITTER_OUTPUT_PORT3);
+    OMX_TRACE(error);
+    
+    
+    //Enable imageFX
+    error = EnableComponentPort(imageFX, IMAGE_FX_INPUT_PORT);
+    OMX_TRACE(error);
+    
+    error = EnableComponentPort(imageFX, IMAGE_FX_OUTPUT_PORT);
+    OMX_TRACE(error);
+    
+    error = EnableComponentPort(nullSink, NULL_SINK_INPUT_PORT);
     OMX_TRACE(error);
     
     if(settings->enableTexture)
@@ -330,7 +401,9 @@ OMX_ERRORTYPE VideoEngine::onCameraEventParamOrConfigChanged()
     error = OMX_SendCommand(encoder, OMX_CommandPortEnable, VIDEO_ENCODE_OUTPUT_PORT, NULL);
     OMX_TRACE(error);
     
-    // Configure encoder output buffer
+
+#pragma mark ENCODER BUFFERS SETUP  
+
     
     OMX_PARAM_PORTDEFINITIONTYPE encoderOutputPortDefinition;
     OMX_INIT_STRUCTURE(encoderOutputPortDefinition);
@@ -371,6 +444,17 @@ OMX_ERRORTYPE VideoEngine::onCameraEventParamOrConfigChanged()
     error = WaitForState(splitter, OMX_StateExecuting);
     OMX_TRACE(error);
     
+    
+    //Start imageFX
+    error = WaitForState(imageFX, OMX_StateExecuting);
+    OMX_TRACE(error);
+    
+    
+    //Start nullSink
+    //error = WaitForState(nullSink, OMX_StateExecuting);
+    //OMX_TRACE(error);
+    
+    
     //Start renderer
     error = WaitForState(render, OMX_StateExecuting);
     OMX_TRACE(error);
@@ -392,7 +476,23 @@ OMX_ERRORTYPE VideoEngine::onCameraEventParamOrConfigChanged()
             //ofSleepMillis(5000);
         }
     }
-    
+#pragma mark ENGINE START
+    ofLogNotice(__func__) << "camera CAMERA_OUTPUT_PORT: " << PrintPortDefinition(camera, CAMERA_OUTPUT_PORT);
+    ofLogNotice(__func__) << "splitter VIDEO_SPLITTER_INPUT_PORT: " << PrintPortDefinition(splitter, VIDEO_SPLITTER_INPUT_PORT);
+    ofLogNotice(__func__) << "splitter VIDEO_SPLITTER_OUTPUT_PORT1: " << PrintPortDefinition(splitter, VIDEO_SPLITTER_OUTPUT_PORT1);
+    ofLogNotice(__func__) << "splitter VIDEO_SPLITTER_OUTPUT_PORT2: " << PrintPortDefinition(splitter, VIDEO_SPLITTER_OUTPUT_PORT2);
+    ofLogNotice(__func__) << "splitter VIDEO_SPLITTER_OUTPUT_PORT3: " << PrintPortDefinition(splitter, VIDEO_SPLITTER_OUTPUT_PORT3);
+    ofLogNotice(__func__) << "imageFX IMAGE_FX_INPUT_PORT: " << PrintPortDefinition(imageFX, IMAGE_FX_INPUT_PORT);
+    ofLogNotice(__func__) << "imageFX IMAGE_FX_OUTPUT_PORT: " << PrintPortDefinition(imageFX, IMAGE_FX_OUTPUT_PORT);
+    ofLogNotice(__func__) << "nullSink NULL_SINK_INPUT_PORT: " << PrintPortDefinition(nullSink, NULL_SINK_INPUT_PORT);
+
+    ofLogNotice(__func__) << "render renderInputPort: " << PrintPortDefinition(render, renderInputPort);
+    if(settings->enableTexture)
+    {
+        ofLogNotice(__func__) << "render EGL_RENDER_OUTPUT_PORT: " << PrintPortDefinition(render, EGL_RENDER_OUTPUT_PORT);
+
+    }
+
     listener->onVideoEngineStart();
     return error;
 }

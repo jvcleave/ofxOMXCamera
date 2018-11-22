@@ -52,7 +52,9 @@ protected:
 	
 	OMX_HANDLETYPE splitter;
 	OMX_HANDLETYPE encoder;
-	
+    OMX_HANDLETYPE imageFX;
+    OMX_HANDLETYPE nullSink;
+
     EGLImageKHR eglImage;
 
 	bool didWriteFile;
