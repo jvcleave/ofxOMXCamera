@@ -11,7 +11,7 @@ void ofApp::setup()
 	settings.sensorWidth = 1280; //default 1280
 	settings.sensorHeight = 720; //default 720
 	settings.enableTexture = true; //default true
-
+    settings.enableExtraFilters = true;
 
 	//pass in the settings and it will start the camera
 	videoGrabber.setup(settings);
@@ -52,7 +52,7 @@ void ofApp::draw(){
 	//info <<	filterCollection.filterList << "\n";
 	
     info << endl;
-	info << "Press e to increment filter" << endl;
+	info << "Press 1 to increment filter" << endl;
 
 	
     ofDrawBitmapStringHighlight(info.str(), 100, 100, ofColor::black, ofColor::yellow);
@@ -69,7 +69,10 @@ void ofApp::keyPressed  (int key)
 	{
 		videoGrabber.setImageFilter(filterCollection.getNextFilter());
 	}
-	
+    if (key == '2')
+    {        
+        videoGrabber.setExtraImageFilter(GetImageFilterString(filterCollection.getNextFilter()));
+    }
 }
 
 void ofApp::onCharacterReceived(KeyListenerEventData& e)

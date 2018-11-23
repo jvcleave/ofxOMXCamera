@@ -45,6 +45,7 @@ public:
     
     OMX_ERRORTYPE onImageFXEventParamOrConfigChanged();
     OMX_HANDLETYPE render;
+    void setExtraImageFilter(string imageFilter);
 
 protected:
 	
@@ -88,6 +89,6 @@ protected:
 
     OMX_STRING renderType; 
     int renderInputPort;
-    
+
 	
 };

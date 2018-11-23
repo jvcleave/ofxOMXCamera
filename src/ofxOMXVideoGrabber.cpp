@@ -162,7 +162,17 @@ int ofxOMXVideoGrabber::getFrameRate()
 	return settings.framerate;
 }
 
-#pragma mark PIXELS/TEXTURE
+#pragma mark MISC
+void ofxOMXVideoGrabber::setExtraImageFilter(string imageFilter)
+{
+    if(settings.enableExtraFilters)
+    {
+        engine.setExtraImageFilter(imageFilter);
+    }else
+    {
+        ofLogError(__func__) << "enableExtraFilters IS FALSE";
+    }
+}
 
 
 #pragma mark RECORDING

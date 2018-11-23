@@ -289,8 +289,8 @@ bool VideoEngine::setup(ofxOMXCameraSettings* settings_, VideoEngineListener* li
         OMX_INIT_STRUCTURE(extra_buffers);
         extra_buffers.nU32 = 20;
         
-        //error = OMX_SetParameter(imageFX, OMX_IndexParamBrcmExtraBuffers, &extra_buffers);
-        //OMX_TRACE(error);
+        error = OMX_SetParameter(imageFX, OMX_IndexParamBrcmExtraBuffers, &extra_buffers);
+        OMX_TRACE(error);
     }
     
     
@@ -540,12 +540,7 @@ OMX_ERRORTYPE VideoEngine::onCameraEventParamOrConfigChanged()
     listener->onVideoEngineStart();
     
     /*
-    OMX_CONFIG_IMAGEFILTERTYPE imagefilterConfig;
-    OMX_INIT_STRUCTURE(imagefilterConfig);
-    imagefilterConfig.nPortIndex = IMAGE_FX_OUTPUT_PORT;
-    imagefilterConfig.eImageFilter = OMX_ImageFilterNone;
-    error = OMX_SetConfig(imageFX, OMX_IndexConfigCommonImageFilter, &imagefilterConfig);
-    OMX_TRACE(error);  
+    
      */
     
     
@@ -553,7 +548,23 @@ OMX_ERRORTYPE VideoEngine::onCameraEventParamOrConfigChanged()
     return error;
 }
 
-
+void VideoEngine::setExtraImageFilter(string imageFilter)
+{
+    if(settings->enableExtraFilters)
+    {
+        OMX_CONFIG_IMAGEFILTERTYPE imagefilterConfig;
+        OMX_INIT_STRUCTURE(imagefilterConfig);
+        imagefilterConfig.nPortIndex = IMAGE_FX_OUTPUT_PORT;
+        imagefilterConfig.eImageFilter = GetImageFilter(imageFilter);
+        
+        OMX_ERRORTYPE error = OMX_SetConfig(imageFX, OMX_IndexConfigCommonImageFilter, &imagefilterConfig);
+        OMX_TRACE(error); 
+    }else
+    {
+        ofLogError(__func__) << "EXTRA FILTERS DISABLED";
+    }
+    
+}
 
 OMX_ERRORTYPE VideoEngine::encoderFillBufferDone(OMX_HANDLETYPE encoder, OMX_PTR videoEngine, OMX_BUFFERHEADERTYPE* encoderOutputBuffer)
 {    
@@ -697,6 +708,13 @@ void VideoEngine::close()
     {
         error = DisableAllPortsForComponent(&imageFX);
         OMX_TRACE(error);
+        
+        OMX_PARAM_U32TYPE extra_buffers;
+        OMX_INIT_STRUCTURE(extra_buffers);
+        extra_buffers.nU32 = 0;
+        
+        error = OMX_SetParameter(imageFX, OMX_IndexParamBrcmExtraBuffers, &extra_buffers);
+        OMX_TRACE(error);
     }
     
     error = DisableAllPortsForComponent(&splitter);
@@ -708,8 +726,8 @@ void VideoEngine::close()
     error = DisableAllPortsForComponent(&render);
     OMX_TRACE(error);
     
+  
     
-        
     error = OMX_SendCommand(encoder, OMX_CommandFlush, OMX_ALL, NULL);
     OMX_TRACE(error);
     

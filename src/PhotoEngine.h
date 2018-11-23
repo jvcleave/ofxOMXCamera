@@ -110,27 +110,12 @@ public:
                          OMX_BUFFERHEADERTYPE* pBuffer){return OMX_ErrorNone;};
     
     
-    OMX_PARAM_PORTDEFINITIONTYPE previewPortConfig;
     
     static OMX_ERRORTYPE textureRenderFillBufferDone( OMX_HANDLETYPE, OMX_PTR, OMX_BUFFERHEADERTYPE*);
     int renderInputPort;
     OMX_BUFFERHEADERTYPE* eglBuffer;
     
-    OMX_CONFIG_PORTBOOLEANTYPE cameraStillOutputPortConfig;
-    OMX_PARAM_PORTDEFINITIONTYPE encoderOutputPortDefinition;
-    OMX_CALLBACKTYPE encoderCallbacks;
-    OMX_CALLBACKTYPE nullSinkCallbacks;
-    OMX_CALLBACKTYPE renderCallbacks;
 
-    OMX_CALLBACKTYPE cameraCallbacks;
-    
-    OMX_CONFIG_REQUESTCALLBACKTYPE cameraCallback;
-    OMX_FRAMESIZETYPE frameSizeConfig;
-    OMX_PARAM_SENSORMODETYPE sensorMode;
-    OMX_PARAM_PORTDEFINITIONTYPE stillPortConfig;
-    OMX_PARAM_U32TYPE device;
-
-    OMX_IMAGE_PARAM_QFACTORTYPE compressionConfig;
     void setJPEGCompression(int quality);
     
 };
