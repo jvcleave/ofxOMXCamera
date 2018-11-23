@@ -13,7 +13,7 @@ void ofApp::setup()
 	
 	settings.sensorWidth = 1280; //default 1280
 	settings.sensorHeight = 720; //default 720
-	settings.enableTexture = true; //default true
+	//settings.enableTexture = false; //default true
 
 
 	//pass in the settings and it will start the camera
@@ -40,6 +40,7 @@ void ofApp::update()
 //--------------------------------------------------------------
 void ofApp::draw(){
 
+    if(!videoGrabber.isTextureEnabled()) return;
 	//draws at camera resolution
 	videoGrabber.draw();
 	

@@ -857,26 +857,32 @@ string GetPortDefinitionString(OMX_PARAM_PORTDEFINITIONTYPE def)
     info << "bEnabled: " << def.bEnabled << endl;
     info << "bPopulated: " << def.bPopulated << endl;
     info << "bBuffersContiguous: " << def.bBuffersContiguous << endl;
-    
+
     if (def.eDomain == OMX_PortDomainVideo)
     {
-        info << "video nFrameWidth: " << def.format.video.nFrameWidth << endl;
-        info << "video nFrameHeight: " << def.format.video.nFrameHeight << endl;
-        info << "video nStride: " << def.format.video.nStride << endl;
-        info << "video nSliceHeight: " << def.format.video.nSliceHeight << endl;
-        info << "video xFramerate: " << (def.format.video.xFramerate >> 16) << endl;
-        info << "video eCompressionFormat: "<< GetVideoCodingString(def.format.video.eCompressionFormat) << endl;
-        info << "video eColorFormat: " << GetColorFormatString(def.format.video.eColorFormat) << endl;
+        info << "eDomain: " << "OMX_PortDomainVideo" << endl;
     }
     if (def.eDomain == OMX_PortDomainImage)
     {
-        info << "image nFrameWidth: " << def.format.image.nFrameWidth << endl;
-        info << "image nFrameHeight: " << def.format.image.nFrameHeight << endl;
-        info << "image nStride: " << def.format.image.nStride << endl;
-        info << "image nSliceHeight: " << def.format.image.nSliceHeight << endl;
-        info << "image coding type: " << GetImageCodingString(def.format.image.eCompressionFormat) << endl;
-        info << "image eColorFormat: " << GetColorFormatString(def.format.image.eColorFormat) << endl;
+        info << "eDomain: " << "OMX_PortDomainImage" << endl;
     }
+    
+    info << "video nFrameWidth: " << def.format.video.nFrameWidth << endl;
+    info << "video nFrameHeight: " << def.format.video.nFrameHeight << endl;
+    info << "video nStride: " << def.format.video.nStride << endl;
+    info << "video nSliceHeight: " << def.format.video.nSliceHeight << endl;
+    info << "video nBitrate: " << def.format.video.nBitrate << endl;
+    info << "video xFramerate: " << (def.format.video.xFramerate >> 16) << endl;
+    info << "video bFlagErrorConcealment: " <<  def.format.video.bFlagErrorConcealment << endl;
+    info << "video eCompressionFormat: "<< GetVideoCodingString(def.format.video.eCompressionFormat) << endl;
+    info << "video eColorFormat: " << GetColorFormatString(def.format.video.eColorFormat) << endl;
+    info << endl;
+    info << "image nFrameWidth: " << def.format.image.nFrameWidth << endl;
+    info << "image nFrameHeight: " << def.format.image.nFrameHeight << endl;
+    info << "image nStride: " << def.format.image.nStride << endl;
+    info << "image nSliceHeight: " << def.format.image.nSliceHeight << endl;
+    info << "image eCompressionFormat: " << GetImageCodingString(def.format.image.eCompressionFormat) << endl;
+    info << "image eColorFormat: " << GetColorFormatString(def.format.image.eColorFormat) << endl;
     return info.str();
 }
 static 
