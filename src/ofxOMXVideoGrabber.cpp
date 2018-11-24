@@ -165,12 +165,12 @@ int ofxOMXVideoGrabber::getFrameRate()
 #pragma mark MISC
 void ofxOMXVideoGrabber::setExtraImageFilter(string imageFilter)
 {
-    if(settings.enableExtraFilters)
+    if(settings.enableExtraVideoFilter)
     {
         engine.setExtraImageFilter(imageFilter);
     }else
     {
-        ofLogError(__func__) << "enableExtraFilters IS FALSE";
+        ofLogError(__func__) << "enableExtraVideoFilter IS FALSE";
     }
 }
 

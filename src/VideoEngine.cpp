@@ -60,6 +60,21 @@ bool VideoEngine::setup(ofxOMXCameraSettings* settings_, VideoEngineListener* li
     
     ofLogVerbose(__func__) << "settings: " << settings->toString();
 
+    if(settings->enableExtraVideoFilter)
+    {
+        OMX_CALLBACKTYPE imageFXCallbacks;
+        imageFXCallbacks.EventHandler       = &VideoEngine::nullEventHandler;
+        imageFXCallbacks.EmptyBufferDone    = &VideoEngine::nullEmptyBufferDone;
+        imageFXCallbacks.FillBufferDone     = &VideoEngine::nullFillBufferDone;
+        
+        error =OMX_GetHandle(&imageFX, OMX_IMAGE_FX, this , &imageFXCallbacks);
+        OMX_TRACE(error);
+        
+        
+        error = DisableAllPortsForComponent(&imageFX);
+        OMX_TRACE(error);
+    }
+
 
 #pragma mark ENCODER SETUP  
 
@@ -238,20 +253,9 @@ bool VideoEngine::setup(ofxOMXCameraSettings* settings_, VideoEngineListener* li
     
 #pragma mark imageFX SETUP  
     
-    if(settings->enableExtraFilters)
+    if(settings->enableExtraVideoFilter)
     {
-        OMX_CALLBACKTYPE imageFXCallbacks;
-        imageFXCallbacks.EventHandler       = &VideoEngine::nullEventHandler;
-        imageFXCallbacks.EmptyBufferDone    = &VideoEngine::nullEmptyBufferDone;
-        imageFXCallbacks.FillBufferDone     = &VideoEngine::nullFillBufferDone;
-        
-        error =OMX_GetHandle(&imageFX, OMX_IMAGE_FX, this , &imageFXCallbacks);
-        OMX_TRACE(error);
-        
-        
-        error = DisableAllPortsForComponent(&imageFX);
-        OMX_TRACE(error);
-        
+
         
         OMX_PARAM_PORTDEFINITIONTYPE imageFXPortDefinition;
         OMX_INIT_STRUCTURE(imageFXPortDefinition);
@@ -261,7 +265,7 @@ bool VideoEngine::setup(ofxOMXCameraSettings* settings_, VideoEngineListener* li
         OMX_TRACE(error);
         imageFXPortDefinition.eDomain = OMX_PortDomainVideo;
         imageFXPortDefinition.format.video = cameraOutputPortDefinition.format.video;
-        //imageFXPortDefinition.format.video.nSliceHeight = settings->sensorHeight;
+        imageFXPortDefinition.format.video.nSliceHeight = settings->sensorHeight;
         
         error =  OMX_SetParameter(imageFX, OMX_IndexParamPortDefinition, &imageFXPortDefinition);
         OMX_TRACE(error);
@@ -278,19 +282,13 @@ bool VideoEngine::setup(ofxOMXCameraSettings* settings_, VideoEngineListener* li
             ofLog() << "IMAGE_FX_OUTPUT_PORT PASSED";
         }
         
-        
-        
-        ofLogNotice(__func__) << "imageFX IMAGE_FX_INPUT_PORT: " << PrintPortDefinition(imageFX, IMAGE_FX_INPUT_PORT);
-        ofLogNotice(__func__) << "imageFX IMAGE_FX_OUTPUT_PORT: " << PrintPortDefinition(imageFX, IMAGE_FX_OUTPUT_PORT);
-        
-        
-        
+        /*
         OMX_PARAM_U32TYPE extra_buffers;
         OMX_INIT_STRUCTURE(extra_buffers);
-        extra_buffers.nU32 = 20;
+        extra_buffers.nU32 = 10;
         
         error = OMX_SetParameter(imageFX, OMX_IndexParamBrcmExtraBuffers, &extra_buffers);
-        OMX_TRACE(error);
+        OMX_TRACE(error);*/
     }
     
     
@@ -351,7 +349,7 @@ OMX_ERRORTYPE VideoEngine::onCameraEventParamOrConfigChanged()
     error = SetComponentState(encoder, OMX_StateIdle);
     OMX_TRACE(error);
     
-    if(settings->enableExtraFilters)
+    if(settings->enableExtraVideoFilter)
     {
         //Set imageFX to Idle
         error = WaitForState(imageFX, OMX_StateIdle);
@@ -364,7 +362,7 @@ OMX_ERRORTYPE VideoEngine::onCameraEventParamOrConfigChanged()
 
     
     
-    if(settings->enableExtraFilters)
+    if(settings->enableExtraVideoFilter)
     {
         //Create camera->imageFX Tunnel
         error = OMX_SetupTunnel(camera, CAMERA_OUTPUT_PORT,
@@ -416,7 +414,7 @@ OMX_ERRORTYPE VideoEngine::onCameraEventParamOrConfigChanged()
     
     
     
-    if(settings->enableExtraFilters)
+    if(settings->enableExtraVideoFilter)
     {
         //Enable imageFX
         error = EnableComponentPort(imageFX, IMAGE_FX_INPUT_PORT);
@@ -490,7 +488,7 @@ OMX_ERRORTYPE VideoEngine::onCameraEventParamOrConfigChanged()
     error = WaitForState(splitter, OMX_StateExecuting);
     OMX_TRACE(error);
     
-    if(settings->enableExtraFilters)
+    if(settings->enableExtraVideoFilter)
     {
         //Start imageFX
         error = WaitForState(imageFX, OMX_StateExecuting);
@@ -522,7 +520,7 @@ OMX_ERRORTYPE VideoEngine::onCameraEventParamOrConfigChanged()
 #pragma mark ENGINE START
 #if 0
     ofLogNotice(__func__) << "camera CAMERA_OUTPUT_PORT: " << PrintPortDefinition(camera, CAMERA_OUTPUT_PORT);
-    if(settings->enableExtraFilters)
+    if(settings->enableExtraVideoFilter)
     {
         ofLogNotice(__func__) << "imageFX IMAGE_FX_INPUT_PORT: " << PrintPortDefinition(imageFX, IMAGE_FX_INPUT_PORT);
         ofLogNotice(__func__) << "imageFX IMAGE_FX_OUTPUT_PORT: " << PrintPortDefinition(imageFX, IMAGE_FX_OUTPUT_PORT); 
@@ -537,6 +535,12 @@ OMX_ERRORTYPE VideoEngine::onCameraEventParamOrConfigChanged()
 
     }
 #endif
+    
+    if(settings->enableExtraVideoFilter)
+    {
+        imageFXController.setup(imageFX);
+    }
+    
     listener->onVideoEngineStart();
     
     /*
@@ -550,15 +554,12 @@ OMX_ERRORTYPE VideoEngine::onCameraEventParamOrConfigChanged()
 
 void VideoEngine::setExtraImageFilter(string imageFilter)
 {
-    if(settings->enableExtraFilters)
+    if(settings->enableExtraVideoFilter)
     {
-        OMX_CONFIG_IMAGEFILTERTYPE imagefilterConfig;
-        OMX_INIT_STRUCTURE(imagefilterConfig);
-        imagefilterConfig.nPortIndex = IMAGE_FX_OUTPUT_PORT;
-        imagefilterConfig.eImageFilter = GetImageFilter(imageFilter);
         
-        OMX_ERRORTYPE error = OMX_SetConfig(imageFX, OMX_IndexConfigCommonImageFilter, &imagefilterConfig);
-        OMX_TRACE(error); 
+        imageFXController.setImageFilter(imageFilter);
+        
+       
     }else
     {
         ofLogError(__func__) << "EXTRA FILTERS DISABLED";
@@ -704,7 +705,7 @@ void VideoEngine::close()
     error = DisableAllPortsForComponent(&camera);
     OMX_TRACE(error);
     
-    if(settings->enableExtraFilters)
+    if(settings->enableExtraVideoFilter)
     {
         error = DisableAllPortsForComponent(&imageFX);
         OMX_TRACE(error);
@@ -738,7 +739,7 @@ void VideoEngine::close()
     OMX_TRACE(error);
     
     
-    if(settings->enableExtraFilters)
+    if(settings->enableExtraVideoFilter)
     {
         error = OMX_SendCommand(imageFX, OMX_CommandFlush, OMX_ALL, NULL);
         OMX_TRACE(error);
@@ -763,7 +764,7 @@ void VideoEngine::close()
                             NULL, 0);
     OMX_TRACE(error);
     
-    if(settings->enableExtraFilters)
+    if(settings->enableExtraVideoFilter)
     {
         error = OMX_SetupTunnel(imageFX, IMAGE_FX_INPUT_PORT,
                                 NULL, 0);
@@ -793,7 +794,7 @@ void VideoEngine::close()
     error = OMX_FreeHandle(camera);
     OMX_TRACE(error);
     
-    if(settings->enableExtraFilters)
+    if(settings->enableExtraVideoFilter)
     {
         error = OMX_FreeHandle(imageFX);
         OMX_TRACE(error);

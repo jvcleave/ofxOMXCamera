@@ -51,67 +51,21 @@ public:
     
     EGLImageKHR eglImage;
     
-    static OMX_ERRORTYPE 
-    nullEmptyBufferDone(OMX_HANDLETYPE hComponent, 
-                        OMX_PTR pAppData, 
-                        OMX_BUFFERHEADERTYPE* pBuffer)
-                        {return OMX_ErrorNone;};
-    
-    static OMX_ERRORTYPE 
-    nullFillBufferDone(OMX_HANDLETYPE hComponent, 
-                       OMX_PTR pAppData, 
-                       OMX_BUFFERHEADERTYPE* pBuffer)
-                        {return OMX_ErrorNone;};
-    
-    static OMX_ERRORTYPE 
-    nullEventHandlerCallback(OMX_HANDLETYPE hComponent, 
-                                 OMX_PTR pAppData, 
-                                 OMX_EVENTTYPE eEvent, 
-                                 OMX_U32 nData1, 
-                                 OMX_U32 nData2, 
-                                 OMX_PTR pEventData)
-                                {return OMX_ErrorNone;};
+    static OMX_ERRORTYPE nullEmptyBufferDone(OMX_HANDLETYPE, OMX_PTR, OMX_BUFFERHEADERTYPE*) {return OMX_ErrorNone;};
+    static OMX_ERRORTYPE nullFillBufferDone(OMX_HANDLETYPE, OMX_PTR, OMX_BUFFERHEADERTYPE*) {return OMX_ErrorNone;};
+    static OMX_ERRORTYPE nullEventHandlerCallback(OMX_HANDLETYPE, OMX_PTR, OMX_EVENTTYPE, OMX_U32, OMX_U32, OMX_PTR){return OMX_ErrorNone;};
     
     
-    static OMX_ERRORTYPE 
-    cameraEventHandlerCallback(OMX_HANDLETYPE hComponent, 
-                               OMX_PTR pAppData,  
-                               OMX_EVENTTYPE eEvent, 
-                               OMX_U32 nData1, 
-                               OMX_U32 nData2, 
-                               OMX_PTR pEventData);
-    
-    static OMX_ERRORTYPE
-    cameraFillBufferDone(OMX_HANDLETYPE hComponent,
-                          OMX_PTR pAppData,
-                          OMX_BUFFERHEADERTYPE* pBuffer){return OMX_ErrorNone;};
-    
-    static OMX_ERRORTYPE 
-    cameraEmptyBufferDone(OMX_HANDLETYPE hComponent, 
-                        OMX_PTR pAppData, 
-                        OMX_BUFFERHEADERTYPE* pBuffer){return OMX_ErrorNone;};
+    static OMX_ERRORTYPE cameraEventHandlerCallback(OMX_HANDLETYPE, OMX_PTR, OMX_EVENTTYPE, OMX_U32, OMX_U32, OMX_PTR);
+    static OMX_ERRORTYPE cameraFillBufferDone(OMX_HANDLETYPE, OMX_PTR, OMX_BUFFERHEADERTYPE*){return OMX_ErrorNone;};
+    static OMX_ERRORTYPE cameraEmptyBufferDone(OMX_HANDLETYPE, OMX_PTR, OMX_BUFFERHEADERTYPE*){return OMX_ErrorNone;};
     
     
-    static OMX_ERRORTYPE 
-    encoderEventHandlerCallback(OMX_HANDLETYPE hComponent, 
-                               OMX_PTR pAppData,  
-                               OMX_EVENTTYPE eEvent, 
-                               OMX_U32 nData1, 
-                               OMX_U32 nData2, 
-                               OMX_PTR pEventData);
-    static OMX_ERRORTYPE
-    encoderFillBufferDone(OMX_HANDLETYPE hComponent,
-                          OMX_PTR pAppData,
-                          OMX_BUFFERHEADERTYPE* pBuffer);
+    static OMX_ERRORTYPE encoderEventHandlerCallback(OMX_HANDLETYPE, OMX_PTR, OMX_EVENTTYPE, OMX_U32, OMX_U32, OMX_PTR);
+    static OMX_ERRORTYPE encoderFillBufferDone(OMX_HANDLETYPE, OMX_PTR, OMX_BUFFERHEADERTYPE*);
+    static OMX_ERRORTYPE encoderEmptyBufferDone(OMX_HANDLETYPE, OMX_PTR, OMX_BUFFERHEADERTYPE*){return OMX_ErrorNone;};
     
-    static OMX_ERRORTYPE
-    encoderEmptyBufferDone(OMX_HANDLETYPE hComponent,
-                         OMX_PTR pAppData,
-                         OMX_BUFFERHEADERTYPE* pBuffer){return OMX_ErrorNone;};
-    
-    
-    
-    static OMX_ERRORTYPE textureRenderFillBufferDone( OMX_HANDLETYPE, OMX_PTR, OMX_BUFFERHEADERTYPE*);
+    static OMX_ERRORTYPE textureRenderFillBufferDone(OMX_HANDLETYPE, OMX_PTR, OMX_BUFFERHEADERTYPE*);
     int renderInputPort;
     OMX_BUFFERHEADERTYPE* eglBuffer;
     

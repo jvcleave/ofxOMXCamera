@@ -76,7 +76,7 @@ public:
     float zoomLevelNormalized;
     
     
-    bool enableExtraFilters;
+    bool enableExtraVideoFilter;
     
     ofxOMXPhotoGrabberListener* photoGrabberListener;
     ofxOMXVideoGrabberListener* videoGrabberListener;
@@ -145,7 +145,7 @@ public:
         zoomLevelNormalized = 0;
         displayAlpha = 255;
         displayLayer  = 0;
-        enableExtraFilters = false;
+        enableExtraVideoFilter = false;
     }
     
     
@@ -247,7 +247,7 @@ public:
         if(exists(json, "zoomLevelNormalized")) zoomLevelNormalized = json["zoomLevelNormalized"].get<float>();
         if(exists(json, "displayAlpha")) displayAlpha = json["displayAlpha"].get<int>();
         if(exists(json, "displayLayer")) displayLayer = json["displayLayer"].get<int>();
-        if(exists(json, "enableExtraFilters")) enableExtraFilters = json["enableExtraFilters"].get<bool>();
+        if(exists(json, "enableExtraVideoFilter")) enableExtraVideoFilter = json["enableExtraVideoFilter"].get<bool>();
 
         
         
@@ -326,7 +326,7 @@ public:
         result["isoNormalized"]=isoNormalized;
         result["shutterSpeedNormalized"]=shutterSpeedNormalized;
         result["zoomLevelNormalized"]=zoomLevelNormalized;
-        result["enableExtraFilters"]=enableExtraFilters;
+        result["enableExtraVideoFilter"]=enableExtraVideoFilter;
 
         
         return result;
@@ -392,7 +392,7 @@ public:
         info << "whiteBalance " << whiteBalance << endl;
         info << "whiteBalanceGainR " << whiteBalanceGainR << endl;
         info << "whiteBalanceGainB " << whiteBalanceGainB << endl;
-        info << "enableExtraFilters " << enableExtraFilters << endl;
+        info << "enableExtraVideoFilter " << enableExtraVideoFilter << endl;
 
         
         return info.str();

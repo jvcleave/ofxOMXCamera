@@ -11,7 +11,7 @@ void ofApp::setup()
 	settings.sensorWidth = 1280; //default 1280
 	settings.sensorHeight = 720; //default 720
 	settings.enableTexture = true; //default true
-    settings.enableExtraFilters = true;
+    settings.enableExtraVideoFilter = true;
 
 	//pass in the settings and it will start the camera
 	videoGrabber.setup(settings);
