@@ -59,6 +59,10 @@ void ofxOMXVideoGrabber::onVideoEngineStart()
     OMX_ERRORTYPE error = OMX_ErrorNone;
     camera = engine.camera;
     imageFXController.setup(camera, OMX_ALL);
+    if(settings.enableExtraVideoFilter)
+    {
+        extraImageFXController.setup(engine.imageFX, IMAGE_FX_OUTPUT_PORT);
+    }
     
     resetValues();
     
@@ -78,14 +82,7 @@ void ofxOMXVideoGrabber::onVideoEngineStart()
         displayController.setup(&settings, engine.render);
 
     }
-    
 
-    
-    if(settings.enableExtraVideoFilter)
-    {
-        extraImageFXController.setup(engine.imageFX, IMAGE_FX_OUTPUT_PORT);
-    }
-    
     ofAddListener(ofEvents().update, this, &ofxOMXVideoGrabber::onUpdate); 
     engine.isOpen = true;
     

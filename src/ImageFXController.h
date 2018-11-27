@@ -22,9 +22,7 @@ public:
     {
         component = component_;
         componentPort = componentPort_;
-        //setImageFilter(OMX_ImageFilterNone);
-        
-        
+ 
     }
     
     OMX_ERRORTYPE setImageFilter(string imageFilterName)
@@ -36,7 +34,11 @@ public:
     
     OMX_ERRORTYPE setImageFilter(OMX_IMAGEFILTERTYPE imageFilter)
     {
-        if(!component) return OMX_ErrorNotReady;
+        if(!component)
+        {
+            ofLogError(__func__) << "NO COMPONENT YET";
+            return OMX_ErrorNotReady;
+        }
         
         OMX_CONFIG_IMAGEFILTERTYPE imagefilterConfig;
         OMX_INIT_STRUCTURE(imagefilterConfig);
@@ -50,8 +52,17 @@ public:
     
     OMX_ERRORTYPE setImageFilter(OMX_IMAGEFILTERTYPE imageFilter, vector<int> params)
     {
-        if(!component) return OMX_ErrorNotReady;
+        TRACE_LINE
+        
+        ofLogNotice(__func__) << "FILTER: " << GetImageFilterString(imageFilter) << " PARAMS: " << params.size();
 
+        if(!component)
+        {
+            ofLogError(__func__) << "NO COMPONENT YET";
+            return OMX_ErrorNotReady;
+        }
+        
+        
         OMX_ERRORTYPE error  = setImageFilter(imageFilter);
         OMX_CONFIG_IMAGEFILTERPARAMSTYPE filtersParams;
         OMX_INIT_STRUCTURE(filtersParams);
@@ -71,7 +82,11 @@ public:
     OMX_ERRORTYPE setColorEnhancement(bool enable, int U, int V)
     {
         
-        if(!component) return OMX_ErrorNotReady;
+        if(!component)
+        {
+            ofLogError(__func__) << "NO COMPONENT YET";
+            return OMX_ErrorNotReady;
+        }
         OMX_CONFIG_COLORENHANCEMENTTYPE colorEnhancementConfig;
         
         OMX_INIT_STRUCTURE(colorEnhancementConfig);

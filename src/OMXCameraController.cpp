@@ -94,18 +94,23 @@ void OMXCameraController::applyAllSettings()
         setImageFilter(settings.imageFilter);
     }
     
+    ofLogNotice(__func__) << "settings.enableExtraVideoFilter: " << settings.enableExtraVideoFilter;
+
     if(settings.enableExtraVideoFilter)
     {
         if(settings.extraImageFilterParamConfig.name == settings.extraImageFilter)
         {
+
             vector<int> params = settings.extraImageFilterParamConfig.getParams();
+            ofLogNotice(__func__) << "MATCH: " << settings.extraImageFilter << " PARAMS: " << params.size();
+
             if(!params.empty())
             {
                 setExtraImageFilter(GetImageFilter(settings.extraImageFilter), params);
             }
         }else
         {
-            setImageFilter(settings.extraImageFilter);
+            setExtraImageFilter(settings.extraImageFilter);
         }
     }
     
@@ -1229,9 +1234,11 @@ OMX_ERRORTYPE OMXCameraController::setExtraImageFilter(string imageFilter)
 OMX_ERRORTYPE OMXCameraController::setExtraImageFilter(OMX_IMAGEFILTERTYPE imageFilter, vector<int>& params)
 {
     OMX_ERRORTYPE error = OMX_ErrorNotReady;
+    TRACE_LINE
     
     if(settings.enableExtraVideoFilter)
     {
+        TRACE_LINE
         
         error = extraImageFXController.setImageFilter(imageFilter, params);
         if(error == OMX_ErrorNone)
