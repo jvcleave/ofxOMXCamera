@@ -3,10 +3,11 @@
 
 struct FilterParam
 {
-    int index;
-    int min;
-    int max;
-    int defaultValue;
+    string label="";
+    int index=0;
+    int min=0;
+    int max=0;
+    int defaultValue=0;
 };
 
 class FilterParamConfig
@@ -17,11 +18,12 @@ public:
     
     FilterParamConfig()
     {
-        
+        name="";
     }
-    void addParam(int min_, int max_, int defaultValue_)
+    void addParam(string label, int min_, int max_, int defaultValue_)
     {
         FilterParam param;
+        param.label = label;
         param.index = params.size();
         param.min = min_;
         param.max = max_;
@@ -36,6 +38,7 @@ public:
         for(size_t i=0; i<params.size(); i++)
         {
             ofJson paramJSON;
+            paramJSON["label"] = params[i].label;
             paramJSON["index"] = params[i].index;
             paramJSON["min"] = params[i].min;
             paramJSON["max"] = params[i].max;
@@ -167,18 +170,19 @@ public:
         {
             case OMX_ImageFilterSolarize:
             {
-                filterParamConfig.addParam(0, 255, 128);
-                filterParamConfig.addParam(0, 255, 128);
-                filterParamConfig.addParam(0, 255, 128);
-                filterParamConfig.addParam(0, 255, 0);
+                //Linear mapping of [0,x0] to [0,y0>] and [x0,255] to [y1,y2]. Default is "128 128 128 0".
+                filterParamConfig.addParam("x1", 0, 255, 128);
+                filterParamConfig.addParam("x2", 0, 255, 128);
+                filterParamConfig.addParam("y1", 0, 255, 128);
+                filterParamConfig.addParam("y2", 0, 255, 0);
                 break;
             }
             case OMX_ImageFilterSharpen:
             {
                 //sz size of filter, either 1 or 2. str strength of filter. th threshold of filter. Default is "1 40 20".
-                filterParamConfig.addParam(1, 2, 1);
-                filterParamConfig.addParam(0, 255, 40);
-                filterParamConfig.addParam(0, 255, 20);                    
+                filterParamConfig.addParam("size", 1, 2, 1);
+                filterParamConfig.addParam("strength", 0, 255, 40);
+                filterParamConfig.addParam("threshold", 0, 255, 20);                    
                 break;
             }
             case OMX_ImageFilterFilm:
@@ -187,20 +191,20 @@ public:
                 /*
                  str strength of effect. u sets u to constant value. v sets v to constant value. Default is "24".
                  */
-                filterParamConfig.addParam(0, 255, 1);
-                filterParamConfig.addParam(0, 255, 24);
-                filterParamConfig.addParam(0, 255, 24);     
+                filterParamConfig.addParam("strength", 0, 255, 1);
+                filterParamConfig.addParam("u", 0, 255, 24);
+                filterParamConfig.addParam("v", 0, 255, 24);     
                 break;
             }
             case OMX_ImageFilterBlur:
             {
-                filterParamConfig.addParam(0, 2, 2);
+                filterParamConfig.addParam("strength", 0, 2, 2);
                 break;
             }
             case OMX_ImageFilterSaturation:
             {
                 //str strength of effect, in 8.8 fixed point format. u/v value differences from 128 are multiplied by str. Default is "272".
-                filterParamConfig.addParam(0, 1024, 272);
+                filterParamConfig.addParam("strength", 0, 1024, 272);
                 break;
             }
             default:
