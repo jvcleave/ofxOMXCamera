@@ -12,7 +12,6 @@
 #include "ofAppEGLWindow.h"
 #include "ofxOMXCameraSettings.h"
 #include "DisplayController.h"
-#include "ImageFXController.h"
 
 class VideoEngineListener
 {
@@ -46,12 +45,9 @@ public:
     
     OMX_ERRORTYPE onImageFXEventParamOrConfigChanged();
     OMX_HANDLETYPE render;
-    void setExtraImageFilter(string imageFilter);
-    
-    
-    ImageFXController imageFXController;
-    
-    
+    OMX_HANDLETYPE imageFX;
+
+
 
 protected:
 	
@@ -61,7 +57,6 @@ protected:
 	
 	OMX_HANDLETYPE splitter;
 	OMX_HANDLETYPE encoder;
-    OMX_HANDLETYPE imageFX;
     OMX_HANDLETYPE nullSink;
 
     EGLImageKHR eglImage;

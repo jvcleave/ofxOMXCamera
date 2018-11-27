@@ -50,7 +50,6 @@ public:
     void onVideoEngineStart() override;
     void onVideoEngineClose() override;
     
-    void setExtraImageFilter(string imageFilter);
 private:
     bool hasNewFrame;
     int updateFrameCounter;

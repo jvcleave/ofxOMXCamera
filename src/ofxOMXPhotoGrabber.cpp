@@ -43,7 +43,8 @@ void ofxOMXPhotoGrabber::setup(ofxOMXCameraSettings& settings_)
 void ofxOMXPhotoGrabber::onPhotoEngineStart(OMX_HANDLETYPE camera_)
 {
     camera = camera_;
-    
+    imageFXController.setup(camera, OMX_ALL);
+
     applyAllSettings();
     
     if(settings.enableTexture)
@@ -54,6 +55,8 @@ void ofxOMXPhotoGrabber::onPhotoEngineStart(OMX_HANDLETYPE camera_)
         displayController.setup(&settings, engine.render);
 
     }
+    
+
     engine.isOpen = true;
     
     if(listener)

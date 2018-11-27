@@ -536,10 +536,7 @@ OMX_ERRORTYPE VideoEngine::onCameraEventParamOrConfigChanged()
     }
 #endif
     
-    if(settings->enableExtraVideoFilter)
-    {
-        imageFXController.setup(imageFX);
-    }
+   
     
     listener->onVideoEngineStart();
     
@@ -552,20 +549,7 @@ OMX_ERRORTYPE VideoEngine::onCameraEventParamOrConfigChanged()
     return error;
 }
 
-void VideoEngine::setExtraImageFilter(string imageFilter)
-{
-    if(settings->enableExtraVideoFilter)
-    {
-        
-        imageFXController.setImageFilter(imageFilter);
-        
-       
-    }else
-    {
-        ofLogError(__func__) << "EXTRA FILTERS DISABLED";
-    }
-    
-}
+
 
 OMX_ERRORTYPE VideoEngine::encoderFillBufferDone(OMX_HANDLETYPE encoder, OMX_PTR videoEngine, OMX_BUFFERHEADERTYPE* encoderOutputBuffer)
 {    

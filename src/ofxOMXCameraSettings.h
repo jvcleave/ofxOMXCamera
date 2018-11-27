@@ -53,6 +53,7 @@ public:
     string mirror; 
     int rotation;
     string imageFilter;
+    string extraImageFilter;
     string exposurePreset;
     int evCompensation;
     string whiteBalance;
@@ -118,7 +119,6 @@ public:
         whiteBalance="Auto";
         whiteBalanceGainR = 0;
         whiteBalanceGainB = 0;
-        imageFilter="None";
         dreLevel=0;
         drawCropRectangle.set(0,0,0,0);
         sensorCropRectangle.set(0,0,100,100);
@@ -145,7 +145,10 @@ public:
         zoomLevelNormalized = 0;
         displayAlpha = 255;
         displayLayer  = 0;
+        imageFilter="None";
         enableExtraVideoFilter = false;
+        extraImageFilter="None";
+
     }
     
     
@@ -177,6 +180,7 @@ public:
         if(exists(json, "exposurePreset")) exposurePreset = json["exposurePreset"].get<string>();
         if(exists(json, "meteringType")) meteringType = json["meteringType"].get<string>();
         if(exists(json, "imageFilter")) imageFilter = json["imageFilter"].get<string>();
+        if(exists(json, "extraImageFilter")) extraImageFilter = json["extraImageFilter"].get<string>();
 
         
         
@@ -266,7 +270,7 @@ public:
         result["enableTexture"]=enableTexture;
         result["enablePixels"]=enablePixels;
         result["exposurePreset"]=exposurePreset;
-        result["imageFilter"]=imageFilter;
+
         result["meteringType"]=meteringType;
         result["autoISO"]=autoISO;
         result["ISO"]=ISO;
@@ -327,7 +331,8 @@ public:
         result["shutterSpeedNormalized"]=shutterSpeedNormalized;
         result["zoomLevelNormalized"]=zoomLevelNormalized;
         result["enableExtraVideoFilter"]=enableExtraVideoFilter;
-
+        result["imageFilter"]=imageFilter;
+        result["extraImageFilter"] = extraImageFilter;
         
         return result;
     }
@@ -350,7 +355,9 @@ public:
         info << "enableTexture " << enableTexture << endl;
         info << "enablePixels " << enablePixels << endl;
         info << "exposurePreset " << exposurePreset << endl;
-        info << "imageFilter " << imageFilter << endl;
+
+
+        
         info << "meteringType " << meteringType << endl;
         info << "autoISO " << autoISO << endl;
         info << "ISO " << ISO << endl;
@@ -393,7 +400,8 @@ public:
         info << "whiteBalanceGainR " << whiteBalanceGainR << endl;
         info << "whiteBalanceGainB " << whiteBalanceGainB << endl;
         info << "enableExtraVideoFilter " << enableExtraVideoFilter << endl;
-
+        info << "imageFilter " << imageFilter << endl;
+        info << "extraImageFilter " << extraImageFilter << endl;
         
         return info.str();
     }
