@@ -58,6 +58,8 @@ void ofxOMXVideoGrabber::onVideoEngineStart()
 
     OMX_ERRORTYPE error = OMX_ErrorNone;
     camera = engine.camera;
+    imageFXController.setup(camera, OMX_ALL);
+    
     resetValues();
     
     //checkBurstMode();
@@ -65,7 +67,7 @@ void ofxOMXVideoGrabber::onVideoEngineStart()
     OMX_TRACE(error);
     
     //checkFlickerCancellation();
-    
+
     applyAllSettings();
     
     if(settings.enableTexture)
@@ -75,6 +77,13 @@ void ofxOMXVideoGrabber::onVideoEngineStart()
     {
         displayController.setup(&settings, engine.render);
 
+    }
+    
+
+    
+    if(settings.enableExtraVideoFilter)
+    {
+        extraImageFXController.setup(engine.imageFX, IMAGE_FX_OUTPUT_PORT);
     }
     
     ofAddListener(ofEvents().update, this, &ofxOMXVideoGrabber::onUpdate); 
@@ -162,17 +171,7 @@ int ofxOMXVideoGrabber::getFrameRate()
 	return settings.framerate;
 }
 
-#pragma mark MISC
-void ofxOMXVideoGrabber::setExtraImageFilter(string imageFilter)
-{
-    if(settings.enableExtraVideoFilter)
-    {
-        engine.setExtraImageFilter(imageFilter);
-    }else
-    {
-        ofLogError(__func__) << "enableExtraVideoFilter IS FALSE";
-    }
-}
+
 
 
 #pragma mark RECORDING

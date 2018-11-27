@@ -82,7 +82,7 @@ void OMXCameraController::applyAllSettings()
     setWhiteBalanceGainB(settings.whiteBalanceGainB);
 
     setImageFilter(settings.imageFilter);
-    //setColorEnhancement(false);     //TODO implement
+
     setDRE(settings.dreLevel);
     setSensorCrop(settings.sensorCropRectangle);
     setZoomLevelNormalized(settings.zoomLevel);
@@ -167,10 +167,6 @@ int OMXCameraController::getLEDPin()
 
 void OMXCameraController::resetValues()
 {
-
-    
-    
-    
     OMX_INIT_STRUCTURE(exposurePresetConfig);
     exposurePresetConfig.nPortIndex = OMX_ALL;
     
@@ -191,11 +187,6 @@ void OMXCameraController::resetValues()
     
     OMX_INIT_STRUCTURE(whiteBalanceConfig);
     whiteBalanceConfig.nPortIndex = OMX_ALL;
-    
-
-    
-    OMX_INIT_STRUCTURE(imagefilterConfig);
-    imagefilterConfig.nPortIndex = OMX_ALL;
     
     OMX_INIT_STRUCTURE(sensorCropConfig);
     sensorCropConfig.nPortIndex = OMX_ALL;
@@ -1156,29 +1147,15 @@ OMX_ERRORTYPE OMXCameraController::rotateCounterClockwise()
 #pragma mark FILTERS
 OMX_ERRORTYPE OMXCameraController::setImageFilter(OMX_IMAGEFILTERTYPE imageFilter_, vector<int> params)
 {
-    OMX_ERRORTYPE error  = setImageFilter(imageFilter_);
-    OMX_CONFIG_IMAGEFILTERPARAMSTYPE filtersParams;
-    OMX_INIT_STRUCTURE(filtersParams);
-    filtersParams.nPortIndex = OMX_ALL;
-    filtersParams.eImageFilter = imageFilter_;
-    filtersParams.nNumParams = params.size();
-    for(int i=0; i<params.size(); i++)
-    {
-        filtersParams.nParams[i] = params[i];        
-    }
-    error =  OMX_SetConfig(camera, OMX_IndexConfigCommonImageFilterParameters, &filtersParams);
-    OMX_TRACE(error);
-    return error;
-    
+
+    return imageFXController.setImageFilter(imageFilter_, params);
 }
+
 OMX_ERRORTYPE OMXCameraController::setImageFilter(OMX_IMAGEFILTERTYPE imageFilter_)
 {
     if(!camera) return OMX_ErrorNone;
 
-    OMX_ERRORTYPE error;
-    
-    imagefilterConfig.eImageFilter = imageFilter_;
-    error = OMX_SetConfig(camera, OMX_IndexConfigCommonImageFilter, &imagefilterConfig);
+    OMX_ERRORTYPE error = imageFXController.setImageFilter(imageFilter_);
     OMX_TRACE(error);
     if(error == OMX_ErrorNone)
     {
@@ -1188,16 +1165,9 @@ OMX_ERRORTYPE OMXCameraController::setImageFilter(OMX_IMAGEFILTERTYPE imageFilte
 
 }
 
-void OMXCameraController::setColorEnhancement(int u, int v)
-{
-    OMX_CONFIG_COLORENHANCEMENTTYPE color;
-    OMX_INIT_STRUCTURE(color);
-    color.nPortIndex = OMX_ALL;
-    color.bColorEnhancement = OMX_FALSE;
-    color.nCustomizedU = u;
-    color.nCustomizedV = v;
-    OMX_ERRORTYPE error = OMX_SetConfig(camera, OMX_IndexConfigCommonColorEnhancement, &color);
-    OMX_TRACE(error);
+OMX_ERRORTYPE OMXCameraController::setColorEnhancement(bool doEnhance, int u, int v)
+{    
+    return extraImageFXController.setColorEnhancement(doEnhance, u, v);
 }
 
 
@@ -1209,28 +1179,40 @@ OMX_ERRORTYPE OMXCameraController::setImageFilter(string imageFilter_)
 
 string OMXCameraController::getImageFilter()
 {
-    return GetImageFilterString(imagefilterConfig.eImageFilter);
+    return settings.imageFilter;
 }
 
+OMX_ERRORTYPE OMXCameraController::setExtraImageFilter(string imageFilter)
+{
+    if(settings.enableExtraVideoFilter)
+    {
+        return extraImageFXController.setImageFilter(imageFilter);
+    }else
+    {
+        ofLogError(__func__) << "enableExtraVideoFilter IS FALSE";
+    }
+    return OMX_ErrorNotReady;
+}
 
-void OMXCameraController::applyImageFilter(OMX_IMAGEFILTERTYPE imageFilter)
+OMX_ERRORTYPE OMXCameraController::setExtraImageFilter(OMX_IMAGEFILTERTYPE imageFilter_, vector<int> params)
 {
     
-    if(!camera) return;
-    
-    imagefilterConfig.eImageFilter = imageFilter;
-    
-    OMX_ERRORTYPE error = OMX_SetConfig(camera, OMX_IndexConfigCommonImageFilter, &imagefilterConfig);
-    OMX_TRACE(error);
+    if(settings.enableExtraVideoFilter)
+    {
+        return extraImageFXController.setImageFilter(imageFilter_, params);
+    }else
+    {
+        ofLogError(__func__) << "enableExtraVideoFilter IS FALSE";
+    }
+    return OMX_ErrorNotReady;
     
 }
-
 
 #pragma mark EXPOSURE PRESETS
 
 OMX_ERRORTYPE OMXCameraController::setExposurePreset(OMX_EXPOSURECONTROLTYPE exposurePreset_)
 {
-    if(!camera) return OMX_ErrorNone;
+    if(!camera) return OMX_ErrorNotReady;
 
     exposurePresetConfig.eExposureControl = exposurePreset_;
     
@@ -1459,19 +1441,3 @@ OMX_ERRORTYPE OMXCameraController::setColorDenoise(bool doColorDenoise)
     
 }
 
-OMX_ERRORTYPE OMXCameraController::setColorEnhancement(bool doColorEnhance, int U, int V)
-{
-    
-    if(!camera) return OMX_ErrorNone;
-    OMX_CONFIG_COLORENHANCEMENTTYPE colorEnhancementConfig;
-    
-    OMX_INIT_STRUCTURE(colorEnhancementConfig);
-    colorEnhancementConfig.nPortIndex = CAMERA_OUTPUT_PORT;
-    colorEnhancementConfig.bColorEnhancement = OMX_TRUE;
-    colorEnhancementConfig.nCustomizedU = U;
-    colorEnhancementConfig.nCustomizedV = V;
-    OMX_ERRORTYPE error = OMX_SetConfig(camera, OMX_IndexConfigCommonColorEnhancement, &colorEnhancementConfig);
-    OMX_TRACE(error);
-    return error;
-    
-}
