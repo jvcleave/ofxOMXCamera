@@ -81,8 +81,36 @@ void OMXCameraController::applyAllSettings()
     setWhiteBalanceGainR(settings.whiteBalanceGainR);
     setWhiteBalanceGainB(settings.whiteBalanceGainB);
 
-    setImageFilter(settings.imageFilter);
+    if(settings.imageFilterParamConfig.name == settings.imageFilter)
+    {
+        vector<int> params = settings.imageFilterParamConfig.getParams();
+        if(!params.empty())
+        {
+            setImageFilter(GetImageFilter(settings.imageFilter), params);
 
+        }
+    }else
+    {
+        setImageFilter(settings.imageFilter);
+    }
+    
+    if(settings.enableExtraVideoFilter)
+    {
+        if(settings.extraImageFilterParamConfig.name == settings.extraImageFilter)
+        {
+            vector<int> params = settings.extraImageFilterParamConfig.getParams();
+            if(!params.empty())
+            {
+                setExtraImageFilter(GetImageFilter(settings.extraImageFilter), params);
+            }
+        }else
+        {
+            setImageFilter(settings.extraImageFilter);
+        }
+    }
+    
+    
+    
     setDRE(settings.dreLevel);
     setSensorCrop(settings.sensorCropRectangle);
     setZoomLevelNormalized(settings.zoomLevel);
@@ -1145,36 +1173,10 @@ OMX_ERRORTYPE OMXCameraController::rotateCounterClockwise()
 
 
 #pragma mark FILTERS
-OMX_ERRORTYPE OMXCameraController::setImageFilter(OMX_IMAGEFILTERTYPE imageFilter_, vector<int> params)
+
+OMX_ERRORTYPE OMXCameraController::setImageFilter(string imageFilter)
 {
-
-    return imageFXController.setImageFilter(imageFilter_, params);
-}
-
-OMX_ERRORTYPE OMXCameraController::setImageFilter(OMX_IMAGEFILTERTYPE imageFilter_)
-{
-    if(!camera) return OMX_ErrorNone;
-
-    OMX_ERRORTYPE error = imageFXController.setImageFilter(imageFilter_);
-    OMX_TRACE(error);
-    if(error == OMX_ErrorNone)
-    {
-        settings.imageFilter = GetImageFilterString(imageFilter_);
-    }
-    return error;
-
-}
-
-OMX_ERRORTYPE OMXCameraController::setColorEnhancement(bool doEnhance, int u, int v)
-{    
-    return extraImageFXController.setColorEnhancement(doEnhance, u, v);
-}
-
-
-
-OMX_ERRORTYPE OMXCameraController::setImageFilter(string imageFilter_)
-{
-    return setImageFilter(GetImageFilter(imageFilter_));
+    return setImageFilter(GetImageFilter(imageFilter));
 }
 
 string OMXCameraController::getImageFilter()
@@ -1182,31 +1184,75 @@ string OMXCameraController::getImageFilter()
     return settings.imageFilter;
 }
 
-OMX_ERRORTYPE OMXCameraController::setExtraImageFilter(string imageFilter)
+OMX_ERRORTYPE OMXCameraController::setImageFilter(OMX_IMAGEFILTERTYPE imageFilter)
 {
-    if(settings.enableExtraVideoFilter)
+    if(!camera) return OMX_ErrorNone;
+    
+    OMX_ERRORTYPE error = imageFXController.setImageFilter(imageFilter);
+    OMX_TRACE(error);
+    if(error == OMX_ErrorNone)
     {
-        return extraImageFXController.setImageFilter(imageFilter);
-    }else
-    {
-        ofLogError(__func__) << "enableExtraVideoFilter IS FALSE";
+        settings.imageFilter = GetImageFilterString(imageFilter);
     }
-    return OMX_ErrorNotReady;
+    return error;
+    
 }
 
-OMX_ERRORTYPE OMXCameraController::setExtraImageFilter(OMX_IMAGEFILTERTYPE imageFilter_, vector<int> params)
+OMX_ERRORTYPE OMXCameraController::setImageFilter(OMX_IMAGEFILTERTYPE imageFilter, vector<int>& params)
 {
-    
+    OMX_ERRORTYPE error =  imageFXController.setImageFilter(imageFilter, params);
+    if(error == OMX_ErrorNone)
+    {
+        settings.imageFilter = GetImageFilterString(imageFilter);
+        settings.imageFilterParamConfig  = settings.getFilterParamConfig(imageFilter, params);
+    }
+    return error;
+}
+
+OMX_ERRORTYPE OMXCameraController::setExtraImageFilter(string imageFilter)
+{
+    OMX_ERRORTYPE error = OMX_ErrorNotReady;
     if(settings.enableExtraVideoFilter)
     {
-        return extraImageFXController.setImageFilter(imageFilter_, params);
+        error = extraImageFXController.setImageFilter(imageFilter);
+        if(error == OMX_ErrorNone)
+        {
+            settings.extraImageFilter = imageFilter;
+        }
     }else
     {
         ofLogError(__func__) << "enableExtraVideoFilter IS FALSE";
     }
-    return OMX_ErrorNotReady;
+    return error;
+}
+
+OMX_ERRORTYPE OMXCameraController::setExtraImageFilter(OMX_IMAGEFILTERTYPE imageFilter, vector<int>& params)
+{
+    OMX_ERRORTYPE error = OMX_ErrorNotReady;
+    
+    if(settings.enableExtraVideoFilter)
+    {
+        
+        error = extraImageFXController.setImageFilter(imageFilter, params);
+        if(error == OMX_ErrorNone)
+        {
+            settings.extraImageFilter = GetImageFilterString(imageFilter);
+            settings.extraImageFilterParamConfig  = settings.getFilterParamConfig(imageFilter, params);
+        }
+    }else
+    {
+        ofLogError(__func__) << "enableExtraVideoFilter IS FALSE";
+    }
+    return error;
     
 }
+
+
+OMX_ERRORTYPE OMXCameraController::setColorEnhancement(bool doEnhance, int u, int v)
+{    
+    return extraImageFXController.setColorEnhancement(doEnhance, u, v);
+}
+
 
 #pragma mark EXPOSURE PRESETS
 

@@ -1,6 +1,6 @@
 #pragma once
 
-//#include "ofMain.h"
+#include "OMX_Maps.h"
 
 #define MEGABYTE_IN_BITS 8388608
 
@@ -19,6 +19,92 @@ class ofxOMXVideoGrabberListener
 public:
     virtual void onRecordingComplete(string filePath)=0;
 };
+
+
+struct FilterParam
+{
+    string label="";
+    int index=0;
+    int min=0;
+    int max=0;
+    int defaultValue=0;
+};
+
+class FilterParamConfig
+{
+public:
+    string name;
+    vector<FilterParam> params;
+    
+    FilterParamConfig()
+    {
+        name="";
+    }
+    void addParam(string label, int min, int max, int defaultValue)
+    {
+        FilterParam param;
+        param.label = label;
+        param.index = params.size();
+        param.min = min;
+        param.max = max;
+        param.defaultValue = defaultValue;
+        params.push_back(param);
+    }
+    vector<int> getParams()
+    {
+        vector<int> result;
+        for(size_t i=0; i<params.size(); i++)
+        {
+            result.push_back(params[i].defaultValue);
+        }
+        return result;
+    }
+    
+    void fromJSON(ofJson& json)
+    {
+        TRACE_LINE
+        ofLogNotice(__func__) << json.dump();
+
+        name = json["name"];
+        ofJson paramsJSON = json["params"];
+        
+        ofLog() << "paramsJSON.size(): " << paramsJSON.size();
+        params.resize(paramsJSON.size());
+        
+        for (auto itr : paramsJSON) 
+        {
+            FilterParam param;
+            param.label = itr["label"];
+            param.index = itr["index"];
+            param.min = itr["max"];
+            param.max = itr["min"];
+            param.defaultValue = itr["defaultValue"];
+            
+            params[param.index] = param;
+            
+            //ofLogNotice(__func__) << "param" << param.toJSON().dump();
+
+        }
+    }
+    ofJson toJSON()
+    {
+        ofJson json;
+        json["name"]=name;
+        
+        for(size_t i=0; i<params.size(); i++)
+        {
+            ofJson paramJSON;
+            paramJSON["label"] = params[i].label;
+            paramJSON["index"] = params[i].index;
+            paramJSON["min"] = params[i].min;
+            paramJSON["max"] = params[i].max;
+            paramJSON["defaultValue"] = params[i].defaultValue;
+            json["params"][i]=paramJSON; 
+        }
+        return json;
+    }
+};
+
 
 class ofxOMXCameraSettings
 {
@@ -78,10 +164,13 @@ public:
     
     
     bool enableExtraVideoFilter;
-    
+    FilterParamConfig imageFilterParamConfig;
+    FilterParamConfig extraImageFilterParamConfig;
+
     ofxOMXPhotoGrabberListener* photoGrabberListener;
     ofxOMXVideoGrabberListener* videoGrabberListener;
-    
+    vector<FilterParamConfig> filterParamConfigs;
+
     
   
     int displayAlpha;
@@ -91,8 +180,20 @@ public:
         photoGrabberListener = NULL;
         videoGrabberListener = NULL;
         OMX_Init();
-        OMX_Maps::getInstance(); 
         resetValues();
+        for (auto& it : OMX_Maps::getInstance().imageFilters)
+        {            
+            FilterParamConfig filterParamConfig = createFilterParamConfig(it.second);
+            if(!filterParamConfig.params.empty())
+            {
+                filterParamConfigs.push_back(filterParamConfig);
+                
+                ofLogNotice(__func__) << filterParamConfig.name << " HAS " << filterParamConfig.params.size() << " PARAMS";
+            }
+        }
+        
+        ofJson test  = getFilterParamConfigJson();
+        
 	}
 	
     void resetValues()
@@ -129,7 +230,7 @@ public:
         mirror="None";
         doDisableSoftwareSharpen = false;
         doDisableSoftwareSaturation = false;
-        LED = true;
+        LED = false;
         stillPreviewWidth = 640;
         stillPreviewHeight = 480;
         stillQuality = 100;
@@ -148,10 +249,88 @@ public:
         imageFilter="None";
         enableExtraVideoFilter = false;
         extraImageFilter="None";
-
     }
     
     
+    FilterParamConfig getFilterParamConfig(OMX_IMAGEFILTERTYPE imageFilter, vector<int>& params)
+    {
+        FilterParamConfig filterParamConfig = createFilterParamConfig(imageFilter);
+        for(size_t i=0; i<params.size(); i++)
+        {
+            filterParamConfig.params[i].defaultValue = params[i];
+            
+        }
+        ofJson json = filterParamConfig.toJSON();
+        ofLogNotice(__func__) << json.dump();
+        return filterParamConfig;
+    }
+    FilterParamConfig createFilterParamConfig(OMX_IMAGEFILTERTYPE imageFilter)
+    {
+        FilterParamConfig filterParamConfig;
+        filterParamConfig.name = GetImageFilterString(imageFilter);
+        
+        switch (imageFilter) 
+        {
+            case OMX_ImageFilterSolarize:
+            {
+                //Linear mapping of [0,x0] to [0,y0>] and [x0,255] to [y1,y2]. Default is "128 128 128 0".
+                filterParamConfig.addParam("x1", 0, 255, 128);
+                filterParamConfig.addParam("x2", 0, 255, 128);
+                filterParamConfig.addParam("y1", 0, 255, 128);
+                filterParamConfig.addParam("y2", 0, 255, 0);
+                break;
+            }
+            case OMX_ImageFilterSharpen:
+            {
+                //sz size of filter, either 1 or 2. str strength of filter. th threshold of filter. Default is "1 40 20".
+                filterParamConfig.addParam("size", 1, 2, 1);
+                filterParamConfig.addParam("strength", 0, 255, 40);
+                filterParamConfig.addParam("threshold", 0, 255, 20);                    
+                break;
+            }
+            case OMX_ImageFilterFilm:
+            {
+                
+                /*
+                 str strength of effect. u sets u to constant value. v sets v to constant value. Default is "24".
+                 */
+                filterParamConfig.addParam("strength", 0, 255, 1);
+                filterParamConfig.addParam("u", 0, 255, 24);
+                filterParamConfig.addParam("v", 0, 255, 24);     
+                break;
+            }
+            case OMX_ImageFilterBlur:
+            {
+                filterParamConfig.addParam("strength", 0, 2, 2);
+                break;
+            }
+            case OMX_ImageFilterSaturation:
+            {
+                //str strength of effect, in 8.8 fixed point format. u/v value differences from 128 are multiplied by str. Default is "272".
+                filterParamConfig.addParam("strength", 0, 1024, 272);
+                break;
+            }
+            default:
+            {
+                break;
+            }
+        }
+        return filterParamConfig;
+    }    
+    
+    ofJson getFilterParamConfigJson()
+    {
+        ofJson json;
+        for(size_t i=0; i<filterParamConfigs.size(); i++)
+        {
+            ofJson filterParamConfigJSON = filterParamConfigs[i].toJSON();
+            json["filterParamConfigs"][i] = filterParamConfigJSON;   
+        }
+        
+        ofLogNotice(__func__) << json.dump();
+        
+        return json;
+    }
 
     
     
@@ -181,6 +360,8 @@ public:
         if(exists(json, "meteringType")) meteringType = json["meteringType"].get<string>();
         if(exists(json, "imageFilter")) imageFilter = json["imageFilter"].get<string>();
         if(exists(json, "extraImageFilter")) extraImageFilter = json["extraImageFilter"].get<string>();
+        if(exists(json, "imageFilterParamConfig")) imageFilterParamConfig.fromJSON(json["imageFilterParamConfig"]);
+        if(exists(json, "extraImageFilterParamConfig")) extraImageFilterParamConfig.fromJSON(json["extraImageFilterParamConfig"]);
 
         
         
@@ -333,6 +514,9 @@ public:
         result["enableExtraVideoFilter"]=enableExtraVideoFilter;
         result["imageFilter"]=imageFilter;
         result["extraImageFilter"] = extraImageFilter;
+        result["imageFilterParamConfig"] = imageFilterParamConfig.toJSON();
+        result["extraImageFilterParamConfig"] = extraImageFilterParamConfig.toJSON();
+
         
         return result;
     }

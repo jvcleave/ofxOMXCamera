@@ -141,13 +141,13 @@ public:
     ImageFXController extraImageFXController;
     
     OMX_ERRORTYPE setColorEnhancement(bool doEnhance, int u, int v);
-    OMX_ERRORTYPE setImageFilter(OMX_IMAGEFILTERTYPE imageFilter_, vector<int> params);
+    OMX_ERRORTYPE setImageFilter(OMX_IMAGEFILTERTYPE imageFilter_, vector<int>& params);
     OMX_ERRORTYPE setImageFilter(OMX_IMAGEFILTERTYPE);
     OMX_ERRORTYPE setImageFilter(string);
     string getImageFilter();
     
     OMX_ERRORTYPE setExtraImageFilter(string imageFilter);
-    OMX_ERRORTYPE setExtraImageFilter(OMX_IMAGEFILTERTYPE imageFilter_, vector<int> params);
+    OMX_ERRORTYPE setExtraImageFilter(OMX_IMAGEFILTERTYPE imageFilter_, vector<int>& params);
 
     
     OMX_ERRORTYPE setExposurePreset(OMX_EXPOSURECONTROLTYPE);
