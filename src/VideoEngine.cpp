@@ -8,6 +8,7 @@ VideoEngine::VideoEngine()
     stopRequested = false;     
     isStopping = false;
     isRecording = false;
+    didWriteFile = false;
     recordedFrameCounter = 0;
     listener = NULL;
     frameCounter = 0;
@@ -602,6 +603,19 @@ OMX_ERRORTYPE VideoEngine::encoderFillBufferDone(OMX_HANDLETYPE encoder, OMX_PTR
     return OMX_ErrorNone;
 }
 
+void VideoEngine::startRecording()
+{
+    OMX_ERRORTYPE error = OMX_ErrorNone;
+    isRecording = true;
+    
+    //Start encoder
+    error = SetComponentState(encoder, OMX_StateExecuting);
+    OMX_TRACE(error);
+    
+    error = OMX_FillThisBuffer(encoder, encoderOutputBuffer);
+    OMX_TRACE(error);
+}
+
 
 void VideoEngine::stopRecording()
 {
@@ -665,18 +679,7 @@ void VideoEngine::writeFile()
     
 }
 
-void VideoEngine::startRecording()
-{
-    OMX_ERRORTYPE error = OMX_ErrorNone;
-    isRecording = true;
-    
-    //Start encoder
-    error = SetComponentState(encoder, OMX_StateExecuting);
-    OMX_TRACE(error);
-    
-    error = OMX_FillThisBuffer(encoder, encoderOutputBuffer);
-    OMX_TRACE(error);
-}
+
 
 void VideoEngine::close()
 {
