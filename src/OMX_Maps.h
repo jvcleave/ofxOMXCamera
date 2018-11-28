@@ -1590,7 +1590,7 @@ OMX_ERRORTYPE WaitForState(OMX_HANDLETYPE component, OMX_STATETYPE state)
             }
             ofSleepMillis(20);
             numAttempts++;
-            ofLogNotice(__func__) << GetOMXStateString(state) << " ATTEMPT # " <<  numAttempts;
+            //ofLogNotice(__func__) << GetOMXStateString(state) << " ATTEMPT # " <<  numAttempts;
             if(numAttempts >= 10)
             {
                 ready = true;

@@ -46,6 +46,7 @@ public:
     OMX_ERRORTYPE onImageFXEventParamOrConfigChanged();
     OMX_HANDLETYPE render;
     OMX_HANDLETYPE imageFX;
+    OMX_ERRORTYPE setRecordingBitrate(float recordingBitrateMB_);
 
 
 
@@ -63,7 +64,6 @@ protected:
 
 	bool didWriteFile;
 	
-	int recordingBitRate;
 	
 	bool stopRequested;
 	bool isStopping;

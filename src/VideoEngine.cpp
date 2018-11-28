@@ -48,6 +48,40 @@ OMX_ERRORTYPE VideoEngine::cameraEventHandlerCallback(OMX_HANDLETYPE camera, OMX
     return OMX_ErrorNone;
 }
 
+OMX_ERRORTYPE VideoEngine::setRecordingBitrate(float recordingBitrateMB_)
+{
+    
+    
+    OMX_PARAM_PORTDEFINITIONTYPE encoderOutputPortDefinition;
+    OMX_INIT_STRUCTURE(encoderOutputPortDefinition);
+    encoderOutputPortDefinition.nPortIndex = VIDEO_ENCODE_OUTPUT_PORT;
+    OMX_ERRORTYPE error =OMX_GetParameter(encoder, OMX_IndexParamPortDefinition, &encoderOutputPortDefinition);
+    OMX_TRACE(error);
+    
+    
+    int recordingBitRate = MEGABYTE_IN_BITS * recordingBitrateMB_;
+    
+    
+    encoderOutputPortDefinition.format.video.nBitrate = recordingBitRate;
+    error = OMX_SetParameter(encoder, OMX_IndexParamPortDefinition, &encoderOutputPortDefinition);
+    OMX_TRACE(error);
+    if(error == OMX_ErrorNone)
+    {
+        settings->recordingBitrateMB = recordingBitrateMB_;
+
+    }
+    // Configure encoding bitrate
+    OMX_VIDEO_PARAM_BITRATETYPE encodingBitrate;
+    OMX_INIT_STRUCTURE(encodingBitrate);
+    encodingBitrate.eControlRate = OMX_Video_ControlRateVariable;
+    //encodingBitrate.eControlRate = OMX_Video_ControlRateConstant;
+    
+    encodingBitrate.nTargetBitrate = recordingBitRate;
+    encodingBitrate.nPortIndex = VIDEO_ENCODE_OUTPUT_PORT;
+    
+    error = OMX_SetParameter(encoder, OMX_IndexParamVideoBitrate, &encodingBitrate);
+    return error;
+}
 
 bool VideoEngine::setup(ofxOMXCameraSettings* settings_, VideoEngineListener* listener_, EGLImageKHR eglImage_)
 {
@@ -90,30 +124,10 @@ bool VideoEngine::setup(ofxOMXCameraSettings* settings_, VideoEngineListener* li
     OMX_TRACE(error);
     
     // Encoder input port definition is done automatically upon tunneling
-    OMX_PARAM_PORTDEFINITIONTYPE encoderOutputPortDefinition;
-    OMX_INIT_STRUCTURE(encoderOutputPortDefinition);
-    encoderOutputPortDefinition.nPortIndex = VIDEO_ENCODE_OUTPUT_PORT;
-    error =OMX_GetParameter(encoder, OMX_IndexParamPortDefinition, &encoderOutputPortDefinition);
-    OMX_TRACE(error);
     
     
-    recordingBitRate = MEGABYTE_IN_BITS * settings->recordingBitrateMB;
-    
-    
-    encoderOutputPortDefinition.format.video.nBitrate = recordingBitRate;
-    error = OMX_SetParameter(encoder, OMX_IndexParamPortDefinition, &encoderOutputPortDefinition);
-    OMX_TRACE(error);
-    
-    // Configure encoding bitrate
-    OMX_VIDEO_PARAM_BITRATETYPE encodingBitrate;
-    OMX_INIT_STRUCTURE(encodingBitrate);
-    encodingBitrate.eControlRate = OMX_Video_ControlRateVariable;
-    //encodingBitrate.eControlRate = OMX_Video_ControlRateConstant;
-    
-    encodingBitrate.nTargetBitrate = recordingBitRate;
-    encodingBitrate.nPortIndex = VIDEO_ENCODE_OUTPUT_PORT;
-    
-    error = OMX_SetParameter(encoder, OMX_IndexParamVideoBitrate, &encodingBitrate);
+    error = setRecordingBitrate(settings->recordingBitrateMB);
+
     OMX_TRACE(error);
     
     // Configure encoding format
@@ -539,13 +553,7 @@ OMX_ERRORTYPE VideoEngine::onCameraEventParamOrConfigChanged()
    
     
     listener->onVideoEngineStart();
-    
-    /*
-    
-     */
-    
-    
-    
+
     return error;
 }
 

@@ -64,6 +64,8 @@ void OMXCameraController::applyAllSettings()
         
         return;
     }
+    ofLogNotice(__func__)  << "START";
+
     ofLogNotice(__func__) << settings.toString();
     setExposurePreset(settings.exposurePreset); 
     setMeteringType(settings.meteringType);
@@ -94,15 +96,14 @@ void OMXCameraController::applyAllSettings()
         setImageFilter(settings.imageFilter);
     }
     
-    ofLogNotice(__func__) << "settings.enableExtraVideoFilter: " << settings.enableExtraVideoFilter;
-
+    //ofLogNotice(__func__) << "settings.enableExtraVideoFilter: " << settings.enableExtraVideoFilter;
     if(settings.enableExtraVideoFilter)
     {
         if(settings.extraImageFilterParamConfig.name == settings.extraImageFilter)
         {
 
             vector<int> params = settings.extraImageFilterParamConfig.getParams();
-            ofLogNotice(__func__) << "MATCH: " << settings.extraImageFilter << " PARAMS: " << params.size();
+            //ofLogNotice(__func__) << "MATCH: " << settings.extraImageFilter << " PARAMS: " << params.size();
 
             if(!params.empty())
             {
@@ -249,8 +250,6 @@ void OMXCameraController::resetValues()
     
     OMX_INIT_STRUCTURE(whiteBalanceGainsConfig);
     
-
-    ofLogNotice(__func__) << endl;
 }
 
 
@@ -896,7 +895,7 @@ OMX_ERRORTYPE OMXCameraController::setEvCompensation(int value)
 OMX_ERRORTYPE OMXCameraController::setWhiteBalance(OMX_WHITEBALCONTROLTYPE whiteBalance_)
 {    
     if(!camera) return OMX_ErrorNone;
-    ofLogNotice(__func__) << GetWhiteBalanceString(whiteBalance_);
+    //ofLogNotice(__func__) << GetWhiteBalanceString(whiteBalance_);
     
     whiteBalanceConfig.eWhiteBalControl = whiteBalance_;
     
@@ -1234,13 +1233,11 @@ OMX_ERRORTYPE OMXCameraController::setExtraImageFilter(string imageFilter)
 OMX_ERRORTYPE OMXCameraController::setExtraImageFilter(OMX_IMAGEFILTERTYPE imageFilter, vector<int>& params)
 {
     OMX_ERRORTYPE error = OMX_ErrorNotReady;
-    TRACE_LINE
     
     if(settings.enableExtraVideoFilter)
-    {
-        TRACE_LINE
-        
+    { 
         error = extraImageFXController.setImageFilter(imageFilter, params);
+        OMX_TRACE(error);
         if(error == OMX_ErrorNone)
         {
             settings.extraImageFilter = GetImageFilterString(imageFilter);

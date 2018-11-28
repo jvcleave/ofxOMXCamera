@@ -42,7 +42,7 @@ public:
     bool isRecording();
     void startRecording();
     void stopRecording();
-    
+    void setRecordingBitrate(float recordingBitrateMB_);
  
     //VideoEngineListener
     VideoEngine engine;

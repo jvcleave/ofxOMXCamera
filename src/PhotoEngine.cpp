@@ -3,7 +3,7 @@
 
 
 #pragma mark TEXTURE RENDER CALLBACKS
-OMX_ERRORTYPE PhotoEngine::textureRenderFillBufferDone(OMX_IN OMX_HANDLETYPE render, OMX_IN OMX_PTR photoEngine, OMX_IN OMX_BUFFERHEADERTYPE* pBuffer)
+OMX_ERRORTYPE PhotoEngine::textureRenderFillBufferDone(OMX_HANDLETYPE render, OMX_PTR photoEngine, OMX_BUFFERHEADERTYPE* pBuffer)
 {    
     return OMX_FillThisBuffer(render, pBuffer);
 }

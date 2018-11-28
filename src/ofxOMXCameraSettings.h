@@ -62,13 +62,9 @@ public:
     
     void fromJSON(ofJson& json)
     {
-        TRACE_LINE
-        ofLogNotice(__func__) << json.dump();
-
         name = json["name"];
         ofJson paramsJSON = json["params"];
         
-        ofLog() << "paramsJSON.size(): " << paramsJSON.size();
         params.resize(paramsJSON.size());
         
         for (auto itr : paramsJSON) 
@@ -82,8 +78,6 @@ public:
             
             params[param.index] = param;
             
-            //ofLogNotice(__func__) << "param" << param.toJSON().dump();
-
         }
     }
     ofJson toJSON()
@@ -188,7 +182,7 @@ public:
             {
                 filterParamConfigs.push_back(filterParamConfig);
                 
-                ofLogNotice(__func__) << filterParamConfig.name << " HAS " << filterParamConfig.params.size() << " PARAMS";
+                //ofLogNotice(__func__) << filterParamConfig.name << " HAS " << filterParamConfig.params.size() << " PARAMS";
             }
         }
         
@@ -261,7 +255,7 @@ public:
             
         }
         ofJson json = filterParamConfig.toJSON();
-        ofLogNotice(__func__) << json.dump();
+        //ofLogNotice(__func__) << json.dump();
         return filterParamConfig;
     }
     FilterParamConfig createFilterParamConfig(OMX_IMAGEFILTERTYPE imageFilter)
@@ -327,7 +321,7 @@ public:
             json["filterParamConfigs"][i] = filterParamConfigJSON;   
         }
         
-        ofLogNotice(__func__) << json.dump();
+        //ofLogNotice(__func__) << json.dump();
         
         return json;
     }

@@ -52,18 +52,15 @@ public:
     
     OMX_ERRORTYPE setImageFilter(OMX_IMAGEFILTERTYPE imageFilter, vector<int> params)
     {
-        TRACE_LINE
-        
-        ofLogNotice(__func__) << "FILTER: " << GetImageFilterString(imageFilter) << " PARAMS: " << params.size();
-
         if(!component)
         {
             ofLogError(__func__) << "NO COMPONENT YET";
             return OMX_ErrorNotReady;
         }
         
-        
         OMX_ERRORTYPE error  = setImageFilter(imageFilter);
+        OMX_TRACE(error);
+        
         OMX_CONFIG_IMAGEFILTERPARAMSTYPE filtersParams;
         OMX_INIT_STRUCTURE(filtersParams);
         filtersParams.nPortIndex = componentPort;
