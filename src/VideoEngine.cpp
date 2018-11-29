@@ -16,6 +16,8 @@ VideoEngine::VideoEngine()
     eglBuffer = NULL;
     renderType = OMX_VIDEO_RENDER; 
     renderInputPort = VIDEO_RENDER_INPUT_PORT;
+    
+
 }
 
 int VideoEngine::getFrameCounter()
@@ -49,38 +51,25 @@ OMX_ERRORTYPE VideoEngine::cameraEventHandlerCallback(OMX_HANDLETYPE camera, OMX
     return OMX_ErrorNone;
 }
 
+
+
+
+
+
 OMX_ERRORTYPE VideoEngine::setRecordingBitrate(float recordingBitrateMB_)
 {
+    OMX_VIDEO_CONFIG_BITRATETYPE bitrateConfig;
+    OMX_INIT_STRUCTURE(bitrateConfig);
+    bitrateConfig.nPortIndex = VIDEO_ENCODE_OUTPUT_PORT;
+    bitrateConfig.nEncodeBitrate = MEGABYTE_IN_BITS * recordingBitrateMB_;
     
-    
-    OMX_PARAM_PORTDEFINITIONTYPE encoderOutputPortDefinition;
-    OMX_INIT_STRUCTURE(encoderOutputPortDefinition);
-    encoderOutputPortDefinition.nPortIndex = VIDEO_ENCODE_OUTPUT_PORT;
-    OMX_ERRORTYPE error =OMX_GetParameter(encoder, OMX_IndexParamPortDefinition, &encoderOutputPortDefinition);
-    OMX_TRACE(error);
-    
-    
-    int recordingBitRate = MEGABYTE_IN_BITS * recordingBitrateMB_;
-    
-    
-    encoderOutputPortDefinition.format.video.nBitrate = recordingBitRate;
-    error = OMX_SetParameter(encoder, OMX_IndexParamPortDefinition, &encoderOutputPortDefinition);
+    OMX_ERRORTYPE error = OMX_SetConfig(encoder, OMX_IndexConfigVideoBitrate, &bitrateConfig);
     OMX_TRACE(error);
     if(error == OMX_ErrorNone)
     {
         settings->recordingBitrateMB = recordingBitrateMB_;
-
+        ofLogNotice(__func__) << "settings->recordingBitrateMB: " << settings->recordingBitrateMB;
     }
-    // Configure encoding bitrate
-    OMX_VIDEO_PARAM_BITRATETYPE encodingBitrate;
-    OMX_INIT_STRUCTURE(encodingBitrate);
-    encodingBitrate.eControlRate = OMX_Video_ControlRateVariable;
-    //encodingBitrate.eControlRate = OMX_Video_ControlRateConstant;
-    
-    encodingBitrate.nTargetBitrate = recordingBitRate;
-    encodingBitrate.nPortIndex = VIDEO_ENCODE_OUTPUT_PORT;
-    
-    error = OMX_SetParameter(encoder, OMX_IndexParamVideoBitrate, &encodingBitrate);
     return error;
 }
 
@@ -114,7 +103,7 @@ bool VideoEngine::setup(ofxOMXCameraSettings* settings_, VideoEngineListener* li
 #pragma mark ENCODER SETUP  
 
     OMX_CALLBACKTYPE encoderCallbacks;
-    encoderCallbacks.EventHandler       = &VideoEngine::nullEventHandler;
+    encoderCallbacks.EventHandler       = &VideoEngine::encoderEventHandlerCallback;
     encoderCallbacks.EmptyBufferDone    = &VideoEngine::nullEmptyBufferDone;
     encoderCallbacks.FillBufferDone     = &VideoEngine::encoderFillBufferDone;
     
@@ -127,8 +116,31 @@ bool VideoEngine::setup(ofxOMXCameraSettings* settings_, VideoEngineListener* li
     // Encoder input port definition is done automatically upon tunneling
     
     
-    error = setRecordingBitrate(settings->recordingBitrateMB);
 
+    OMX_PARAM_PORTDEFINITIONTYPE encoderOutputPortDefinition;
+    OMX_INIT_STRUCTURE(encoderOutputPortDefinition);
+    encoderOutputPortDefinition.nPortIndex = VIDEO_ENCODE_OUTPUT_PORT;
+    error =OMX_GetParameter(encoder, OMX_IndexParamPortDefinition, &encoderOutputPortDefinition);
+    OMX_TRACE(error);
+    
+    
+    int recordingBitRate = MEGABYTE_IN_BITS * settings->recordingBitrateMB;
+    
+    
+    encoderOutputPortDefinition.format.video.nBitrate = recordingBitRate;
+    error = OMX_SetParameter(encoder, OMX_IndexParamPortDefinition, &encoderOutputPortDefinition);
+    OMX_TRACE(error);
+
+    // Configure encoding bitrate
+    OMX_VIDEO_PARAM_BITRATETYPE encodingBitrate;
+    OMX_INIT_STRUCTURE(encodingBitrate);
+    encodingBitrate.eControlRate = OMX_Video_ControlRateVariable;
+    //encodingBitrate.eControlRate = OMX_Video_ControlRateConstant;
+    
+    encodingBitrate.nTargetBitrate = recordingBitRate;
+    encodingBitrate.nPortIndex = VIDEO_ENCODE_OUTPUT_PORT;
+    
+    error = OMX_SetParameter(encoder, OMX_IndexParamVideoBitrate, &encodingBitrate);
     OMX_TRACE(error);
     
     // Configure encoding format
@@ -476,6 +488,7 @@ OMX_ERRORTYPE VideoEngine::onCameraEventParamOrConfigChanged()
                                 NULL, 
                                 encoderOutputPortDefinition.nBufferSize);
     
+    
     OMX_TRACE(error);
     if(error != OMX_ErrorNone)
     {
@@ -558,7 +571,19 @@ OMX_ERRORTYPE VideoEngine::onCameraEventParamOrConfigChanged()
     return error;
 }
 
-
+OMX_ERRORTYPE VideoEngine::encoderEventHandlerCallback(OMX_HANDLETYPE encoder, OMX_PTR videoEngine,
+                                                       OMX_EVENTTYPE event, OMX_U32 nData1,
+                                                       OMX_U32 nData2, OMX_PTR pEventData)
+{
+    
+    ofLog() << "ENCODER: " << DebugEventHandlerString(encoder, event, nData1, nData2, pEventData); 
+    if(event == OMX_EventBufferFlag)
+    {
+        VideoEngine* engine = static_cast<VideoEngine*>(videoEngine);
+        //engine->writeFile();
+    }
+    return OMX_ErrorNone;
+}
 
 OMX_ERRORTYPE VideoEngine::encoderFillBufferDone(OMX_HANDLETYPE encoder, OMX_PTR videoEngine, OMX_BUFFERHEADERTYPE* encoderOutputBuffer)
 {    
@@ -672,6 +697,55 @@ void VideoEngine::writeFile()
 	}
     
     recordingFileBuffer.clear();
+    
+    if(settings->enableExtraVideoFilter)
+    {
+        error = OMX_SendCommand(imageFX, OMX_CommandFlush, OMX_ALL, NULL);
+        OMX_TRACE(error);
+    }
+    error = OMX_SendCommand(encoder, OMX_CommandFlush, OMX_ALL, NULL);
+    OMX_TRACE(error);
+    
+    error = OMX_SendCommand(camera, OMX_CommandFlush, OMX_ALL, NULL);
+    OMX_TRACE(error);
+    
+    error = OMX_SendCommand(splitter, OMX_CommandFlush, OMX_ALL, NULL);
+    OMX_TRACE(error);
+
+    
+    error = WaitForState(encoder, OMX_StateIdle);
+    OMX_TRACE(error);
+    
+    
+    error = OMX_FreeBuffer(encoder, VIDEO_ENCODE_OUTPUT_PORT, encoderOutputBuffer);
+    OMX_TRACE(error);
+     
+    
+    
+    //Enable encoder output port
+    error = OMX_SendCommand(encoder, OMX_CommandPortEnable, VIDEO_ENCODE_OUTPUT_PORT, NULL);
+    OMX_TRACE(error);
+    
+    
+    OMX_PARAM_PORTDEFINITIONTYPE encoderOutputPortDefinition;
+    OMX_INIT_STRUCTURE(encoderOutputPortDefinition);
+    encoderOutputPortDefinition.nPortIndex = VIDEO_ENCODE_OUTPUT_PORT;
+    error =OMX_GetParameter(encoder, OMX_IndexParamPortDefinition, &encoderOutputPortDefinition);
+    OMX_TRACE(error);
+    
+    
+    
+    error =  OMX_AllocateBuffer(encoder, 
+                                &encoderOutputBuffer, 
+                                VIDEO_ENCODE_OUTPUT_PORT, 
+                                NULL, 
+                                encoderOutputPortDefinition.nBufferSize);
+    
+    
+    error = WaitForState(encoder, OMX_StateExecuting);
+    OMX_TRACE(error);
+    
+    //*encoderOutputBuffer = *encoderOutputBufferCopy;
     isRecording = false;
     recordedFrameCounter = 0;
     stopRequested = false;

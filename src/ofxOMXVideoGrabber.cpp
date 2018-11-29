@@ -175,9 +175,9 @@ int ofxOMXVideoGrabber::getFrameRate()
 
 void ofxOMXVideoGrabber::setRecordingBitrate(float recordingBitrateMB)
 {
-    settings.recordingBitrateMB = recordingBitrateMB;
+    //settings.recordingBitrateMB = recordingBitrateMB;
     
-    //engine.setRecordingBitrate(recordingBitrateMB);
+    engine.setRecordingBitrate(recordingBitrateMB);
 }
 
 bool ofxOMXVideoGrabber::isRecording()
