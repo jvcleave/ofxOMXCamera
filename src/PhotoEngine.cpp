@@ -38,7 +38,7 @@ OMX_ERRORTYPE PhotoEngine::encoderFillBufferDone(OMX_HANDLETYPE encoder, OMX_PTR
         PhotoEngine* engine = static_cast<PhotoEngine*>(photoEngine);
         engine->recordingFileBuffer.append((const char*) encoderOutputBuffer->pBuffer + encoderOutputBuffer->nOffset, 
                                            encoderOutputBuffer->nFilledLen);
-        //ofLogVerbose(__func__) << engine->recordingFileBuffer.size();
+        ofLogVerbose(__func__) << engine->recordingFileBuffer.size();
         error = OMX_FillThisBuffer(encoder, encoderOutputBuffer);
         OMX_TRACE(error); 
     }else
@@ -490,6 +490,26 @@ void PhotoEngine::takePhoto()
     cameraStillOutputPortConfig.bEnabled = OMX_TRUE;
     error =OMX_SetParameter(camera, OMX_IndexConfigPortCapturing, &cameraStillOutputPortConfig);    
     OMX_TRACE(error);
+    
+    
+#if 1
+    ofLogNotice(__func__) << "camera CAMERA_STILL_OUTPUT_PORT: " << PrintPortDefinition(camera, CAMERA_STILL_OUTPUT_PORT);
+    /*if(imageFX)
+    {
+        ofLogNotice(__func__) << "imageFX IMAGE_FX_INPUT_PORT: " << PrintPortDefinition(imageFX, IMAGE_FX_INPUT_PORT);
+        ofLogNotice(__func__) << "imageFX IMAGE_FX_OUTPUT_PORT: " << PrintPortDefinition(imageFX, IMAGE_FX_OUTPUT_PORT); 
+    }
+    if(imageFXPreview)
+    {
+        ofLogNotice(__func__) << "imageFXPreview IMAGE_FX_INPUT_PORT: " << PrintPortDefinition(imageFXPreview, IMAGE_FX_INPUT_PORT);
+        ofLogNotice(__func__) << "imageFXPreview IMAGE_FX_OUTPUT_PORT: " << PrintPortDefinition(imageFXPreview, IMAGE_FX_OUTPUT_PORT); 
+    }*/
+    if(encoder)
+    {
+        ofLogNotice(__func__) << "encoder IMAGE_ENCODER_INPUT_PORT: " << PrintPortDefinition(encoder, IMAGE_ENCODER_INPUT_PORT);
+        ofLogNotice(__func__) << "encoder IMAGE_ENCODER_OUTPUT_PORT: " << PrintPortDefinition(encoder, IMAGE_ENCODER_OUTPUT_PORT); 
+    }
+#endif
     
     //Start capturing
     error = OMX_FillThisBuffer(encoder, encoderOutputBuffer);
