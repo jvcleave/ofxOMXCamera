@@ -100,60 +100,7 @@ bool VideoEngine::setup(ofxOMXCameraSettings* settings_, VideoEngineListener* li
     }
 
 
-#pragma mark ENCODER SETUP  
 
-    OMX_CALLBACKTYPE encoderCallbacks;
-    encoderCallbacks.EventHandler       = &VideoEngine::encoderEventHandlerCallback;
-    encoderCallbacks.EmptyBufferDone    = &VideoEngine::nullEmptyBufferDone;
-    encoderCallbacks.FillBufferDone     = &VideoEngine::encoderFillBufferDone;
-    
-    error =OMX_GetHandle(&encoder, OMX_VIDEO_ENCODER, this , &encoderCallbacks);
-    OMX_TRACE(error);
-    
-    error = DisableAllPortsForComponent(&encoder);
-    OMX_TRACE(error);
-    
-    // Encoder input port definition is done automatically upon tunneling
-    
-    
-
-    OMX_PARAM_PORTDEFINITIONTYPE encoderOutputPortDefinition;
-    OMX_INIT_STRUCTURE(encoderOutputPortDefinition);
-    encoderOutputPortDefinition.nPortIndex = VIDEO_ENCODE_OUTPUT_PORT;
-    error =OMX_GetParameter(encoder, OMX_IndexParamPortDefinition, &encoderOutputPortDefinition);
-    OMX_TRACE(error);
-    
-    
-    int recordingBitRate = MEGABYTE_IN_BITS * settings->recordingBitrateMB;
-    
-    
-    encoderOutputPortDefinition.format.video.nBitrate = recordingBitRate;
-    error = OMX_SetParameter(encoder, OMX_IndexParamPortDefinition, &encoderOutputPortDefinition);
-    OMX_TRACE(error);
-
-    // Configure encoding bitrate
-    OMX_VIDEO_PARAM_BITRATETYPE encodingBitrate;
-    OMX_INIT_STRUCTURE(encodingBitrate);
-    encodingBitrate.eControlRate = OMX_Video_ControlRateVariable;
-    //encodingBitrate.eControlRate = OMX_Video_ControlRateConstant;
-    
-    encodingBitrate.nTargetBitrate = recordingBitRate;
-    encodingBitrate.nPortIndex = VIDEO_ENCODE_OUTPUT_PORT;
-    
-    error = OMX_SetParameter(encoder, OMX_IndexParamVideoBitrate, &encodingBitrate);
-    OMX_TRACE(error);
-    
-    // Configure encoding format
-    OMX_VIDEO_PARAM_PORTFORMATTYPE encodingFormat;
-    OMX_INIT_STRUCTURE(encodingFormat);
-    encodingFormat.nPortIndex = VIDEO_ENCODE_OUTPUT_PORT;
-    encodingFormat.eCompressionFormat = OMX_VIDEO_CodingAVC;
-    
-    error = OMX_SetParameter(encoder, OMX_IndexParamVideoPortFormat, &encodingFormat);
-    OMX_TRACE(error);
-    
-    error = OMX_GetParameter(encoder, OMX_IndexParamVideoPortFormat, &encodingFormat);
-    OMX_TRACE(error);
     
 #pragma mark RENDER SETUP  
 
@@ -357,7 +304,6 @@ bool VideoEngine::setup(ofxOMXCameraSettings* settings_, VideoEngineListener* li
 
 
 
-
 OMX_ERRORTYPE VideoEngine::onCameraEventParamOrConfigChanged()
 {
     OMX_ERRORTYPE error;
@@ -372,9 +318,7 @@ OMX_ERRORTYPE VideoEngine::onCameraEventParamOrConfigChanged()
     error = SetComponentState(render, OMX_StateIdle);
     OMX_TRACE(error);
     
-    //Set encoder to Idle
-    error = SetComponentState(encoder, OMX_StateIdle);
-    OMX_TRACE(error);
+
     
     if(settings->enableExtraVideoFilter)
     {
@@ -417,10 +361,7 @@ OMX_ERRORTYPE VideoEngine::onCameraEventParamOrConfigChanged()
     OMX_TRACE(error);
     
     
-    // Create splitter->encoder Tunnel
-    error = OMX_SetupTunnel(splitter, VIDEO_SPLITTER_OUTPUT_PORT2,
-                            encoder, VIDEO_ENCODE_INPUT_PORT);
-    
+
    
     
     //Enable camera output port
@@ -435,9 +376,7 @@ OMX_ERRORTYPE VideoEngine::onCameraEventParamOrConfigChanged()
     error = EnableComponentPort(splitter, VIDEO_SPLITTER_OUTPUT_PORT1);
     OMX_TRACE(error);
     
-    //Enable splitter output2 port
-    error = EnableComponentPort(splitter, VIDEO_SPLITTER_OUTPUT_PORT2);
-    OMX_TRACE(error);
+
     
     
     
@@ -462,38 +401,6 @@ OMX_ERRORTYPE VideoEngine::onCameraEventParamOrConfigChanged()
     //Enable render input port
     error = EnableComponentPort(render, renderInputPort);
     OMX_TRACE(error);
-    
-    //Enable encoder input port
-    error = OMX_SendCommand(encoder, OMX_CommandPortEnable, VIDEO_ENCODE_INPUT_PORT, NULL);
-    OMX_TRACE(error);
-    
-    
-    //Enable encoder output port
-    error = OMX_SendCommand(encoder, OMX_CommandPortEnable, VIDEO_ENCODE_OUTPUT_PORT, NULL);
-    OMX_TRACE(error);
-    
-
-#pragma mark ENCODER BUFFERS SETUP  
-
-    
-    OMX_PARAM_PORTDEFINITIONTYPE encoderOutputPortDefinition;
-    OMX_INIT_STRUCTURE(encoderOutputPortDefinition);
-    encoderOutputPortDefinition.nPortIndex = VIDEO_ENCODE_OUTPUT_PORT;
-    error =OMX_GetParameter(encoder, OMX_IndexParamPortDefinition, &encoderOutputPortDefinition);
-    OMX_TRACE(error);
-    
-    error =  OMX_AllocateBuffer(encoder, 
-                                &encoderOutputBuffer, 
-                                VIDEO_ENCODE_OUTPUT_PORT, 
-                                NULL, 
-                                encoderOutputPortDefinition.nBufferSize);
-    
-    
-    OMX_TRACE(error);
-    if(error != OMX_ErrorNone)
-    {
-        ofLogError(__func__) << "UNABLE TO RECORD - MAY REQUIRE MORE GPU MEMORY";
-    }
     
     if(settings->enableTexture)
     {
@@ -628,10 +535,161 @@ OMX_ERRORTYPE VideoEngine::encoderFillBufferDone(OMX_HANDLETYPE encoder, OMX_PTR
     return OMX_ErrorNone;
 }
 
+void VideoEngine::createEncoder()
+{
+#pragma mark ENCODER SETUP  
+    
+    OMX_ERRORTYPE error;
+    
+    OMX_CALLBACKTYPE encoderCallbacks;
+    encoderCallbacks.EventHandler       = &VideoEngine::encoderEventHandlerCallback;
+    encoderCallbacks.EmptyBufferDone    = &VideoEngine::nullEmptyBufferDone;
+    encoderCallbacks.FillBufferDone     = &VideoEngine::encoderFillBufferDone;
+    
+    error =OMX_GetHandle(&encoder, OMX_VIDEO_ENCODER, this , &encoderCallbacks);
+    OMX_TRACE(error);
+    
+    error = DisableAllPortsForComponent(&encoder);
+    OMX_TRACE(error);
+    
+    // Encoder input port definition is done automatically upon tunneling
+    
+    
+    
+    OMX_PARAM_PORTDEFINITIONTYPE encoderOutputPortDefinition;
+    OMX_INIT_STRUCTURE(encoderOutputPortDefinition);
+    encoderOutputPortDefinition.nPortIndex = VIDEO_ENCODE_OUTPUT_PORT;
+    error =OMX_GetParameter(encoder, OMX_IndexParamPortDefinition, &encoderOutputPortDefinition);
+    OMX_TRACE(error);
+    
+    
+    int recordingBitRate = MEGABYTE_IN_BITS * settings->recordingBitrateMB;
+    
+    
+    encoderOutputPortDefinition.format.video.nBitrate = recordingBitRate;
+    error = OMX_SetParameter(encoder, OMX_IndexParamPortDefinition, &encoderOutputPortDefinition);
+    OMX_TRACE(error);
+    
+    // Configure encoding bitrate
+    OMX_VIDEO_PARAM_BITRATETYPE encodingBitrate;
+    OMX_INIT_STRUCTURE(encodingBitrate);
+    encodingBitrate.eControlRate = OMX_Video_ControlRateVariable;
+    //encodingBitrate.eControlRate = OMX_Video_ControlRateConstant;
+    
+    encodingBitrate.nTargetBitrate = recordingBitRate;
+    encodingBitrate.nPortIndex = VIDEO_ENCODE_OUTPUT_PORT;
+    
+    error = OMX_SetParameter(encoder, OMX_IndexParamVideoBitrate, &encodingBitrate);
+    OMX_TRACE(error);
+    
+    // Configure encoding format
+    OMX_VIDEO_PARAM_PORTFORMATTYPE encodingFormat;
+    OMX_INIT_STRUCTURE(encodingFormat);
+    encodingFormat.nPortIndex = VIDEO_ENCODE_OUTPUT_PORT;
+    encodingFormat.eCompressionFormat = OMX_VIDEO_CodingAVC;
+    
+    error = OMX_SetParameter(encoder, OMX_IndexParamVideoPortFormat, &encodingFormat);
+    OMX_TRACE(error);
+    
+    error = OMX_GetParameter(encoder, OMX_IndexParamVideoPortFormat, &encodingFormat);
+    OMX_TRACE(error);
+    
+    //Set encoder to Idle
+    error = SetComponentState(encoder, OMX_StateIdle);
+    OMX_TRACE(error);
+    
+    
+    //Set splitter to Idle
+    error = SetComponentState(splitter, OMX_StateIdle);
+    OMX_TRACE(error);
+    
+    // Create splitter->encoder Tunnel
+    error = OMX_SetupTunnel(splitter, VIDEO_SPLITTER_OUTPUT_PORT2,
+                            encoder, VIDEO_ENCODE_INPUT_PORT);
+    
+    OMX_TRACE(error);
+    //Enable splitter output2 port
+    error = EnableComponentPort(splitter, VIDEO_SPLITTER_OUTPUT_PORT2);
+    OMX_TRACE(error);
+    
+    //Enable encoder input port
+    
+    error = EnableComponentPort(encoder, VIDEO_ENCODE_INPUT_PORT);
+    OMX_TRACE(error);
+    
+    
+    //Enable encoder output port
+    error = EnableComponentPort(encoder, VIDEO_ENCODE_OUTPUT_PORT);
+    OMX_TRACE(error);
+    
+#pragma mark ENCODER BUFFERS SETUP  
+    
+    
+    //OMX_PARAM_PORTDEFINITIONTYPE encoderOutputPortDefinition;
+    //OMX_INIT_STRUCTURE(encoderOutputPortDefinition);
+    //encoderOutputPortDefinition.nPortIndex = VIDEO_ENCODE_OUTPUT_PORT;
+    error =OMX_GetParameter(encoder, OMX_IndexParamPortDefinition, &encoderOutputPortDefinition);
+    OMX_TRACE(error);
+    
+    error =  OMX_AllocateBuffer(encoder, 
+                                &encoderOutputBuffer, 
+                                VIDEO_ENCODE_OUTPUT_PORT, 
+                                NULL, 
+                                encoderOutputPortDefinition.nBufferSize);
+    
+    
+    OMX_TRACE(error);
+    if(error != OMX_ErrorNone)
+    {
+        ofLogError(__func__) << "UNABLE TO RECORD - MAY REQUIRE MORE GPU MEMORY";
+    }
+    TRACE_LINE
+    
+}
+void VideoEngine::destroyEncoder()
+{
+    if(!encoder) return;
+    OMX_ERRORTYPE error = OMX_ErrorNone;
+    
+    error = DisableAllPortsForComponent(&encoder);
+    OMX_TRACE(error);
+    
+    error = OMX_SendCommand(encoder, OMX_CommandFlush, OMX_ALL, NULL);
+    OMX_TRACE(error);
+    
+    error = OMX_FreeBuffer(encoder, VIDEO_ENCODE_OUTPUT_PORT, encoderOutputBuffer);
+    OMX_TRACE(error);
+    
+    
+    error = DisableComponentPort(splitter, VIDEO_SPLITTER_OUTPUT_PORT2);
+    OMX_TRACE(error);
+    
+    /*
+    error = OMX_SetupTunnel(splitter, VIDEO_SPLITTER_OUTPUT_PORT2,
+                            NULL, 0);*/
+    OMX_TRACE(error);
+    
+    error = OMX_SetupTunnel(encoder, VIDEO_ENCODE_INPUT_PORT,
+                            NULL, 0);
+    OMX_TRACE(error);
+    
+    error = OMX_FreeHandle(encoder);
+    OMX_TRACE(error);
+    encoder = NULL;
+    
+}
+
+
 void VideoEngine::startRecording()
 {
     OMX_ERRORTYPE error = OMX_ErrorNone;
     isRecording = true;
+    
+    createEncoder();
+    
+    error = SetComponentState(splitter, OMX_StateExecuting);
+    OMX_TRACE(error);
+    
     
     //Start encoder
     error = SetComponentState(encoder, OMX_StateExecuting);
@@ -698,54 +756,14 @@ void VideoEngine::writeFile()
     
     recordingFileBuffer.clear();
     
-    if(settings->enableExtraVideoFilter)
-    {
-        error = OMX_SendCommand(imageFX, OMX_CommandFlush, OMX_ALL, NULL);
-        OMX_TRACE(error);
-    }
-    error = OMX_SendCommand(encoder, OMX_CommandFlush, OMX_ALL, NULL);
+    error = WaitForState(splitter, OMX_StateIdle);
     OMX_TRACE(error);
     
-    error = OMX_SendCommand(camera, OMX_CommandFlush, OMX_ALL, NULL);
+    destroyEncoder();
+    
+    error = WaitForState(splitter, OMX_StateExecuting);
     OMX_TRACE(error);
     
-    error = OMX_SendCommand(splitter, OMX_CommandFlush, OMX_ALL, NULL);
-    OMX_TRACE(error);
-
-    
-    error = WaitForState(encoder, OMX_StateIdle);
-    OMX_TRACE(error);
-    
-    
-    error = OMX_FreeBuffer(encoder, VIDEO_ENCODE_OUTPUT_PORT, encoderOutputBuffer);
-    OMX_TRACE(error);
-     
-    
-    
-    //Enable encoder output port
-    error = OMX_SendCommand(encoder, OMX_CommandPortEnable, VIDEO_ENCODE_OUTPUT_PORT, NULL);
-    OMX_TRACE(error);
-    
-    
-    OMX_PARAM_PORTDEFINITIONTYPE encoderOutputPortDefinition;
-    OMX_INIT_STRUCTURE(encoderOutputPortDefinition);
-    encoderOutputPortDefinition.nPortIndex = VIDEO_ENCODE_OUTPUT_PORT;
-    error =OMX_GetParameter(encoder, OMX_IndexParamPortDefinition, &encoderOutputPortDefinition);
-    OMX_TRACE(error);
-    
-    
-    
-    error =  OMX_AllocateBuffer(encoder, 
-                                &encoderOutputBuffer, 
-                                VIDEO_ENCODE_OUTPUT_PORT, 
-                                NULL, 
-                                encoderOutputPortDefinition.nBufferSize);
-    
-    
-    error = WaitForState(encoder, OMX_StateExecuting);
-    OMX_TRACE(error);
-    
-    //*encoderOutputBuffer = *encoderOutputBufferCopy;
     isRecording = false;
     recordedFrameCounter = 0;
     stopRequested = false;
@@ -790,19 +808,16 @@ void VideoEngine::close()
     error = DisableAllPortsForComponent(&splitter);
     OMX_TRACE(error);
     
-    error = DisableAllPortsForComponent(&encoder);
-    OMX_TRACE(error);
+  
     
     error = DisableAllPortsForComponent(&render);
     OMX_TRACE(error);
     
-  
+    destroyEncoder();
     
-    error = OMX_SendCommand(encoder, OMX_CommandFlush, OMX_ALL, NULL);
-    OMX_TRACE(error);
+
+
     
-    error = OMX_FreeBuffer(encoder, VIDEO_ENCODE_OUTPUT_PORT, encoderOutputBuffer);
-    OMX_TRACE(error);
 
     error = OMX_SendCommand(camera, OMX_CommandFlush, OMX_ALL, NULL);
     OMX_TRACE(error);
@@ -814,8 +829,7 @@ void VideoEngine::close()
         OMX_TRACE(error);
     }
     
-    error = OMX_SendCommand(encoder, OMX_CommandFlush, OMX_ALL, NULL);
-    OMX_TRACE(error);
+
     
     error = OMX_SendCommand(splitter, OMX_CommandFlush, OMX_ALL, NULL);
     OMX_TRACE(error);
@@ -851,9 +865,7 @@ void VideoEngine::close()
     OMX_TRACE(error);
     
     
-    error = OMX_SetupTunnel(encoder, VIDEO_ENCODE_INPUT_PORT,
-                            NULL, 0);
-    OMX_TRACE(error);
+
     
     
     error = OMX_SetupTunnel(render, renderInputPort,
@@ -875,9 +887,7 @@ void VideoEngine::close()
     error = OMX_FreeHandle(render);
     OMX_TRACE(error);
     
-    error = OMX_FreeHandle(encoder);
-    OMX_TRACE(error);
-    
+ 
     if(listener)
     {
         listener->onVideoEngineClose();

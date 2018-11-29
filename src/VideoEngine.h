@@ -48,6 +48,8 @@ public:
     OMX_HANDLETYPE imageFX;
     OMX_ERRORTYPE setRecordingBitrate(float recordingBitrateMB_);
 
+    void createEncoder();
+    void destroyEncoder();
 
 
 protected:
