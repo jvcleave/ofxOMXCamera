@@ -21,7 +21,8 @@ public:
     OMX_ERRORTYPE setRecordingBitrate(float recordingBitrateMB_);
     
     void close();
-    
+    int recordedFrameCounter;
+
 protected:
     ofxOMXCameraSettings* settings;
     OMX_HANDLETYPE splitter;
@@ -30,7 +31,6 @@ protected:
     ofBuffer recordingFileBuffer;
     OMX_BUFFERHEADERTYPE* encoderOutputBuffer;
     bool didWriteFile;
-    int recordedFrameCounter;
     
     VideoRecorderListener* listener;
     bool stopRequested;
