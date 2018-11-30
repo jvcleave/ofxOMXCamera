@@ -83,7 +83,7 @@ void PhotoEngine::setup(ofxOMXCameraSettings* settings_, PhotoEngineListener* li
     
     OMX_ERRORTYPE error = OMX_ErrorNone;
     
-    ofLogNotice(__func__) << settings->toString();
+    //ofLogNotice(__func__) << settings->toString();
     
     
 #pragma mark ENCODER SETUP
@@ -298,7 +298,7 @@ OMX_ERRORTYPE PhotoEngine::onCameraEventParamOrConfigChanged()
     OMX_TRACE(error);
     
     //PrintSensorModes(camera);
-    ofLogNotice(__func__) << settings->toString();
+    //ofLogNotice(__func__) << settings->toString();
 
     if(settings->enableStillPreview) 
     { 

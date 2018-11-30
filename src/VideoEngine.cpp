@@ -68,7 +68,7 @@ bool VideoEngine::setup(ofxOMXCameraSettings* settings_, VideoEngineListener* li
     listener = listener_;
     eglImage = eglImage_;
     
-    ofLogVerbose(__func__) << "settings: " << settings->toString();
+    //ofLogVerbose(__func__) << "settings: " << settings->toString();
 
     if(settings->enableExtraVideoFilter)
     {

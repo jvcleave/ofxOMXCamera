@@ -67,7 +67,7 @@ void OMXCameraController::applyAllSettings()
     }
     ofLogNotice(__func__)  << "START";
 
-    ofLogNotice(__func__) << settings.toString();
+    //ofLogNotice(__func__) << settings.toString();
     setExposurePreset(settings.exposurePreset); 
     setMeteringType(settings.meteringType);
     setAutoISO(settings.autoISO);
