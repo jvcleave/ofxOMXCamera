@@ -321,3 +321,7 @@ void VideoRecorder::writeFile()
     
 }
 
+void VideoRecorder::close()
+{
+    destroyEncoder();
+}

@@ -32,8 +32,6 @@ public:
 	bool setup(ofxOMXCameraSettings*, VideoEngineListener*, EGLImageKHR eglImage_=NULL);
     int getFrameCounter();
     
-    void startRecording();
-    void stopRecording();
 	OMX_HANDLETYPE camera;
 	bool isOpen;
     VideoEngineListener* listener;

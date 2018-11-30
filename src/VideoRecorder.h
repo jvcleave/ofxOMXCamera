@@ -16,8 +16,11 @@ public:
     void setup(ofxOMXCameraSettings* settings_, OMX_HANDLETYPE splitter_, VideoRecordingListener* listener_);
     void startRecording();
     void stopRecording();
-    OMX_ERRORTYPE setRecordingBitrate(float recordingBitrateMB_);
+    bool isRecording;
 
+    OMX_ERRORTYPE setRecordingBitrate(float recordingBitrateMB_);
+    
+    void close();
     
 protected:
     ofxOMXCameraSettings* settings;
@@ -32,7 +35,6 @@ protected:
     VideoRecordingListener* listener;
     bool stopRequested;
     bool isStopping;
-    bool isRecording;
 
     void writeFile();
     void createEncoder();

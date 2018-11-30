@@ -23,7 +23,8 @@ int VideoEngine::getFrameCounter()
     return frameCounter;
 }
 
-OMX_ERRORTYPE VideoEngine::textureRenderFillBufferDone(OMX_HANDLETYPE render, OMX_PTR videoEngine, OMX_BUFFERHEADERTYPE* pBuffer)
+OMX_ERRORTYPE 
+VideoEngine::textureRenderFillBufferDone(OMX_HANDLETYPE render, OMX_PTR videoEngine, OMX_BUFFERHEADERTYPE* pBuffer)
 {    
     OMX_ERRORTYPE error = OMX_ErrorNone;
 
@@ -37,7 +38,8 @@ OMX_ERRORTYPE VideoEngine::textureRenderFillBufferDone(OMX_HANDLETYPE render, OM
     return error;
 }
 
-OMX_ERRORTYPE VideoEngine::cameraEventHandlerCallback(OMX_HANDLETYPE camera, OMX_PTR videoEngine,
+OMX_ERRORTYPE 
+VideoEngine::cameraEventHandlerCallback(OMX_HANDLETYPE camera, OMX_PTR videoEngine,
                                                       OMX_EVENTTYPE eEvent, OMX_U32 nData1,
                                                       OMX_U32 nData2, OMX_PTR pEventData)
 {
@@ -49,7 +51,6 @@ OMX_ERRORTYPE VideoEngine::cameraEventHandlerCallback(OMX_HANDLETYPE camera, OMX
     return OMX_ErrorNone;
 }
 
-
 void VideoEngine::onVideoRecordingComplete(string filePath)
 {
     if(listener)
@@ -57,8 +58,6 @@ void VideoEngine::onVideoRecordingComplete(string filePath)
         listener->onRecordingComplete(filePath);
     }
 }
-
-
 
 bool VideoEngine::setup(ofxOMXCameraSettings* settings_, VideoEngineListener* listener_, EGLImageKHR eglImage_)
 {
@@ -86,9 +85,6 @@ bool VideoEngine::setup(ofxOMXCameraSettings* settings_, VideoEngineListener* li
         OMX_TRACE(error);
     }
 
-
-
-    
 #pragma mark RENDER SETUP  
 
     if(settings->enableTexture)
@@ -106,7 +102,6 @@ bool VideoEngine::setup(ofxOMXCameraSettings* settings_, VideoEngineListener* li
     OMX_CALLBACKTYPE renderCallbacks;
     renderCallbacks.EventHandler    = &VideoEngine::nullEventHandler;
     
-    
     if(settings->enableTexture)
     {
         //Implementation specific
@@ -117,7 +112,6 @@ bool VideoEngine::setup(ofxOMXCameraSettings* settings_, VideoEngineListener* li
     {
         renderCallbacks.FillBufferDone  = &VideoEngine::nullFillBufferDone;
         renderCallbacks.EmptyBufferDone = &VideoEngine::nullEmptyBufferDone;
-
     }
 
     error = OMX_GetHandle(&render, renderType, this , &renderCallbacks);
@@ -217,8 +211,6 @@ bool VideoEngine::setup(ofxOMXCameraSettings* settings_, VideoEngineListener* li
     
     if(settings->enableExtraVideoFilter)
     {
-
-        
         OMX_PARAM_PORTDEFINITIONTYPE imageFXPortDefinition;
         OMX_INIT_STRUCTURE(imageFXPortDefinition);
         imageFXPortDefinition.nPortIndex = IMAGE_FX_INPUT_PORT;
@@ -253,8 +245,6 @@ bool VideoEngine::setup(ofxOMXCameraSettings* settings_, VideoEngineListener* li
         OMX_TRACE(error);*/
     }
     
-    
-  
     
     //Enable Camera Output Port
     OMX_CONFIG_PORTBOOLEANTYPE cameraport;
@@ -306,7 +296,6 @@ OMX_ERRORTYPE VideoEngine::onCameraEventParamOrConfigChanged()
     error = SetComponentState(render, OMX_StateIdle);
     OMX_TRACE(error);
     
-
     
     if(settings->enableExtraVideoFilter)
     {
@@ -315,12 +304,8 @@ OMX_ERRORTYPE VideoEngine::onCameraEventParamOrConfigChanged()
         OMX_TRACE(error);
     }
     
-
-
 #pragma mark TUNNELS SETUP  
 
-    
-    
     if(settings->enableExtraVideoFilter)
     {
         //Create camera->imageFX Tunnel
@@ -349,9 +334,6 @@ OMX_ERRORTYPE VideoEngine::onCameraEventParamOrConfigChanged()
     OMX_TRACE(error);
     
     
-
-   
-    
     //Enable camera output port
     error = EnableComponentPort(camera, CAMERA_OUTPUT_PORT);
     OMX_TRACE(error);
@@ -363,11 +345,7 @@ OMX_ERRORTYPE VideoEngine::onCameraEventParamOrConfigChanged()
     //Enable splitter output port
     error = EnableComponentPort(splitter, VIDEO_SPLITTER_OUTPUT_PORT1);
     OMX_TRACE(error);
-    
 
-    
-    
-    
     if(settings->enableExtraVideoFilter)
     {
         //Enable imageFX
@@ -377,7 +355,6 @@ OMX_ERRORTYPE VideoEngine::onCameraEventParamOrConfigChanged()
         error = EnableComponentPort(imageFX, IMAGE_FX_OUTPUT_PORT);
         OMX_TRACE(error);
     }
-    
     
     if(settings->enableTexture)
     {
@@ -417,7 +394,6 @@ OMX_ERRORTYPE VideoEngine::onCameraEventParamOrConfigChanged()
         error = WaitForState(imageFX, OMX_StateExecuting);
         OMX_TRACE(error);
     }
-    
     
     //Start renderer
     error = WaitForState(render, OMX_StateExecuting);
@@ -460,30 +436,10 @@ OMX_ERRORTYPE VideoEngine::onCameraEventParamOrConfigChanged()
 #endif
     
    
-    
     listener->onVideoEngineStart();
 
     return error;
 }
-
-
-
-
-
-void VideoEngine::startRecording()
-{
-    videoRecorder.startRecording();
-}
-
-
-void VideoEngine::stopRecording()
-{
-    videoRecorder.stopRecording();
-}
-
-
-
-
 
 void VideoEngine::close()
 {
@@ -520,29 +476,19 @@ void VideoEngine::close()
     error = DisableAllPortsForComponent(&splitter);
     OMX_TRACE(error);
     
-  
-    
     error = DisableAllPortsForComponent(&render);
     OMX_TRACE(error);
     
+    videoRecorder.close();
     
-    videoRecorder.destroyEncoder();
-    
-
-
-    
-
     error = OMX_SendCommand(camera, OMX_CommandFlush, OMX_ALL, NULL);
     OMX_TRACE(error);
-    
     
     if(settings->enableExtraVideoFilter)
     {
         error = OMX_SendCommand(imageFX, OMX_CommandFlush, OMX_ALL, NULL);
         OMX_TRACE(error);
     }
-    
-
     
     error = OMX_SendCommand(splitter, OMX_CommandFlush, OMX_ALL, NULL);
     OMX_TRACE(error);
@@ -577,10 +523,6 @@ void VideoEngine::close()
                             NULL, 0);
     OMX_TRACE(error);
     
-    
-
-    
-    
     error = OMX_SetupTunnel(render, renderInputPort,
                             NULL, 0);
     OMX_TRACE(error);
@@ -600,7 +542,6 @@ void VideoEngine::close()
     error = OMX_FreeHandle(render);
     OMX_TRACE(error);
     
- 
     if(listener)
     {
         listener->onVideoEngineClose();
@@ -614,10 +555,11 @@ void VideoEngine::close()
     eglBuffer = NULL;
     eglImage = NULL;
     ofLogVerbose(__func__) << " END";
-
 }
 
 VideoEngine::~VideoEngine()
 {
     close();
 }
+
+
