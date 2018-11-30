@@ -64,11 +64,11 @@ void ofxOMXVideoGrabber::onVideoEngineStart()
         extraImageFXController.setup(engine.imageFX, IMAGE_FX_OUTPUT_PORT);
     }
     
-    resetValues();
+    //resetValues();
     
     //checkBurstMode();
-    error = applyExposure();
-    OMX_TRACE(error);
+    //error = applyExposure();
+    //OMX_TRACE(error);
     
     //checkFlickerCancellation();
 

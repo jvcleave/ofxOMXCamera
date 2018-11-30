@@ -6,6 +6,7 @@ int shotsTaken;
 ofxOMXPhotoGrabber::ofxOMXPhotoGrabber()
 {
     cameraOutputPort = CAMERA_STILL_OUTPUT_PORT;
+    resetValues();
     camera = NULL;
     shotsRequested = 0;
     shotsTaken = 0;
