@@ -57,4 +57,13 @@ public:
     void stopRecording();
     void setRecordingBitrate(float recordingBitrateMB_);
     
+    int getRecordedFrameCounter()
+    {
+        return engine.videoRecorder.recordedFrameCounter;
+    }
+    int getRecordingBufferSize()
+    {
+        return engine.videoRecorder.getRecordingBufferSize();
+    }
+
 };

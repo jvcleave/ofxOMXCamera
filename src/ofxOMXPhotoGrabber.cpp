@@ -17,7 +17,7 @@ int totalTime = 0;
 void ofxOMXPhotoGrabber::setup(ofxOMXCameraSettings& settings_)
 {
     settings = settings_;
-    settings.sensorWidth = VCOS_ALIGN_UP(settings.sensorHeight, 32);
+    settings.sensorWidth = VCOS_ALIGN_UP(settings.sensorWidth, 32);
     settings.sensorHeight = VCOS_ALIGN_UP(settings.sensorHeight, 16);
     settings.stillPreviewWidth = VCOS_ALIGN_UP(settings.stillPreviewWidth, 32);
     settings.stillPreviewHeight = VCOS_ALIGN_UP(settings.stillPreviewHeight, 16);
@@ -48,7 +48,10 @@ void ofxOMXPhotoGrabber::onPhotoEngineStart(OMX_HANDLETYPE camera_)
 {
     camera = camera_;
     imageFXController.setup(camera, OMX_ALL);
-
+    if(settings.enableExtraVideoFilter)
+    {
+        extraImageFXController.setup(engine.imageFX, IMAGE_FX_OUTPUT_PORT);
+    }
     applyAllSettings();
     
     if(settings.enableTexture)
@@ -74,6 +77,7 @@ bool ofxOMXPhotoGrabber::isReady()
 {
     return engine.isOpen;
 }
+
 
 
 int photoStart = 0;

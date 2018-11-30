@@ -38,6 +38,7 @@ public:
     OMX_HANDLETYPE encoder;
     OMX_HANDLETYPE nullSink;
     OMX_HANDLETYPE splitter;
+    OMX_HANDLETYPE imageFX;
 
     
     VideoRecorder videoRecorder;

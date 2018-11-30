@@ -22,7 +22,10 @@ public:
     
     void close();
     int recordedFrameCounter;
-
+    int getRecordingBufferSize()
+    {
+        return recordingFileBuffer.size();
+    }
 protected:
     ofxOMXCameraSettings* settings;
     OMX_HANDLETYPE splitter;

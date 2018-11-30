@@ -20,7 +20,7 @@ void ofxOMXVideoGrabber::setup(ofxOMXCameraSettings& settings_)
     //ofLogNotice(__func__) << settings.toJSON().dump();
     //ofLogNotice(__func__) << "settings: " << settings.toString();
     
-    settings.sensorWidth = VCOS_ALIGN_UP(settings.sensorHeight, 32);
+    settings.sensorWidth = VCOS_ALIGN_UP(settings.sensorWidth, 32);
     settings.sensorHeight = VCOS_ALIGN_UP(settings.sensorHeight, 16);
     
     if(settings.drawRectangle.isZero())
@@ -164,6 +164,8 @@ int ofxOMXVideoGrabber::getFrameRate()
 
 
 #pragma mark RECORDING
+
+
 
 void ofxOMXVideoGrabber::setRecordingBitrate(float recordingBitrateMB)
 {

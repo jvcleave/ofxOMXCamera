@@ -60,7 +60,7 @@ PhotoEngine::PhotoEngine()
     nullSink = NULL;
     eglImage = NULL;
     splitter = NULL;
-    
+    imageFX = NULL;
     saveFolderAbsolutePath.clear();
     
     renderInputPort = VIDEO_RENDER_INPUT_PORT;
@@ -114,6 +114,21 @@ void PhotoEngine::setup(ofxOMXCameraSettings* settings_, PhotoEngineListener* li
         OMX_TRACE(error);
         
         videoRecorder.setup(settings, splitter, this);
+        
+        if(settings->enableExtraVideoFilter)
+        {
+            OMX_CALLBACKTYPE imageFXCallbacks;
+            imageFXCallbacks.EventHandler       = &PhotoEngine::nullEventHandlerCallback;
+            imageFXCallbacks.EmptyBufferDone    = &PhotoEngine::nullEmptyBufferDone;
+            imageFXCallbacks.FillBufferDone     = &PhotoEngine::nullFillBufferDone;
+            
+            error =OMX_GetHandle(&imageFX, OMX_IMAGE_FX, this , &imageFXCallbacks);
+            OMX_TRACE(error);
+            
+            
+            error = DisableAllPortsForComponent(&imageFX);
+            OMX_TRACE(error);
+        }
     }
     
 #pragma mark NULL SINK SETUP
@@ -212,6 +227,44 @@ void PhotoEngine::setup(ofxOMXCameraSettings* settings_, PhotoEngineListener* li
         
         error =  OMX_SetParameter(camera, OMX_IndexParamPortDefinition, &previewPortConfig);
         OMX_TRACE(error);
+        
+#pragma mark imageFX SETUP  
+        
+        if(settings->enableExtraVideoFilter)
+        {
+            OMX_PARAM_PORTDEFINITIONTYPE imageFXPortDefinition;
+            OMX_INIT_STRUCTURE(imageFXPortDefinition);
+            imageFXPortDefinition.nPortIndex = IMAGE_FX_INPUT_PORT;
+            
+            error =  OMX_GetParameter(imageFX, OMX_IndexParamPortDefinition, &imageFXPortDefinition);
+            OMX_TRACE(error);
+            imageFXPortDefinition.eDomain = OMX_PortDomainVideo;
+            imageFXPortDefinition.format.video = previewPortConfig.format.video;
+            imageFXPortDefinition.format.video.nSliceHeight = settings->stillPreviewHeight;
+            
+            error =  OMX_SetParameter(imageFX, OMX_IndexParamPortDefinition, &imageFXPortDefinition);
+            OMX_TRACE(error);
+            if(error == OMX_ErrorNone)
+            {
+                ofLog() << "IMAGE_FX_INPUT_PORT PASSED";
+            }
+            
+            imageFXPortDefinition.nPortIndex = IMAGE_FX_OUTPUT_PORT;
+            error =  OMX_SetParameter(imageFX, OMX_IndexParamPortDefinition, &imageFXPortDefinition);
+            OMX_TRACE(error);
+            if(error == OMX_ErrorNone)
+            {
+                ofLog() << "IMAGE_FX_OUTPUT_PORT PASSED";
+            }
+            
+            /*
+             OMX_PARAM_U32TYPE extra_buffers;
+             OMX_INIT_STRUCTURE(extra_buffers);
+             extra_buffers.nU32 = 10;
+             
+             error = OMX_SetParameter(imageFX, OMX_IndexParamBrcmExtraBuffers, &extra_buffers);
+             OMX_TRACE(error);*/
+        }
     }
     
     //Enable RAW info embedded in JPEG
@@ -303,7 +356,12 @@ OMX_ERRORTYPE PhotoEngine::onCameraEventParamOrConfigChanged()
     if(settings->enableStillPreview) 
     { 
         
-        
+        if(settings->enableExtraVideoFilter)
+        {
+            //Set imageFX to Idle
+            error = WaitForState(imageFX, OMX_StateIdle);
+            OMX_TRACE(error);
+        }
         //Set splitter to Idle
         error = SetComponentState(splitter, OMX_StateIdle);
         OMX_TRACE(error);
@@ -327,16 +385,41 @@ OMX_ERRORTYPE PhotoEngine::onCameraEventParamOrConfigChanged()
             OMX_TRACE(error);
         }
         
-        error = OMX_SetupTunnel(camera, CAMERA_PREVIEW_PORT,
-                                splitter, VIDEO_SPLITTER_INPUT_PORT);
-        OMX_TRACE(error);
+      
         
-        
+        if(settings->enableExtraVideoFilter)
+        {
+            //Create camera->imageFX Tunnel
+            error = OMX_SetupTunnel(camera, CAMERA_PREVIEW_PORT,
+                                    imageFX, IMAGE_FX_INPUT_PORT);
+            OMX_TRACE(error);
+            
+            //Create imageFX->splitter Tunnel
+            error = OMX_SetupTunnel(imageFX, IMAGE_FX_OUTPUT_PORT,
+                                    splitter, VIDEO_SPLITTER_INPUT_PORT);
+            OMX_TRACE(error);
+            
+        }else
+        {
+            error = OMX_SetupTunnel(camera, CAMERA_PREVIEW_PORT,
+                                    splitter, VIDEO_SPLITTER_INPUT_PORT);
+            OMX_TRACE(error);
+        }
         //Create splitter->render Tunnel
         error = OMX_SetupTunnel(splitter, VIDEO_SPLITTER_OUTPUT_PORT1,
                                 render, renderInputPort);
         OMX_TRACE(error);
         
+        
+        if(settings->enableExtraVideoFilter)
+        {
+            //Enable imageFX
+            error = EnableComponentPort(imageFX, IMAGE_FX_INPUT_PORT);
+            OMX_TRACE(error);
+            
+            error = EnableComponentPort(imageFX, IMAGE_FX_OUTPUT_PORT);
+            OMX_TRACE(error);
+        }
         
         if(renderInputPort == EGL_RENDER_INPUT_PORT)
         {
@@ -358,6 +441,7 @@ OMX_ERRORTYPE PhotoEngine::onCameraEventParamOrConfigChanged()
         error = WaitForPortEnable(splitter, VIDEO_SPLITTER_OUTPUT_PORT1);
         OMX_TRACE(error);
         
+       
         
         //Enable render input port
         error = WaitForPortEnable(render, renderInputPort);
@@ -450,6 +534,13 @@ OMX_ERRORTYPE PhotoEngine::onCameraEventParamOrConfigChanged()
     
     if(settings->enableStillPreview) 
     { 
+        
+        if(settings->enableExtraVideoFilter)
+        {
+            //Start imageFX
+            error = WaitForState(imageFX, OMX_StateExecuting);
+            OMX_TRACE(error);
+        }
         
         //Start renderer
         error = WaitForState(splitter, OMX_StateExecuting);
@@ -643,6 +734,14 @@ void PhotoEngine::close()
         error = DisableAllPortsForComponent(&camera);
     }
     
+    if(imageFX)
+    {
+        error = DisableAllPortsForComponent(&imageFX);
+        error = OMX_SendCommand(imageFX, OMX_CommandFlush, OMX_ALL, NULL);
+        OMX_TRACE(error);
+
+    }
+    
     if(splitter)
     {
         error = DisableAllPortsForComponent(&splitter);
@@ -683,12 +782,21 @@ void PhotoEngine::close()
         OMX_TRACE(error);
     }
     
+    if(imageFX)
+    {
+        error = OMX_SetupTunnel(imageFX, IMAGE_FX_INPUT_PORT, NULL, 0);
+        OMX_TRACE(error);
+        
+        error = OMX_SetupTunnel(imageFX, IMAGE_FX_OUTPUT_PORT, NULL, 0);
+        OMX_TRACE(error);
+    }
+    
     if(encoder)
     {
         error = OMX_SetupTunnel(encoder, IMAGE_ENCODER_INPUT_PORT, NULL, 0);
         OMX_TRACE(error);
     }
-    
+
     if(settings && settings->enableStillPreview) 
     {    
         if(camera)
@@ -725,6 +833,12 @@ void PhotoEngine::close()
         camera = NULL;
     }
     
+    if(imageFX)
+    {
+        error = OMX_FreeHandle(imageFX);
+        OMX_TRACE(error);
+        imageFX = NULL;
+    }
     
     if(encoder)
     {

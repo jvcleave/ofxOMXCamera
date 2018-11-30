@@ -49,6 +49,14 @@ public:
     void onRecordingComplete(string filePath) override;
     void onVideoEngineStart() override;
     void onVideoEngineClose() override;
+    int getRecordedFrameCounter()
+    {
+        return engine.videoRecorder.recordedFrameCounter;
+    }
+    int getRecordingBufferSize()
+    {
+        return engine.videoRecorder.getRecordingBufferSize();
+    }
     
 private:
     bool hasNewFrame;
