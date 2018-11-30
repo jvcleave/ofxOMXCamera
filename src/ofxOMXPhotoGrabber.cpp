@@ -17,6 +17,10 @@ int totalTime = 0;
 void ofxOMXPhotoGrabber::setup(ofxOMXCameraSettings& settings_)
 {
     settings = settings_;
+    settings.sensorWidth = VCOS_ALIGN_UP(settings.sensorHeight, 32);
+    settings.sensorHeight = VCOS_ALIGN_UP(settings.sensorHeight, 16);
+    settings.stillPreviewWidth = VCOS_ALIGN_UP(settings.stillPreviewWidth, 32);
+    settings.stillPreviewHeight = VCOS_ALIGN_UP(settings.stillPreviewHeight, 16);
     listener = settings.photoGrabberListener;
     
     
@@ -28,7 +32,7 @@ void ofxOMXPhotoGrabber::setup(ofxOMXCameraSettings& settings_)
     {
         settings.drawCropRectangle.set(0, 0, settings.stillPreviewWidth, settings.stillPreviewHeight);
     }
-    ofLogNotice(__func__) << settings.toString();
+    //ofLogNotice(__func__) << settings.toString();
    
     if(settings.enableTexture)
     {
