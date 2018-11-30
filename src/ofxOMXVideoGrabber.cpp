@@ -56,21 +56,12 @@ void ofxOMXVideoGrabber::onVideoEngineStart()
 {
     ofLogVerbose(__func__) << endl;
 
-    OMX_ERRORTYPE error = OMX_ErrorNone;
     camera = engine.camera;
     imageFXController.setup(camera, OMX_ALL);
     if(settings.enableExtraVideoFilter)
     {
         extraImageFXController.setup(engine.imageFX, IMAGE_FX_OUTPUT_PORT);
     }
-    
-    //resetValues();
-    
-    //checkBurstMode();
-    //error = applyExposure();
-    //OMX_TRACE(error);
-    
-    //checkFlickerCancellation();
 
     applyAllSettings();
     
@@ -177,12 +168,12 @@ void ofxOMXVideoGrabber::setRecordingBitrate(float recordingBitrateMB)
 {
     //settings.recordingBitrateMB = recordingBitrateMB;
     
-    engine.setRecordingBitrate(recordingBitrateMB);
+    engine.videoRecorder.setRecordingBitrate(recordingBitrateMB);
 }
 
 bool ofxOMXVideoGrabber::isRecording()
 {
-    return engine.isRecording;
+    return engine.videoRecorder.isRecording;
 }
 
 void ofxOMXVideoGrabber::startRecording()
