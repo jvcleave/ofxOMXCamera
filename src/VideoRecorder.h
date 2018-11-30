@@ -2,7 +2,7 @@
 #include "ofxOMXCameraSettings.h"
 
 
-class VideoRecordingListener
+class VideoRecorderListener
 {
 public:
     virtual void onVideoRecordingComplete(string filePath)=0;
@@ -13,7 +13,7 @@ class VideoRecorder
 public:
     
     VideoRecorder();
-    void setup(ofxOMXCameraSettings* settings_, OMX_HANDLETYPE splitter_, VideoRecordingListener* listener_);
+    void setup(ofxOMXCameraSettings* settings_, OMX_HANDLETYPE splitter_, VideoRecorderListener* listener_);
     void startRecording();
     void stopRecording();
     bool isRecording;
@@ -32,7 +32,7 @@ protected:
     bool didWriteFile;
     int recordedFrameCounter;
     
-    VideoRecordingListener* listener;
+    VideoRecorderListener* listener;
     bool stopRequested;
     bool isStopping;
 

@@ -43,9 +43,18 @@ public:
     //PhotoEngineListener
     void onTakePhotoComplete(string filePath) override;
     void onPhotoEngineStart(OMX_HANDLETYPE camera_) override;
-    
+
+   
+
     PhotoEngine engine;
     vector<string> photosTaken;
     void takePhoto(int numShots=0);
     void setJPEGCompression(int); // 1-100
+    
+    
+    bool isRecording();
+    void startRecording();
+    void stopRecording();
+    void setRecordingBitrate(float recordingBitrateMB_);
+    
 };

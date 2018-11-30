@@ -14,7 +14,7 @@ VideoRecorder::VideoRecorder()
 }
 
 
-void VideoRecorder::setup(ofxOMXCameraSettings* settings_, OMX_HANDLETYPE splitter_, VideoRecordingListener* listener_)
+void VideoRecorder::setup(ofxOMXCameraSettings* settings_, OMX_HANDLETYPE splitter_, VideoRecorderListener* listener_)
 {
     settings = settings_;
     splitter = splitter_;

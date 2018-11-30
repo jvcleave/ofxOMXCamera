@@ -8,8 +8,7 @@
 
 #pragma once
 
-#include "OMX_Maps.h"
-#include "ofxOMXCameraSettings.h"
+#include "VideoRecorder.h"
 
 class PhotoEngineListener
 {
@@ -18,7 +17,7 @@ public:
     virtual void onPhotoEngineStart(OMX_HANDLETYPE)=0;
 
 };
-class PhotoEngine
+class PhotoEngine : public VideoRecorderListener
 {
 public:
 	PhotoEngine();
@@ -40,6 +39,12 @@ public:
     OMX_HANDLETYPE nullSink;
     OMX_HANDLETYPE splitter;
 
+    
+    VideoRecorder videoRecorder;
+    //Video Recording
+    void onVideoRecordingComplete(string filePath) override;
+
+    
     void writeFile();
     string saveFolderAbsolutePath;
     OMX_U32 encoderOutputBufferSize;

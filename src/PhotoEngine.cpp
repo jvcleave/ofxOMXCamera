@@ -68,7 +68,11 @@ PhotoEngine::PhotoEngine()
     
 
 }   
+void PhotoEngine::onVideoRecordingComplete(string filePath)
+{
+    ofLogNotice(__func__) << "filePath: " << filePath;
 
+}
 void PhotoEngine::setup(ofxOMXCameraSettings* settings_, PhotoEngineListener* listener_, EGLImageKHR eglImage_)
 {
     settings = settings_;
@@ -96,16 +100,21 @@ void PhotoEngine::setup(ofxOMXCameraSettings* settings_, PhotoEngineListener* li
     
 #pragma mark SPLITTER SETUP  
     
-    //Set up video splitter
-    OMX_CALLBACKTYPE splitterCallbacks;
-    splitterCallbacks.EventHandler    = &PhotoEngine::nullEventHandlerCallback;
-    splitterCallbacks.EmptyBufferDone = &PhotoEngine::nullEmptyBufferDone;
-    splitterCallbacks.FillBufferDone  = &PhotoEngine::nullFillBufferDone;
-    
-    error = OMX_GetHandle(&splitter, OMX_VIDEO_SPLITTER, this , &splitterCallbacks);
-    OMX_TRACE(error);
-    error =DisableAllPortsForComponent(&splitter);
-    OMX_TRACE(error);
+    if(settings->enableStillPreview) 
+    {
+        //Set up video splitter
+        OMX_CALLBACKTYPE splitterCallbacks;
+        splitterCallbacks.EventHandler    = &PhotoEngine::nullEventHandlerCallback;
+        splitterCallbacks.EmptyBufferDone = &PhotoEngine::nullEmptyBufferDone;
+        splitterCallbacks.FillBufferDone  = &PhotoEngine::nullFillBufferDone;
+        
+        error = OMX_GetHandle(&splitter, OMX_VIDEO_SPLITTER, this , &splitterCallbacks);
+        OMX_TRACE(error);
+        error =DisableAllPortsForComponent(&splitter);
+        OMX_TRACE(error);
+        
+        videoRecorder.setup(settings, splitter, this);
+    }
     
 #pragma mark NULL SINK SETUP
     OMX_CALLBACKTYPE nullSinkCallbacks;

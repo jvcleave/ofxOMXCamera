@@ -23,7 +23,7 @@ public:
     
 };
 
-class VideoEngine : public VideoRecordingListener
+class VideoEngine : public VideoRecorderListener
 {
 public:
 	VideoEngine();
