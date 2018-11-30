@@ -16,7 +16,12 @@ VideoEngine::VideoEngine()
     eglBuffer = NULL;
     renderType = OMX_VIDEO_RENDER; 
     renderInputPort = VIDEO_RENDER_INPUT_PORT;
-    
+    encoder = NULL;
+    splitter = NULL;
+    render = NULL;
+    nullSink = NULL;
+    encoderOutputBuffer = NULL;
+    imageFX = NULL;
 
 }
 
@@ -58,16 +63,22 @@ OMX_ERRORTYPE VideoEngine::cameraEventHandlerCallback(OMX_HANDLETYPE camera, OMX
 
 OMX_ERRORTYPE VideoEngine::setRecordingBitrate(float recordingBitrateMB_)
 {
+    settings->recordingBitrateMB = recordingBitrateMB_;
+    if(!encoder)
+    {
+        ofLogError(__func__) << "NO ENCODER";
+        return OMX_ErrorNotReady;
+    }
     OMX_VIDEO_CONFIG_BITRATETYPE bitrateConfig;
     OMX_INIT_STRUCTURE(bitrateConfig);
     bitrateConfig.nPortIndex = VIDEO_ENCODE_OUTPUT_PORT;
-    bitrateConfig.nEncodeBitrate = MEGABYTE_IN_BITS * recordingBitrateMB_;
+    bitrateConfig.nEncodeBitrate = MEGABYTE_IN_BITS * settings->recordingBitrateMB;
     
     OMX_ERRORTYPE error = OMX_SetConfig(encoder, OMX_IndexConfigVideoBitrate, &bitrateConfig);
     OMX_TRACE(error);
     if(error == OMX_ErrorNone)
     {
-        settings->recordingBitrateMB = recordingBitrateMB_;
+        
         ofLogNotice(__func__) << "settings->recordingBitrateMB: " << settings->recordingBitrateMB;
     }
     return error;
@@ -657,8 +668,13 @@ void VideoEngine::destroyEncoder()
     error = OMX_SendCommand(encoder, OMX_CommandFlush, OMX_ALL, NULL);
     OMX_TRACE(error);
     
-    error = OMX_FreeBuffer(encoder, VIDEO_ENCODE_OUTPUT_PORT, encoderOutputBuffer);
-    OMX_TRACE(error);
+    if(encoderOutputBuffer)
+    {
+        error = OMX_FreeBuffer(encoder, VIDEO_ENCODE_OUTPUT_PORT, encoderOutputBuffer);
+        OMX_TRACE(error);
+        encoderOutputBuffer = NULL;
+    }
+   
     
     
     error = DisableComponentPort(splitter, VIDEO_SPLITTER_OUTPUT_PORT2);
