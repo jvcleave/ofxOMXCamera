@@ -24,6 +24,7 @@ int isoEntries[10]{ 0, 100, 160, 200, 250,
 OMXCameraController::OMXCameraController()
 {
     camera = NULL;
+    cameraOutputPort = -1;
     pixelsRequested = false;
 
     //Requires gpio program provided via wiringPi

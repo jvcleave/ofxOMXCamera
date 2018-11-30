@@ -59,7 +59,7 @@ PhotoEngine::PhotoEngine()
     listener = NULL;
     nullSink = NULL;
     eglImage = NULL;
-    
+    splitter = NULL;
     
     saveFolderAbsolutePath.clear();
     
@@ -92,6 +92,19 @@ void PhotoEngine::setup(ofxOMXCameraSettings* settings_, PhotoEngineListener* li
     OMX_TRACE(error);
     
     error = DisableAllPortsForComponent(&encoder);
+    OMX_TRACE(error);
+    
+#pragma mark SPLITTER SETUP  
+    
+    //Set up video splitter
+    OMX_CALLBACKTYPE splitterCallbacks;
+    splitterCallbacks.EventHandler    = &PhotoEngine::nullEventHandlerCallback;
+    splitterCallbacks.EmptyBufferDone = &PhotoEngine::nullEmptyBufferDone;
+    splitterCallbacks.FillBufferDone  = &PhotoEngine::nullFillBufferDone;
+    
+    error = OMX_GetHandle(&splitter, OMX_VIDEO_SPLITTER, this , &splitterCallbacks);
+    OMX_TRACE(error);
+    error =DisableAllPortsForComponent(&splitter);
     OMX_TRACE(error);
     
 #pragma mark NULL SINK SETUP
@@ -281,6 +294,12 @@ OMX_ERRORTYPE PhotoEngine::onCameraEventParamOrConfigChanged()
     if(settings->enableStillPreview) 
     { 
         
+        
+        //Set splitter to Idle
+        error = SetComponentState(splitter, OMX_StateIdle);
+        OMX_TRACE(error);
+        
+        
         //Set renderer to Idle
         error = SetComponentState(render, OMX_StateIdle);
         OMX_TRACE(error);
@@ -299,8 +318,16 @@ OMX_ERRORTYPE PhotoEngine::onCameraEventParamOrConfigChanged()
             OMX_TRACE(error);
         }
         
-        error = OMX_SetupTunnel(camera, CAMERA_PREVIEW_PORT, render, renderInputPort);
+        error = OMX_SetupTunnel(camera, CAMERA_PREVIEW_PORT,
+                                splitter, VIDEO_SPLITTER_INPUT_PORT);
         OMX_TRACE(error);
+        
+        
+        //Create splitter->render Tunnel
+        error = OMX_SetupTunnel(splitter, VIDEO_SPLITTER_OUTPUT_PORT1,
+                                render, renderInputPort);
+        OMX_TRACE(error);
+        
         
         if(renderInputPort == EGL_RENDER_INPUT_PORT)
         {
@@ -312,6 +339,14 @@ OMX_ERRORTYPE PhotoEngine::onCameraEventParamOrConfigChanged()
         }
         //Enable camera preview port
         error = WaitForPortEnable(camera, CAMERA_PREVIEW_PORT);
+        OMX_TRACE(error);
+        
+        //Enable splitter input port
+        error = WaitForPortEnable(splitter, VIDEO_SPLITTER_INPUT_PORT);
+        OMX_TRACE(error);
+        
+        //Enable splitter output port
+        error = WaitForPortEnable(splitter, VIDEO_SPLITTER_OUTPUT_PORT1);
         OMX_TRACE(error);
         
         
@@ -406,6 +441,12 @@ OMX_ERRORTYPE PhotoEngine::onCameraEventParamOrConfigChanged()
     
     if(settings->enableStillPreview) 
     { 
+        
+        //Start renderer
+        error = WaitForState(splitter, OMX_StateExecuting);
+        OMX_TRACE(error);
+        
+        
         //Start renderer
         error = WaitForState(render, OMX_StateExecuting);
         OMX_TRACE(error);
@@ -593,6 +634,11 @@ void PhotoEngine::close()
         error = DisableAllPortsForComponent(&camera);
     }
     
+    if(splitter)
+    {
+        error = DisableAllPortsForComponent(&splitter);
+    }
+    
     if(encoder)
     {
         error = DisableAllPortsForComponent(&encoder);
@@ -642,6 +688,16 @@ void PhotoEngine::close()
             OMX_TRACE(error);
         }
         
+        if(splitter)
+        {
+            error = OMX_SetupTunnel(splitter, VIDEO_SPLITTER_OUTPUT_PORT1, NULL, 0);
+            OMX_TRACE(error);
+            
+            error =  OMX_FreeHandle(splitter);
+            OMX_TRACE(error);
+            splitter = NULL;
+        }
+        
         if(render)
         {
             error = OMX_SetupTunnel(render, renderInputPort, NULL, 0);
@@ -659,6 +715,7 @@ void PhotoEngine::close()
         OMX_TRACE(error);
         camera = NULL;
     }
+    
     
     if(encoder)
     {

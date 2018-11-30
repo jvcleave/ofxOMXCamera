@@ -1,6 +1,5 @@
 #pragma once
 
-#include "OMX_Maps.h"
 #include "ofxOMXCameraSettings.h"
 #include "DisplayController.h"
 #include "ImageFXController.h"

@@ -38,6 +38,7 @@ public:
     OMX_HANDLETYPE render;
     OMX_HANDLETYPE encoder;
     OMX_HANDLETYPE nullSink;
+    OMX_HANDLETYPE splitter;
 
     void writeFile();
     string saveFolderAbsolutePath;
