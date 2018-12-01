@@ -42,15 +42,22 @@ public:
     bool isRecording();
     void startRecording();
     void stopRecording();
-    
+    void setRecordingBitrate(float recordingBitrateMB_);
  
     //VideoEngineListener
     VideoEngine engine;
     void onRecordingComplete(string filePath) override;
     void onVideoEngineStart() override;
     void onVideoEngineClose() override;
+    int getRecordedFrameCounter()
+    {
+        return engine.videoRecorder.recordedFrameCounter;
+    }
+    int getRecordingBufferSize()
+    {
+        return engine.videoRecorder.getRecordingBufferSize();
+    }
     
-
 private:
     bool hasNewFrame;
     int updateFrameCounter;

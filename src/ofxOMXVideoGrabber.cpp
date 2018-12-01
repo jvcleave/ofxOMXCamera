@@ -17,10 +17,11 @@ ofxOMXVideoGrabber::ofxOMXVideoGrabber()
 void ofxOMXVideoGrabber::setup(ofxOMXCameraSettings& settings_)
 {
     settings = settings_;
-    ofLogNotice(__func__) << settings.toJSON().dump();
-    ofLogNotice(__func__) << "settings: " << settings.toString();
+    //ofLogNotice(__func__) << settings.toJSON().dump();
+    //ofLogNotice(__func__) << "settings: " << settings.toString();
     
-    
+    settings.sensorWidth = VCOS_ALIGN_UP(settings.sensorWidth, 32);
+    settings.sensorHeight = VCOS_ALIGN_UP(settings.sensorHeight, 16);
     
     if(settings.drawRectangle.isZero())
     {
@@ -56,16 +57,13 @@ void ofxOMXVideoGrabber::onVideoEngineStart()
 {
     ofLogVerbose(__func__) << endl;
 
-    OMX_ERRORTYPE error = OMX_ErrorNone;
     camera = engine.camera;
-    resetValues();
-    
-    //checkBurstMode();
-    error = applyExposure();
-    OMX_TRACE(error);
-    
-    //checkFlickerCancellation();
-    
+    imageFXController.setup(camera, OMX_ALL);
+    if(settings.enableExtraVideoFilter)
+    {
+        extraImageFXController.setup(engine.imageFX, IMAGE_FX_OUTPUT_PORT);
+    }
+
     applyAllSettings();
     
     if(settings.enableTexture)
@@ -76,7 +74,7 @@ void ofxOMXVideoGrabber::onVideoEngineStart()
         displayController.setup(&settings, engine.render);
 
     }
-    
+
     ofAddListener(ofEvents().update, this, &ofxOMXVideoGrabber::onUpdate); 
     engine.isOpen = true;
     
@@ -162,25 +160,31 @@ int ofxOMXVideoGrabber::getFrameRate()
 	return settings.framerate;
 }
 
-#pragma mark PIXELS/TEXTURE
+
 
 
 #pragma mark RECORDING
 
 
+
+void ofxOMXVideoGrabber::setRecordingBitrate(float recordingBitrateMB)
+{
+    engine.videoRecorder.setRecordingBitrate(recordingBitrateMB);
+}
+
 bool ofxOMXVideoGrabber::isRecording()
 {
-    return engine.isRecording;
+    return engine.videoRecorder.isRecording;
 }
 
 void ofxOMXVideoGrabber::startRecording()
 {
-    engine.startRecording();
+    engine.videoRecorder.startRecording();
 }
 
 void ofxOMXVideoGrabber::stopRecording()
 {
-	engine.stopRecording();
+	engine.videoRecorder.stopRecording();
 }
 
 #pragma mark DRAW
