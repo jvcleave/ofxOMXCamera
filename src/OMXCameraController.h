@@ -110,7 +110,7 @@ public:
     OMX_ERRORTYPE setSensorCrop(ofRectangle&);
     ofRectangle& getDrawCropRectangle() { return settings.drawCropRectangle; }
     OMX_ERRORTYPE setSensorCrop(int left, int top, int width, int height);
-    
+    ofRectangle& getSensorCropRectangle() { return settings.sensorCropRectangle; }
     vector<int> zoomLevels;
     OMX_ERRORTYPE setDigitalZoom();
     OMX_ERRORTYPE zoomIn();

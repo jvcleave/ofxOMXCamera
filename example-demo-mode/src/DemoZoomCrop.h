@@ -39,8 +39,9 @@ public:
         if (doCrop) 
         {
             
-            int randomPercentage = ofRandom(25, 100);
-            videoGrabber->setSensorCrop(0, 0,  randomPercentage, randomPercentage);
+            int randomXY = ofRandom(0, 49);
+            int randomPercentage = ofRandom(50, 100);
+            videoGrabber->setSensorCrop(randomXY, randomXY,  randomPercentage, randomPercentage);
             doCrop = false;
         }
         
@@ -68,10 +69,10 @@ public:
         
         stringstream info;
         
-        info << "Crop LEFT %: "      << videoGrabber->getCropRectangle().getLeft()    <<  "\n";
-        info << "Crop TOP %: "       << videoGrabber->getCropRectangle().getTop()     <<  "\n";
-        info << "Crop WIDTH %: "     << videoGrabber->getCropRectangle().getWidth()   <<  "\n";
-        info << "Crop HEIGHT %: "    << videoGrabber->getCropRectangle().getHeight()  <<  "\n";
+        info << "Crop LEFT %: "      << videoGrabber->getSensorCropRectangle().getLeft()    <<  "\n";
+        info << "Crop TOP %: "       << videoGrabber->getSensorCropRectangle().getTop()     <<  "\n";
+        info << "Crop WIDTH %: "     << videoGrabber->getSensorCropRectangle().getWidth()   <<  "\n";
+        info << "Crop HEIGHT %: "    << videoGrabber->getSensorCropRectangle().getHeight()  <<  "\n";
         info << "CURRENT ZOOM LEVEL: "      <<  videoGrabber->getZoomLevelNormalized() << "\n";
         info << "\n";
         
