@@ -1,8 +1,8 @@
 #pragma once
 
-#include "OMX_Maps.h"
 #include "ofxOMXCameraSettings.h"
 #include "DisplayController.h"
+#include "ImageFXController.h"
 
 enum MIRROR
 {
@@ -36,7 +36,7 @@ public:
     void checkBurstMode();
     void checkFlickerCancellation();
     OMX_ERRORTYPE applyMirror();
-    void applyImageFilter(OMX_IMAGEFILTERTYPE);
+
     OMX_ERRORTYPE applyRotation();
     OMX_ERRORTYPE applyCurrentMeteringMode();
     OMX_ERRORTYPE applyExposure();
@@ -50,7 +50,9 @@ public:
     OMX_CONFIG_BRIGHTNESSTYPE brightnessConfig;
     OMX_CONFIG_SATURATIONTYPE saturationConfig;
     OMX_CONFIG_WHITEBALCONTROLTYPE whiteBalanceConfig;
-    OMX_CONFIG_IMAGEFILTERTYPE imagefilterConfig;
+    
+    
+
     
     OMX_CONFIG_BOOLEANTYPE burstModeConfig;
     OMX_CONFIG_SCALEFACTORTYPE digitalZoomConfig;
@@ -88,7 +90,6 @@ public:
     void setFrameStabilization(bool doStabilization);
     bool getFrameStabilization(){ return settings.frameStabilization;}
     
-    OMX_ERRORTYPE setColorEnhancement(bool doColorEnhance, int U=128, int V=128);
     
     
     void setDRE(int level);
@@ -132,12 +133,21 @@ public:
     void enableAnnotation();
     void setZeroShutterLag(bool value);
     OMX_ERRORTYPE setColorDenoise(bool doColorDenoise);
-    void setColorEnhancement(int u, int v);
     
-    OMX_ERRORTYPE setImageFilter(OMX_IMAGEFILTERTYPE imageFilter_, vector<int> params);
+    
+#pragma mark IMAGE FILTERS    
+    ImageFXController imageFXController;
+    ImageFXController extraImageFXController;
+    
+    OMX_ERRORTYPE setColorEnhancement(bool doEnhance, int u, int v);
+    OMX_ERRORTYPE setImageFilter(OMX_IMAGEFILTERTYPE imageFilter_, vector<int>& params);
     OMX_ERRORTYPE setImageFilter(OMX_IMAGEFILTERTYPE);
     OMX_ERRORTYPE setImageFilter(string);
     string getImageFilter();
+    
+    OMX_ERRORTYPE setExtraImageFilter(string imageFilter);
+    OMX_ERRORTYPE setExtraImageFilter(OMX_IMAGEFILTERTYPE imageFilter_, vector<int>& params);
+
     
     OMX_ERRORTYPE setExposurePreset(OMX_EXPOSURECONTROLTYPE);
     OMX_ERRORTYPE setExposurePreset(string);

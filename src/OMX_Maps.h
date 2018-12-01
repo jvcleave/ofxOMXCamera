@@ -857,26 +857,32 @@ string GetPortDefinitionString(OMX_PARAM_PORTDEFINITIONTYPE def)
     info << "bEnabled: " << def.bEnabled << endl;
     info << "bPopulated: " << def.bPopulated << endl;
     info << "bBuffersContiguous: " << def.bBuffersContiguous << endl;
-    
+
     if (def.eDomain == OMX_PortDomainVideo)
     {
-        info << "video nFrameWidth: " << def.format.video.nFrameWidth << endl;
-        info << "video nFrameHeight: " << def.format.video.nFrameHeight << endl;
-        info << "video nStride: " << def.format.video.nStride << endl;
-        info << "video nSliceHeight: " << def.format.video.nSliceHeight << endl;
-        info << "video xFramerate: " << (def.format.video.xFramerate >> 16) << endl;
-        info << "video eCompressionFormat: "<< GetVideoCodingString(def.format.video.eCompressionFormat) << endl;
-        info << "video eColorFormat: " << GetColorFormatString(def.format.video.eColorFormat) << endl;
+        info << "eDomain: " << "OMX_PortDomainVideo" << endl;
     }
     if (def.eDomain == OMX_PortDomainImage)
     {
-        info << "image nFrameWidth: " << def.format.image.nFrameWidth << endl;
-        info << "image nFrameHeight: " << def.format.image.nFrameHeight << endl;
-        info << "image nStride: " << def.format.image.nStride << endl;
-        info << "image nSliceHeight: " << def.format.image.nSliceHeight << endl;
-        info << "image coding type: " << GetImageCodingString(def.format.image.eCompressionFormat) << endl;
-        info << "image eColorFormat: " << GetColorFormatString(def.format.image.eColorFormat) << endl;
+        info << "eDomain: " << "OMX_PortDomainImage" << endl;
     }
+    
+    info << "video nFrameWidth: " << def.format.video.nFrameWidth << endl;
+    info << "video nFrameHeight: " << def.format.video.nFrameHeight << endl;
+    info << "video nStride: " << def.format.video.nStride << endl;
+    info << "video nSliceHeight: " << def.format.video.nSliceHeight << endl;
+    info << "video nBitrate: " << def.format.video.nBitrate << endl;
+    info << "video xFramerate: " << (def.format.video.xFramerate >> 16) << endl;
+    info << "video bFlagErrorConcealment: " <<  def.format.video.bFlagErrorConcealment << endl;
+    info << "video eCompressionFormat: "<< GetVideoCodingString(def.format.video.eCompressionFormat) << endl;
+    info << "video eColorFormat: " << GetColorFormatString(def.format.video.eColorFormat) << endl;
+    info << endl;
+    info << "image nFrameWidth: " << def.format.image.nFrameWidth << endl;
+    info << "image nFrameHeight: " << def.format.image.nFrameHeight << endl;
+    info << "image nStride: " << def.format.image.nStride << endl;
+    info << "image nSliceHeight: " << def.format.image.nSliceHeight << endl;
+    info << "image eCompressionFormat: " << GetImageCodingString(def.format.image.eCompressionFormat) << endl;
+    info << "image eColorFormat: " << GetColorFormatString(def.format.image.eColorFormat) << endl;
     return info.str();
 }
 static 
@@ -916,6 +922,9 @@ memset(&(a), 0, sizeof(a)); \
 (a).nVersion.s.nRevision = OMX_VERSION_REVISION; \
 (a).nVersion.s.nStep = OMX_VERSION_STEP
 
+#define OMX_IMAGE_FX (OMX_STRING)"OMX.broadcom.image_fx"
+#define IMAGE_FX_INPUT_PORT 190
+#define IMAGE_FX_OUTPUT_PORT 191
 
 
 #define OMX_CAMERA (OMX_STRING)"OMX.broadcom.camera"
@@ -1051,64 +1060,7 @@ void logOMXError(OMX_ERRORTYPE error, string comments="", string functionName=""
     
 }
 
-static
-string PrintPortDef(OMX_PARAM_PORTDEFINITIONTYPE portDef)
-{
-    stringstream info;
-    
-    //info << "cMIMEType: "		<< portDefinition.format.video.cMIMEType << endl;
-    //info << "pNativeRender: "   << portDefinition.format.video.pNativeRender << endl;
-    
-    
-    
-    
-    //info << "nVersion: "		<< portDefinition.nVersion << endl;
-    info << "nPortIndex: "                  << portDef.nPortIndex << endl;
-    info << "eDir: "                        << portDef.eDir << endl;
-    info << "nBufferCountActual: "          << portDef.nBufferCountActual << endl;
-    info << "nBufferCountMin: "             << portDef.nBufferCountMin << endl;
-    info << "nBufferSize: "                 << portDef.nBufferSize << endl;
-    info << "bEnabled: "                    << portDef.bEnabled << endl;
-    info << "bPopulated: "                  << portDef.bPopulated << endl;
-    
-    info << "image nFrameWidth: "           << portDef.format.image.nFrameWidth << endl;
-    info << "image nFrameHeight: "          << portDef.format.image.nFrameHeight << endl;
-    info << "image nStride: "               << portDef.format.image.nStride << endl;
-    info << "image nSliceHeight: "          << portDef.format.image.nSliceHeight << endl;
-    info << "image bFlagErrorConcealment: " << portDef.format.image.bFlagErrorConcealment << endl;
-    info << "image eColorFormat "           << GetColorFormatString(portDef.format.image.eColorFormat) << endl;
-    info << "image eCompressionFormat: "    << GetImageCodingString(portDef.format.image.eCompressionFormat) << endl;
-    
-    
-    info << "video nFrameWidth: "           << portDef.format.video.nFrameWidth << endl;
-    info << "video nFrameHeight: "          << portDef.format.video.nFrameHeight << endl;
-    info << "video nStride: "               << portDef.format.video.nStride << endl;
-    info << "video nSliceHeight: "          << portDef.format.video.nSliceHeight << endl;
-    info << "video nBitrate: "              << portDef.format.video.nBitrate << endl;
-    info << "video xFramerate: "            << (portDef.format.video.xFramerate >> 16) << endl;
-    info << "video bFlagErrorConcealment: " << portDef.format.video.bFlagErrorConcealment << endl;
-    info << "video eCompressionFormat: "    << GetVideoCodingString(portDef.format.video.eCompressionFormat) << endl;
-    info << "video eColorFormat: "          << GetColorFormatString(portDef.format.video.eColorFormat) << endl;
-    info << "video pNativeWindow: "         << portDef.format.video.pNativeWindow << endl;
-    
-    return info.str();
-    
-    /*
-     
-     OMX_STRING cMIMEType;
-     OMX_NATIVE_DEVICETYPE pNativeRender;
-     OMX_U32 nFrameWidth;
-     OMX_U32 nFrameHeight;
-     OMX_S32 nStride;
-     OMX_U32 nSliceHeight;
-     OMX_U32 nBitrate;
-     OMX_U32 xFramerate;
-     OMX_BOOL bFlagErrorConcealment;
-     OMX_VIDEO_CODINGTYPE eCompressionFormat;
-     OMX_COLOR_FORMATTYPE eColorFormat;
-     OMX_NATIVE_WINDOWTYPE pNativeWindow;
-     */
-}
+
 
 
 static  
@@ -1218,6 +1170,21 @@ OMX_ERRORTYPE SetComponentState(OMX_HANDLETYPE handle, OMX_STATETYPE state)
     OMX_ERRORTYPE error = OMX_SendCommand(handle, OMX_CommandStateSet, state, NULL);
     OMX_TRACE(error);
     return error;
+}
+
+
+static
+string PrintPortDefinition(OMX_HANDLETYPE handle, int port)
+{
+    OMX_ERRORTYPE error = OMX_ErrorNone;
+    
+    OMX_PARAM_PORTDEFINITIONTYPE portDef;
+    OMX_INIT_STRUCTURE(portDef);
+    portDef.nPortIndex = port;
+    
+    error = OMX_GetParameter(handle, OMX_IndexParamPortDefinition, &portDef);
+    
+    return GetPortDefinitionString(portDef);
 }
 
 
@@ -1623,7 +1590,7 @@ OMX_ERRORTYPE WaitForState(OMX_HANDLETYPE component, OMX_STATETYPE state)
             }
             ofSleepMillis(20);
             numAttempts++;
-            ofLogNotice(__func__) << GetOMXStateString(state) << " ATTEMPT # " <<  numAttempts;
+            //ofLogNotice(__func__) << GetOMXStateString(state) << " ATTEMPT # " <<  numAttempts;
             if(numAttempts >= 10)
             {
                 ready = true;
@@ -1865,22 +1832,6 @@ string PrintBuffer(OMX_BUFFERHEADERTYPE* pBuffer)
                                    this buffer */
 #endif
 }
-#if 0
-static 
-string PrintPortDef(OMX_PARAM_PORTDEFINITIONTYPE portDef)
-{
-    stringstream info;
-    info << "nFrameWidth: "  << portDef.format.image.nFrameWidth << endl;
-    info << "nFrameHeight: "  << portDef.format.image.nFrameHeight << endl;
-    info << "nStride: "  << portDef.format.image.nStride << endl;
-    info << "nSliceHeight: "  << portDef.format.image.nSliceHeight << endl;
-    info << "bFlagErrorConcealment: "  << portDef.format.image.bFlagErrorConcealment << endl;
-    info << "Color Format: " << OMX_Maps::getInstance().getColorFormat(portDef.format.image.eColorFormat) << endl;
-    info << "Compression Format: "    << OMX_Maps::getInstance().getImageCoding(portDef.format.image.eCompressionFormat) << "\n";
-    
-    ofLogVerbose(__func__) << "info: \n" << info.str();
-    return info.str();
-}
-#endif
+
 
 #endif

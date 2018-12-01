@@ -6,6 +6,7 @@ int shotsTaken;
 ofxOMXPhotoGrabber::ofxOMXPhotoGrabber()
 {
     cameraOutputPort = CAMERA_STILL_OUTPUT_PORT;
+    resetValues();
     camera = NULL;
     shotsRequested = 0;
     shotsTaken = 0;
@@ -16,6 +17,10 @@ int totalTime = 0;
 void ofxOMXPhotoGrabber::setup(ofxOMXCameraSettings& settings_)
 {
     settings = settings_;
+    settings.sensorWidth = VCOS_ALIGN_UP(settings.sensorWidth, 32);
+    settings.sensorHeight = VCOS_ALIGN_UP(settings.sensorHeight, 16);
+    settings.stillPreviewWidth = VCOS_ALIGN_UP(settings.stillPreviewWidth, 32);
+    settings.stillPreviewHeight = VCOS_ALIGN_UP(settings.stillPreviewHeight, 16);
     listener = settings.photoGrabberListener;
     
     
@@ -27,7 +32,7 @@ void ofxOMXPhotoGrabber::setup(ofxOMXCameraSettings& settings_)
     {
         settings.drawCropRectangle.set(0, 0, settings.stillPreviewWidth, settings.stillPreviewHeight);
     }
-    ofLogNotice(__func__) << settings.toString();
+    //ofLogNotice(__func__) << settings.toString();
    
     if(settings.enableTexture)
     {
@@ -36,14 +41,17 @@ void ofxOMXPhotoGrabber::setup(ofxOMXCameraSettings& settings_)
     }
     engine.setup(&settings, this, displayController.eglImage);  
 
-
 }
 
 
 void ofxOMXPhotoGrabber::onPhotoEngineStart(OMX_HANDLETYPE camera_)
 {
     camera = camera_;
-    
+    imageFXController.setup(camera, OMX_ALL);
+    if(settings.enableExtraVideoFilter)
+    {
+        extraImageFXController.setup(engine.imageFX, IMAGE_FX_OUTPUT_PORT);
+    }
     applyAllSettings();
     
     if(settings.enableTexture)
@@ -54,6 +62,7 @@ void ofxOMXPhotoGrabber::onPhotoEngineStart(OMX_HANDLETYPE camera_)
         displayController.setup(&settings, engine.render);
 
     }
+    
     engine.isOpen = true;
     
     if(listener)
@@ -68,6 +77,7 @@ bool ofxOMXPhotoGrabber::isReady()
 {
     return engine.isOpen;
 }
+
 
 
 int photoStart = 0;
@@ -128,6 +138,45 @@ void ofxOMXPhotoGrabber::onTakePhotoComplete(string filePath)
     }
     
 }
+#pragma mark PREVIEW RECORDING
+
+void ofxOMXPhotoGrabber::setRecordingBitrate(float recordingBitrateMB)
+{
+    engine.videoRecorder.setRecordingBitrate(recordingBitrateMB);
+}
+
+bool ofxOMXPhotoGrabber::isRecording()
+{
+    bool result = false;
+    if(settings.enableStillPreview)
+    {
+        result = engine.videoRecorder.isRecording;
+    }
+    return result;
+}
+
+void ofxOMXPhotoGrabber::startRecording()
+{
+    if(settings.enableStillPreview)
+    {
+        engine.videoRecorder.startRecording();
+    }else
+    {
+        ofLogError(__func__) << "settings.enableStillPreview MUST BE ENABLED: " << settings.enableStillPreview;
+    }
+    
+}
+
+void ofxOMXPhotoGrabber::stopRecording()
+{
+    if(settings.enableStillPreview)
+    {
+        engine.videoRecorder.stopRecording();
+    }else
+    {
+        ofLogError(__func__) << "settings.enableStillPreview MUST BE ENABLED: " << settings.enableStillPreview;
+    }
+}
 
 void ofxOMXPhotoGrabber::setJPEGCompression(int compression)
 {
@@ -182,8 +231,6 @@ void ofxOMXPhotoGrabber::draw()
     displayController.updateTexture();
     displayController.draw();  
 }
-
-
 
 
 ofxOMXPhotoGrabber::~ofxOMXPhotoGrabber()

@@ -3,9 +3,6 @@
 //--------------------------------------------------------------
 void ofApp::setup()
 {
-	ofSetLogLevel(OF_LOG_VERBOSE);
-    ofSetLogLevel("ofThread", OF_LOG_ERROR);
-	doDrawInfo	= true;
 	
 	//allows keys to be entered via terminal remotely (ssh)
 	consoleListener.setup(this);
@@ -14,7 +11,7 @@ void ofApp::setup()
 	settings.sensorWidth = 1280; //default 1280
 	settings.sensorHeight = 720; //default 720
 	settings.enableTexture = true; //default true
-
+    settings.enableExtraVideoFilter = true;
 
 	//pass in the settings and it will start the camera
 	videoGrabber.setup(settings);
@@ -28,11 +25,7 @@ void ofApp::setup()
 //--------------------------------------------------------------
 void ofApp::update()
 {
-	//not working yet
-	/*if (videoGrabber.isFrameNew())
-	{
-		
-	}*/
+	
 
 }
 
@@ -43,26 +36,27 @@ void ofApp::draw(){
 	//draws at camera resolution
 	videoGrabber.draw();
 	
-	//draw a smaller version via the getTextureReference() method
-	int drawWidth = settings.sensorWidth/4;
-	int drawHeight = settings.sensorHeight/4;
-	videoGrabber.getTextureReference().draw(settings.sensorWidth-drawWidth, settings.sensorHeight-drawHeight, drawWidth, drawHeight);
+    if(videoGrabber.isTextureEnabled())
+    {
+        //draw a smaller version via the getTextureReference() method
+        int drawWidth = settings.sensorWidth/4;
+        int drawHeight = settings.sensorHeight/4;
+        videoGrabber.getTextureReference().draw(settings.sensorWidth-drawWidth, settings.sensorHeight-drawHeight, drawWidth, drawHeight);
+    }
+
 
 	stringstream info;
-	info << "App FPS: " << ofGetFrameRate() << "\n";
-	info << "Camera Resolution: " << videoGrabber.getWidth() << "x" << videoGrabber.getHeight()	<< " @ "<< videoGrabber.getFrameRate() <<"FPS"<< "\n";
-	info << "CURRENT FILTER: " << filterCollection.getCurrentFilterName() << "\n";	
+	info << "App FPS: " << ofGetFrameRate() << endl;
+	info << "Camera Resolution: " << videoGrabber.getWidth() << "x" << videoGrabber.getHeight()	<< " @ "<< videoGrabber.getFrameRate() <<"FPS"<< endl;
+	info << "CURRENT FILTER: " << filterCollection.getCurrentFilterName() << endl;	
 	//info <<	filterCollection.filterList << "\n";
 	
-	info << "\n";
-	info << "Press e to increment filter" << "\n";
-	info << "Press g to Toggle info" << "\n";
+    info << endl;
+	info << "Press 1 to increment filter" << endl;
 
 	
-	if (doDrawInfo) 
-	{
-		ofDrawBitmapStringHighlight(info.str(), 100, 100, ofColor::black, ofColor::yellow);
-	}
+    ofDrawBitmapStringHighlight(info.str(), 100, 100, ofColor::black, ofColor::yellow);
+
 }
 
 //--------------------------------------------------------------
@@ -71,26 +65,14 @@ void ofApp::keyPressed  (int key)
 	ofLog(OF_LOG_VERBOSE, "%c keyPressed", key);
 	
 	
-	if (key == 'e')
+	if (key == '1')
 	{
 		videoGrabber.setImageFilter(filterCollection.getNextFilter());
 	}
-	
-	if (key == 'g')
-	{
-		doDrawInfo = !doDrawInfo;
-	}
-	
-	if (key == 'q')
-	{
-		ofLogVerbose(__func__) << "STOPPING RECORDING";
-		videoGrabber.stopRecording();
-	}
-	
-	if (key == 't')
-	{
-		videoGrabber.toggleLED();
-	}
+    if (key == '2')
+    {        
+        videoGrabber.setExtraImageFilter(GetImageFilterString(filterCollection.getNextFilter()));
+    }
 }
 
 void ofApp::onCharacterReceived(KeyListenerEventData& e)

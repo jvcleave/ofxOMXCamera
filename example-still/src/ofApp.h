@@ -27,6 +27,9 @@ class ofApp : public ofBaseApp, public KeyListener, public ofxOMXPhotoGrabberLis
 	bool doDrawInfo;
     vector<string>photoFiles;
     void onTakePhotoComplete(string fileName) override;
-    
+    void onPhotoGrabberEngineStart()override 
+    {
+        
+    };
 };
 

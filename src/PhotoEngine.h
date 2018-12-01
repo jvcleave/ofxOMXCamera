@@ -8,8 +8,7 @@
 
 #pragma once
 
-#include "OMX_Maps.h"
-#include "ofxOMXCameraSettings.h"
+#include "VideoRecorder.h"
 
 class PhotoEngineListener
 {
@@ -18,7 +17,7 @@ public:
     virtual void onPhotoEngineStart(OMX_HANDLETYPE)=0;
 
 };
-class PhotoEngine
+class PhotoEngine : public VideoRecorderListener
 {
 public:
 	PhotoEngine();
@@ -38,7 +37,15 @@ public:
     OMX_HANDLETYPE render;
     OMX_HANDLETYPE encoder;
     OMX_HANDLETYPE nullSink;
+    OMX_HANDLETYPE splitter;
+    OMX_HANDLETYPE imageFX;
 
+    
+    VideoRecorder videoRecorder;
+    //Video Recording
+    void onVideoRecordingComplete(string filePath) override;
+
+    
     void writeFile();
     string saveFolderAbsolutePath;
     OMX_U32 encoderOutputBufferSize;
@@ -51,86 +58,25 @@ public:
     
     EGLImageKHR eglImage;
     
-    static OMX_ERRORTYPE 
-    nullEmptyBufferDone(OMX_HANDLETYPE hComponent, 
-                        OMX_PTR pAppData, 
-                        OMX_BUFFERHEADERTYPE* pBuffer)
-                        {return OMX_ErrorNone;};
-    
-    static OMX_ERRORTYPE 
-    nullFillBufferDone(OMX_HANDLETYPE hComponent, 
-                       OMX_PTR pAppData, 
-                       OMX_BUFFERHEADERTYPE* pBuffer)
-                        {return OMX_ErrorNone;};
-    
-    static OMX_ERRORTYPE 
-    nullEventHandlerCallback(OMX_HANDLETYPE hComponent, 
-                                 OMX_PTR pAppData, 
-                                 OMX_EVENTTYPE eEvent, 
-                                 OMX_U32 nData1, 
-                                 OMX_U32 nData2, 
-                                 OMX_PTR pEventData)
-                                {return OMX_ErrorNone;};
+    static OMX_ERRORTYPE nullEmptyBufferDone(OMX_HANDLETYPE, OMX_PTR, OMX_BUFFERHEADERTYPE*) {return OMX_ErrorNone;};
+    static OMX_ERRORTYPE nullFillBufferDone(OMX_HANDLETYPE, OMX_PTR, OMX_BUFFERHEADERTYPE*) {return OMX_ErrorNone;};
+    static OMX_ERRORTYPE nullEventHandlerCallback(OMX_HANDLETYPE, OMX_PTR, OMX_EVENTTYPE, OMX_U32, OMX_U32, OMX_PTR){return OMX_ErrorNone;};
     
     
-    static OMX_ERRORTYPE 
-    cameraEventHandlerCallback(OMX_HANDLETYPE hComponent, 
-                               OMX_PTR pAppData,  
-                               OMX_EVENTTYPE eEvent, 
-                               OMX_U32 nData1, 
-                               OMX_U32 nData2, 
-                               OMX_PTR pEventData);
-    
-    static OMX_ERRORTYPE
-    cameraFillBufferDone(OMX_HANDLETYPE hComponent,
-                          OMX_PTR pAppData,
-                          OMX_BUFFERHEADERTYPE* pBuffer){return OMX_ErrorNone;};
-    
-    static OMX_ERRORTYPE 
-    cameraEmptyBufferDone(OMX_HANDLETYPE hComponent, 
-                        OMX_PTR pAppData, 
-                        OMX_BUFFERHEADERTYPE* pBuffer){return OMX_ErrorNone;};
+    static OMX_ERRORTYPE cameraEventHandlerCallback(OMX_HANDLETYPE, OMX_PTR, OMX_EVENTTYPE, OMX_U32, OMX_U32, OMX_PTR);
+    static OMX_ERRORTYPE cameraFillBufferDone(OMX_HANDLETYPE, OMX_PTR, OMX_BUFFERHEADERTYPE*){return OMX_ErrorNone;};
+    static OMX_ERRORTYPE cameraEmptyBufferDone(OMX_HANDLETYPE, OMX_PTR, OMX_BUFFERHEADERTYPE*){return OMX_ErrorNone;};
     
     
-    static OMX_ERRORTYPE 
-    encoderEventHandlerCallback(OMX_HANDLETYPE hComponent, 
-                               OMX_PTR pAppData,  
-                               OMX_EVENTTYPE eEvent, 
-                               OMX_U32 nData1, 
-                               OMX_U32 nData2, 
-                               OMX_PTR pEventData);
-    static OMX_ERRORTYPE
-    encoderFillBufferDone(OMX_HANDLETYPE hComponent,
-                          OMX_PTR pAppData,
-                          OMX_BUFFERHEADERTYPE* pBuffer);
+    static OMX_ERRORTYPE encoderEventHandlerCallback(OMX_HANDLETYPE, OMX_PTR, OMX_EVENTTYPE, OMX_U32, OMX_U32, OMX_PTR);
+    static OMX_ERRORTYPE encoderFillBufferDone(OMX_HANDLETYPE, OMX_PTR, OMX_BUFFERHEADERTYPE*);
+    static OMX_ERRORTYPE encoderEmptyBufferDone(OMX_HANDLETYPE, OMX_PTR, OMX_BUFFERHEADERTYPE*){return OMX_ErrorNone;};
     
-    static OMX_ERRORTYPE
-    encoderEmptyBufferDone(OMX_HANDLETYPE hComponent,
-                         OMX_PTR pAppData,
-                         OMX_BUFFERHEADERTYPE* pBuffer){return OMX_ErrorNone;};
-    
-    
-    OMX_PARAM_PORTDEFINITIONTYPE previewPortConfig;
-    
-    static OMX_ERRORTYPE textureRenderFillBufferDone( OMX_HANDLETYPE, OMX_PTR, OMX_BUFFERHEADERTYPE*);
+    static OMX_ERRORTYPE textureRenderFillBufferDone(OMX_HANDLETYPE, OMX_PTR, OMX_BUFFERHEADERTYPE*);
     int renderInputPort;
     OMX_BUFFERHEADERTYPE* eglBuffer;
     
-    OMX_CONFIG_PORTBOOLEANTYPE cameraStillOutputPortConfig;
-    OMX_PARAM_PORTDEFINITIONTYPE encoderOutputPortDefinition;
-    OMX_CALLBACKTYPE encoderCallbacks;
-    OMX_CALLBACKTYPE nullSinkCallbacks;
-    OMX_CALLBACKTYPE renderCallbacks;
 
-    OMX_CALLBACKTYPE cameraCallbacks;
-    
-    OMX_CONFIG_REQUESTCALLBACKTYPE cameraCallback;
-    OMX_FRAMESIZETYPE frameSizeConfig;
-    OMX_PARAM_SENSORMODETYPE sensorMode;
-    OMX_PARAM_PORTDEFINITIONTYPE stillPortConfig;
-    OMX_PARAM_U32TYPE device;
-
-    OMX_IMAGE_PARAM_QFACTORTYPE compressionConfig;
     void setJPEGCompression(int quality);
     
 };
