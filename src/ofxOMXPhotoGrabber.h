@@ -65,5 +65,13 @@ public:
     {
         return engine.videoRecorder.getRecordingBufferSize();
     }
+    
+    
+    bool isFrameNew();
 
+private:
+    bool hasNewFrame;
+    int updateFrameCounter;
+    int frameCounter;
+    void onUpdate(ofEventArgs & args);
 };

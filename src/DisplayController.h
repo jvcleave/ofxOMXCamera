@@ -444,17 +444,7 @@ public:
         
         if (needsRegeneration)
         {
-            
-            if(fbo.isAllocated())
-            {
-                fbo.clear();
-            }
-            
             fbo.allocate(videoWidth, videoHeight, GL_RGBA);
-            if(texture.isAllocated())
-            {
-                texture.clear();
-            }
             texture.allocate(videoWidth, videoHeight, GL_RGBA);
             texture.setTextureWrap(GL_REPEAT, GL_REPEAT);
             textureID = texture.getTextureData().textureID;
@@ -506,6 +496,8 @@ public:
             ofLogNotice(__func__) <<  " PASS <---------------- :)";
             of_pixels.setFromExternalPixels(pixels, videoWidth, videoHeight, 4);
         }
+        
+
         return success;
         
     }

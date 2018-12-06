@@ -10,6 +10,12 @@ ofxOMXPhotoGrabber::ofxOMXPhotoGrabber()
     camera = NULL;
     shotsRequested = 0;
     shotsTaken = 0;
+    updateFrameCounter = 0;
+    frameCounter = 0;
+    hasNewFrame = false;
+    
+    ofAddListener(ofEvents().update, this, &ofxOMXPhotoGrabber::onUpdate);    
+
 }
 
 int totalTime = 0;
@@ -62,7 +68,8 @@ void ofxOMXPhotoGrabber::onPhotoEngineStart(OMX_HANDLETYPE camera_)
         displayController.setup(&settings, engine.render);
 
     }
-    
+    ofAddListener(ofEvents().update, this, &ofxOMXPhotoGrabber::onUpdate); 
+
     engine.isOpen = true;
     
     if(listener)
@@ -70,6 +77,48 @@ void ofxOMXPhotoGrabber::onPhotoEngineStart(OMX_HANDLETYPE camera_)
         listener->onPhotoGrabberEngineStart();
     }
     
+}
+
+
+bool ofxOMXPhotoGrabber::isFrameNew()
+{
+    if(!settings.enableStillPreview) return false;
+    
+    if(!settings.enableTexture)
+    {
+        return  true;
+    }
+    return hasNewFrame;
+}
+
+
+#pragma mark UPDATE
+void ofxOMXPhotoGrabber::onUpdate(ofEventArgs & args)
+{
+    
+    if(!engine.isOpen)
+    {
+        //ofLogError() << "ENGINE CLOSED";
+        return;
+    }
+    if (settings.enableTexture && settings.enableStillPreview) 
+    {
+        frameCounter = engine.getFrameCounter();
+        if (frameCounter > updateFrameCounter) 
+        {
+            updateFrameCounter = frameCounter;
+            hasNewFrame = true;
+            
+        }else
+        {
+            hasNewFrame = false;
+        }
+        if (hasNewFrame) 
+        {
+            displayController.updateTexture(pixelsRequested);
+        }
+    }
+    //ofLogVerbose() << "hasNewFrame: " << hasNewFrame;
 }
 
 
@@ -207,28 +256,28 @@ int ofxOMXPhotoGrabber::getHeight()
 void ofxOMXPhotoGrabber::draw(ofRectangle& rectangle)
 {
     if(engine.isCapturing) return;
-    displayController.updateTexture();
+    //displayController.updateTexture();
     displayController.draw(rectangle.x, rectangle.y, rectangle.width, rectangle.height);
 }
 
 void ofxOMXPhotoGrabber::draw(int x, int y)
 {
     if(engine.isCapturing) return;
-    displayController.updateTexture();
+    //displayController.updateTexture();
     displayController.draw(x, y);  
 }
 
 void ofxOMXPhotoGrabber::draw(int x, int y, int width, int height)
 {
     if(engine.isCapturing) return;
-    displayController.updateTexture();
+    //displayController.updateTexture();
     displayController.draw(x, y, width, height);
 }
 
 void ofxOMXPhotoGrabber::draw()
 {
     if(engine.isCapturing) return;
-    displayController.updateTexture();
+    //displayController.updateTexture();
     displayController.draw();  
 }
 
@@ -240,6 +289,8 @@ ofxOMXPhotoGrabber::~ofxOMXPhotoGrabber()
 
 void ofxOMXPhotoGrabber::close()
 {
+    
+    ofRemoveListener(ofEvents().update, this, &ofxOMXPhotoGrabber::onUpdate);
     displayController.close();
     engine.close();
     camera = NULL;

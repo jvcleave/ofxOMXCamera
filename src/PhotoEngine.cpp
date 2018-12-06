@@ -5,6 +5,11 @@
 #pragma mark TEXTURE RENDER CALLBACKS
 OMX_ERRORTYPE PhotoEngine::textureRenderFillBufferDone(OMX_HANDLETYPE render, OMX_PTR photoEngine, OMX_BUFFERHEADERTYPE* pBuffer)
 {    
+    
+    
+    PhotoEngine* engine = static_cast<PhotoEngine*>(photoEngine);
+    engine->frameCounter++;
+    
     return OMX_FillThisBuffer(render, pBuffer);
 }
 
@@ -62,12 +67,19 @@ PhotoEngine::PhotoEngine()
     splitter = NULL;
     imageFX = NULL;
     saveFolderAbsolutePath.clear();
-    
+    frameCounter = 0;
     renderInputPort = VIDEO_RENDER_INPUT_PORT;
     isCapturing = false;
     
 
 }   
+
+
+int PhotoEngine::getFrameCounter()
+{
+    return frameCounter;
+}
+
 void PhotoEngine::onVideoRecordingComplete(string filePath)
 {
     ofLogNotice(__func__) << "filePath: " << filePath;

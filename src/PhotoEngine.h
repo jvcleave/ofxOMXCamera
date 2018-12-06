@@ -79,6 +79,9 @@ public:
 
     void setJPEGCompression(int quality);
     
+    int getFrameCounter();
+    int frameCounter;
+
 };
 
 
