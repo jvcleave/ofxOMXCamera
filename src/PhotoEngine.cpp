@@ -745,11 +745,15 @@ void PhotoEngine::close()
     if(splitter)
     {
         error = DisableAllPortsForComponent(&splitter);
+        error = OMX_SendCommand(splitter, OMX_CommandFlush, OMX_ALL, NULL);
+        OMX_TRACE(error);
     }
     
     if(encoder)
     {
         error = DisableAllPortsForComponent(&encoder);
+        error = OMX_SendCommand(encoder, OMX_CommandFlush, OMX_ALL, NULL);
+        OMX_TRACE(error);
     }
 
     if(render)

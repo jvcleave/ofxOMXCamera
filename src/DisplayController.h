@@ -408,7 +408,7 @@ public:
         
         if(!needsRegeneration)
         {
-            //ofLogVerbose(__func__) << "NO CHANGES NEEDED - RETURNING EARLY";
+            ofLogVerbose(__func__) << "NO CHANGES NEEDED - RETURNING EARLY";
             return true;
         }
         
@@ -445,7 +445,16 @@ public:
         if (needsRegeneration)
         {
             
+            if(fbo.isAllocated())
+            {
+                fbo.clear();
+            }
+            
             fbo.allocate(videoWidth, videoHeight, GL_RGBA);
+            if(texture.isAllocated())
+            {
+                texture.clear();
+            }
             texture.allocate(videoWidth, videoHeight, GL_RGBA);
             texture.setTextureWrap(GL_REPEAT, GL_REPEAT);
             textureID = texture.getTextureData().textureID;

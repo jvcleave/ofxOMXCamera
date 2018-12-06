@@ -1376,10 +1376,6 @@ void OMXCameraController::setDisplayMirror(bool doMirror)
 }
 
 
-GLuint OMXCameraController::getTextureID()
-{
-    return displayController.textureID;
-}
 
 void OMXCameraController::enablePixels()
 {
@@ -1407,11 +1403,22 @@ ofPixels& OMXCameraController::getPixels()
     return displayController.of_pixels;
 }
 
-ofTexture& OMXCameraController::getTextureReference()
-{
-    return displayController.texture;
+GLuint OMXCameraController::getTextureID()
+{    
+    return getTextureReference().getTextureData().textureID;
 }
 
+
+ofTexture& OMXCameraController::getTextureReference()
+{
+    
+    return displayController.fbo.getTextureReference();
+}
+ofFbo& OMXCameraController::getFboReference()
+{
+    
+    return displayController.fbo;
+}
 
 void OMXCameraController::setZeroShutterLag(bool value)
 {

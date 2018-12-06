@@ -460,17 +460,20 @@ void VideoEngine::close()
     error = DisableAllPortsForComponent(&camera);
     OMX_TRACE(error);
     
+    error = OMX_SendCommand(camera, OMX_CommandFlush, OMX_ALL, NULL);
+    OMX_TRACE(error);
+    
     if(settings->enableExtraVideoFilter)
     {
         error = DisableAllPortsForComponent(&imageFX);
         OMX_TRACE(error);
-        
+        /*
         OMX_PARAM_U32TYPE extra_buffers;
         OMX_INIT_STRUCTURE(extra_buffers);
         extra_buffers.nU32 = 0;
         
         error = OMX_SetParameter(imageFX, OMX_IndexParamBrcmExtraBuffers, &extra_buffers);
-        OMX_TRACE(error);
+        OMX_TRACE(error);*/
     }
     
     error = DisableAllPortsForComponent(&splitter);
@@ -481,14 +484,16 @@ void VideoEngine::close()
     
     videoRecorder.close();
     
-    error = OMX_SendCommand(camera, OMX_CommandFlush, OMX_ALL, NULL);
-    OMX_TRACE(error);
+ 
     
     if(settings->enableExtraVideoFilter)
     {
         error = OMX_SendCommand(imageFX, OMX_CommandFlush, OMX_ALL, NULL);
         OMX_TRACE(error);
     }
+    
+    error = OMX_SendCommand(splitter, OMX_CommandFlush, OMX_ALL, NULL);
+    OMX_TRACE(error);
     
     error = OMX_SendCommand(splitter, OMX_CommandFlush, OMX_ALL, NULL);
     OMX_TRACE(error);

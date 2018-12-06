@@ -32,7 +32,7 @@ void ofxOMXPhotoGrabber::setup(ofxOMXCameraSettings& settings_)
     {
         settings.drawCropRectangle.set(0, 0, settings.stillPreviewWidth, settings.stillPreviewHeight);
     }
-    //ofLogNotice(__func__) << settings.toString();
+    ofLogNotice(__func__) << settings.toString();
    
     if(settings.enableTexture)
     {

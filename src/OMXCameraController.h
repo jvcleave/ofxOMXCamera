@@ -232,6 +232,8 @@ public:
     ofPixels& getPixels();
     GLuint getTextureID();
     ofTexture& getTextureReference();
+    ofFbo& getFboReference();
+
     void enablePixels();
     void disablePixels();
     unsigned char * getRawPixels();
