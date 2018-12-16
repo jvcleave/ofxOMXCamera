@@ -101,6 +101,9 @@ void ofxOMXPhotoGrabber::onUpdate(ofEventArgs & args)
         //ofLogError() << "ENGINE CLOSED";
         return;
     }
+    
+    if(engine.isCapturing) return;
+
     if (settings.enableTexture && settings.enableStillPreview) 
     {
         frameCounter = engine.getFrameCounter();
@@ -256,28 +259,24 @@ int ofxOMXPhotoGrabber::getHeight()
 void ofxOMXPhotoGrabber::draw(ofRectangle& rectangle)
 {
     if(engine.isCapturing) return;
-    //displayController.updateTexture();
     displayController.draw(rectangle.x, rectangle.y, rectangle.width, rectangle.height);
 }
 
 void ofxOMXPhotoGrabber::draw(int x, int y)
 {
     if(engine.isCapturing) return;
-    //displayController.updateTexture();
     displayController.draw(x, y);  
 }
 
 void ofxOMXPhotoGrabber::draw(int x, int y, int width, int height)
 {
     if(engine.isCapturing) return;
-    //displayController.updateTexture();
     displayController.draw(x, y, width, height);
 }
 
 void ofxOMXPhotoGrabber::draw()
 {
     if(engine.isCapturing) return;
-    //displayController.updateTexture();
     displayController.draw();  
 }
 
