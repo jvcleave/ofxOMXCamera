@@ -1209,7 +1209,7 @@ OMX_ERRORTYPE OMXCameraController::setImageFilter(OMX_IMAGEFILTERTYPE imageFilte
     if(error == OMX_ErrorNone)
     {
         settings.imageFilter = GetImageFilterString(imageFilter);
-        settings.imageFilterParamConfig  = settings.getFilterParamConfig(imageFilter, params);
+        settings.imageFilterParamConfig  = GetFilterParamConfig(imageFilter, params);
     }
     return error;
 }
@@ -1242,7 +1242,7 @@ OMX_ERRORTYPE OMXCameraController::setExtraImageFilter(OMX_IMAGEFILTERTYPE image
         if(error == OMX_ErrorNone)
         {
             settings.extraImageFilter = GetImageFilterString(imageFilter);
-            settings.extraImageFilterParamConfig  = settings.getFilterParamConfig(imageFilter, params);
+            settings.extraImageFilterParamConfig  = GetFilterParamConfig(imageFilter, params);
         }
     }else
     {
