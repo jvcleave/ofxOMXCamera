@@ -100,7 +100,7 @@ public:
     
     
     vector<FilterParamConfig> filterParamConfigs;
-
+    
     
     map<OMX_DYNAMICRANGEEXPANSIONMODETYPE, int> dreTypes;
     
@@ -350,9 +350,9 @@ public:
     
     map<EGLint, string> eglErrors;
     
-
-
-	
+    
+    
+    
     
     FilterParamConfig createFilterParamConfig(OMX_IMAGEFILTERTYPE imageFilter)
     {
@@ -364,8 +364,9 @@ public:
             case OMX_ImageFilterSolarize:
             {
                 //Linear mapping of [0,x0] to [0,y0>] and [x0,255] to [y1,y2]. Default is "128 128 128 0".
-                filterParamConfig.addParam("x1", 0, 255, 128);
-                filterParamConfig.addParam("x2", 0, 255, 128);
+                filterParamConfig.addParam("doYUV", 0, 1, 0);
+                filterParamConfig.addParam("x0", 0, 255, 128);
+                filterParamConfig.addParam("y0", 0, 255, 128);
                 filterParamConfig.addParam("y1", 0, 255, 128);
                 filterParamConfig.addParam("y2", 0, 255, 0);
                 break;
@@ -402,25 +403,27 @@ public:
             }
             case OMX_ImageFilterColourBalance:
             {
-                filterParamConfig.addParam("unused", 0, 255, 0);
+                filterParamConfig.addParam("lens", 0, 255, 0);
                 filterParamConfig.addParam("r", 0, 255, 255);
                 filterParamConfig.addParam("g", 0, 255, 255);
-                filterParamConfig.addParam("b", 0, 255, 255);    
+                filterParamConfig.addParam("b", 0, 255, 255);   
+                filterParamConfig.addParam("u", 0, 255, 0);    
+                filterParamConfig.addParam("v", 0, 255, 0);    
                 break;
             }
             case OMX_ImageFilterColourSwap:
             {
-                filterParamConfig.addParam("mode", 0, 1, 0);  
+                filterParamConfig.addParam("direction", 0, 1, 0);  
                 break;
             }
             case OMX_ImageFilterColourPoint:
             {
-                filterParamConfig.addParam("mode", 0, 3, 0);  
+                filterParamConfig.addParam("quadrant", 0, 3, 0);  
                 break;
             }
             case OMX_ImageFilterPosterise:
             {
-                filterParamConfig.addParam("resolution", 0, 30, 15);  
+                filterParamConfig.addParam("steps", 0, 32, 4);  
                 break;
             }
             case OMX_ImageFilterSketch:
@@ -488,7 +491,7 @@ private:
         collectNames<OMX_MIRRORTYPE>(mirrors, mirrorNames, mirrorTypes);
         
         
-		imageFilters["None"] = OMX_ImageFilterNone;
+        imageFilters["None"] = OMX_ImageFilterNone;
         imageFilters["Noise"] = OMX_ImageFilterNoise;
         imageFilters["Emboss"] = OMX_ImageFilterEmboss;
         imageFilters["Negative"] = OMX_ImageFilterNegative;
@@ -649,7 +652,7 @@ private:
         videoCoding["YUV"] = OMX_VIDEO_CodingYUV;
         videoCoding["Sorenson"] = OMX_VIDEO_CodingSorenson;
         videoCoding["Theora"] = OMX_VIDEO_CodingTheora;
-        videoCoding["MVC"] = OMX_VIDEO_CodingMVC; 	
+        videoCoding["MVC"] = OMX_VIDEO_CodingMVC;     
         
         
         collectNames<OMX_VIDEO_CODINGTYPE>(videoCoding, videoCodingNames, videoCodingTypes);
@@ -1055,7 +1058,7 @@ string GetPortDefinitionString(OMX_PARAM_PORTDEFINITIONTYPE def)
     info << "bEnabled: " << def.bEnabled << endl;
     info << "bPopulated: " << def.bPopulated << endl;
     info << "bBuffersContiguous: " << def.bBuffersContiguous << endl;
-
+    
     if (def.eDomain == OMX_PortDomainVideo)
     {
         info << "eDomain: " << "OMX_PortDomainVideo" << endl;
@@ -1887,14 +1890,14 @@ string DebugEventHandlerString (OMX_HANDLETYPE hComponent, OMX_EVENTTYPE eEvent,
             string commandString = GetOMXCommandString(command);
             
             info << "command: "  << commandString << endl;
-
+            
             switch(command)
             {
                 case OMX_CommandStateSet:
                 {
                     OMX_STATETYPE state = (OMX_STATETYPE)nData2;
                     info << "state: "  << GetOMXStateString(state) << endl;
-
+                    
                     switch (state)
                     {
                         case OMX_StateInvalid:
@@ -1910,14 +1913,14 @@ string DebugEventHandlerString (OMX_HANDLETYPE hComponent, OMX_EVENTTYPE eEvent,
                     }
                     break;
                 }
-                
+                    
                 case OMX_CommandPortDisable:
                 case OMX_CommandPortEnable:
                 case OMX_CommandFlush:
                 {
                     info << "port: "  << nData2 << endl;
                     break;
-
+                    
                 }
                 case OMX_CommandMarkBuffer:
                 case OMX_CommandKhronosExtensions:
@@ -1975,14 +1978,14 @@ string PrintBuffer(OMX_BUFFERHEADERTYPE* pBuffer)
 {
     stringstream info;
     info << "nSize: " << pBuffer->nSize << endl;
-
+    
     info << "nAllocLen: " << pBuffer->nAllocLen << endl;
     info << "nFilledLen: " << pBuffer->nFilledLen << endl;
     info << "nOffset: " << pBuffer->nOffset << endl;
     info << "nOutputPortIndex: " << pBuffer->nOutputPortIndex << endl;
     info << "nInputPortIndex: " << pBuffer->nInputPortIndex << endl;
     info << "nFlags: " << pBuffer->nFlags << endl;
-
+    
     
 #if 0
     //info << "nVersion: " << pBuffer->nVersion << endl;
@@ -1995,7 +1998,7 @@ string PrintBuffer(OMX_BUFFERHEADERTYPE* pBuffer)
     info << "pMarkData: " << pBuffer->pMarkData << endl;
     info << "nTickCount: " << pBuffer->nTickCount << endl;
     //info << "nTimeStamp: " << pBuffer->nTimeStamp << endl;
-
+    
 #endif
     return info.str();
 #if 0
