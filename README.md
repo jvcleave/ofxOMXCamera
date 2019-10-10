@@ -1,6 +1,11 @@
 #### STATUS   
 Master may be unstable, features untested. See [Releases](https://github.com/jvcleave/ofxOMXCamera/releases) for tested versions
 
+
+[![Build status](https://travis-ci.org/jvcleave/ofxOMXCamera.svg?branch=master)](https://travis-ci.org/jvcleave/ofxOMXCamera)
+
+
+
 #### DESCRIPTION:   
 openFrameworks addon to control the Raspberry Pi Camera Module. Formerly [ofxRPiCameraVideoGrabber](https://github.com/jvcleave/ofxRPiCameraVideoGrabber) that only provided video functionality. This addon also provides still capture functionality as well as the abilty to save settings as JSON based files.
 
