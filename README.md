@@ -10,7 +10,7 @@ openFrameworks addon to control the Raspberry Pi Camera Module. Formerly [ofxRPi
 
 
 #### REQUIREMENTS:
-openFrameworks 0.10.0 or higher [Setup Guide](http://openframeworks.cc/setup/raspberrypi/)   
+openFrameworks 0.10.*, Raspberry Pi 1-3    [Setup Guide](http://openframeworks.cc/setup/raspberrypi/)   
 Developed with GPU memory set at 256, overclock to medium but 128/default should work as well   
 Desktop Mode (X11 enabled) may work but untested
 
